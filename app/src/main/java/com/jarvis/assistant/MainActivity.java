@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     private TextToSpeech tts;
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
+    private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
 
@@ -222,6 +223,11 @@ public class MainActivity extends Activity {
             status.setText("MICROPHONE PERMISSION NEEDED");
             return;
         }
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
+            status.setText("ALLOW CONTACTS TO ENABLE VOICE CALL COMMANDS");
+            return;
+        }
         try {
             Intent service = new Intent(this, WakeWordService.class);
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
@@ -260,8 +266,13 @@ public class MainActivity extends Activity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 if (startWakeAfterPermission) { startWakeAfterPermission = false; startWakeWordListening(); }
                 else startListening();
+            } else status.setText("MICROPHONE PERMISSION DENIED");
+        } else if (requestCode == CONTACT_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startWakeWordListening();
+            } else {
+                status.setText("CONTACTS DENIED • VOICE CALLS NEED CONTACT ACCESS");
             }
-            else status.setText("MICROPHONE PERMISSION DENIED");
         }
     }
 
