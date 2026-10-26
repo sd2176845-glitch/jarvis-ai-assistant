@@ -6,6 +6,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,7 +61,7 @@ public class WakeWordService extends Service {
         stopping = false;
         startForeground(NOTIFICATION_ID, buildNotification());
         beginRecognition();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private void createChannel() {
@@ -130,35 +132,93 @@ public class WakeWordService extends Service {
     }
 
     private void handleRecognized(String heard) {
-        String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT);
-        if (text.contains("hey jarvis") || text.contains("hey jarvesh") ||
-                text.contains("hey jarvish") || text.contains("hey jarvis ji")) {
-            String command = text.replace("hey jarvis", "").replace("hey jarvesh", "")
-                    .replace("hey jarvish", "").replace("hey jarvis ji", "").trim();
-            if (command.isEmpty()) {
-                say("Haan Boss, JARVIS sun raha hai. Boliye.");
-            } else if (command.contains("open youtube") || command.contains("youtube kholo")) {
-                say("YouTube khol raha hoon.");
-                handler.postDelayed(() -> {
-                    try {
-                        Intent launch = getPackageManager().getLaunchIntentForPackage("com.google.android.youtube");
-                        if (launch == null) launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com"));
-                        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(launch);
-                    } catch (Exception ignored) {}
-                }, 400);
-            } else if (command.contains("open whatsapp") || command.contains("whatsapp kholo")) {
-                say("WhatsApp khol raha hoon.");
-                handler.postDelayed(() -> {
-                    try {
-                        Intent launch = getPackageManager().getLaunchIntentForPackage("com.whatsapp");
-                        if (launch != null) { launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(launch); }
-                    } catch (Exception ignored) {}
-                }, 400);
-            } else {
-                say("Haan Boss, aapki baat suni. Is command ko abhi background mode mein support nahi karta.");
-            }
+        String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim();
+        String wake = text.replace("hey jarvis ji", "hey jarvis")
+                .replace("hey jarvesh", "hey jarvis").replace("hey jarvish", "hey jarvis");
+        if (!(wake.contains("hey jarvis") || wake.contains("hey jarvesh") || wake.contains("hey jarvish"))) return;
+        String command = wake.replace("hey jarvis", "").trim()
+                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+        if (command.isEmpty()) {
+            say("Haan Boss, JARVIS sun raha hai. Boliye.");
+        } else if (isCallCommand(command)) {
+            String target = extractContactTarget(command);
+            if (target.isEmpty()) say("Kis contact ko call karna hai? Contact ka naam boliye.");
+            else openContactDialer(target);
+        } else if (command.contains("open youtube") || command.contains("youtube kholo") || command.contains("youtube chalao")) {
+            say("YouTube khol raha hoon.");
+            handler.postDelayed(() -> {
+                try {
+                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.google.android.youtube");
+                    if (launch == null) launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com"));
+                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(launch);
+                } catch (Exception ignored) { say("YouTube abhi nahi khul paaya."); }
+            }, 400);
+        } else if (command.contains("open whatsapp") || command.contains("whatsapp kholo") || command.contains("whatsapp khol")) {
+            say("WhatsApp khol raha hoon.");
+            handler.postDelayed(() -> {
+                try {
+                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.whatsapp");
+                    if (launch != null) { launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(launch); }
+                    else say("WhatsApp is phone par nahi mila.");
+                } catch (Exception ignored) { say("WhatsApp abhi nahi khul paaya."); }
+            }, 400);
+        } else {
+            say("Haan Boss, command suni. Background mode mein abhi call, YouTube aur WhatsApp commands supported hain.");
         }
+    }
+
+    private boolean isCallCommand(String command) {
+        return command.contains("call") || command.contains("phone lagao")
+                || command.contains("call karo") || command.contains("ko phone karo")
+                || command.contains("ko call karo") || command.contains("dial ");
+    }
+
+    private String extractContactTarget(String command) {
+        String target = command.replace("please", "").replace("mere ", "")
+                .replace("meri ", "").replace("ko call karo", "")
+                .replace("call karo", "").replace("call", "")
+                .replace("phone lagao", "").replace("ko phone karo", "")
+                .replace("phone karo", "").replace("dial", "")
+                .replace("lagao", "").trim();
+        return target.replaceAll("\\s+", " ").trim();
+    }
+
+    private void openContactDialer(String requestedName) {
+        if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            say("Contact permission nahi mili. JARVIS app kholo aur background listening dobara enable karo.");
+            return;
+        }
+        String number = null;
+        Cursor cursor = null;
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            String[] args = new String[]{"%" + requestedName + "%"};
+            cursor = getContentResolver().query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER,
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME},
+                    selection, args, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null && cursor.moveToFirst()) number = cursor.getString(0);
+        } catch (SecurityException ignored) {
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (number == null || number.trim().isEmpty()) {
+            say("Phone contacts mein " + requestedName + " nahi mila. Contact ko isi naam se save karke dobara koshish karo.");
+            return;
+        }
+        final String phoneNumber = number;
+        say("Dialer mein " + requestedName + " ka number khol raha hoon. Call confirm kar dena.");
+        handler.postDelayed(() -> {
+            try {
+                Intent dial = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + android.net.Uri.encode(phoneNumber)));
+                dial.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(dial);
+            } catch (Exception ignored) {
+                say("Dialer nahi khul paaya. Phone app se call kar lo.");
+            }
+        }, 450);
     }
 
     private void say(String text) {
