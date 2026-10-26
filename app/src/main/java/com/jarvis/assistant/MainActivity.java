@@ -1,6 +1,7 @@
 package com.jarvis.assistant;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -248,6 +249,50 @@ public class MainActivity extends Activity {
                 "Yes Boss—I'm listening. Tell me."
             };
             replyAndShow(original, greetings[(int)(System.currentTimeMillis() % greetings.length)]);
+            return;
+        }
+
+        // Emergency phrases open a clear confirmation before the emergency dialer.
+        if (intent.contains("accident") || intent.contains("emergency") || intent.contains("sos")
+                || intent.contains("help me urgently") || intent.contains("bachao") || intent.contains("madad karo abhi")) {
+            speak("Emergency help may be needed. Please confirm on screen.");
+            new AlertDialog.Builder(this)
+                    .setTitle("JARVIS • Emergency help")
+                    .setMessage("If you are in immediate danger or injured, call India's emergency number 112. JARVIS cannot reliably detect an accident automatically. Open the dialer now?")
+                    .setNegativeButton("Not now", (dialog, which) -> {
+                        status.setText("EMERGENCY DIAL CANCELLED");
+                    })
+                    .setPositiveButton("OPEN 112 DIALER", (dialog, which) -> {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:112")));
+                        } catch (Exception e) {
+                            status.setText("PLEASE CALL 112 FROM YOUR PHONE");
+                        }
+                    })
+                    .show();
+            return;
+        }
+
+        // Mood-aware supportive replies: respond gently, without pretending to know more than was said.
+        if (intent.contains("udaas") || intent.contains("sad") || intent.contains("dil kharab")
+                || intent.contains("mann nahi lag") || intent.contains("man nahi lag")
+                || intent.contains("rona aa raha") || intent.contains("pareshan hoon")) {
+            replyAndShow(original, "Bhai, lag raha hai abhi waqt thoda mushkil hai. Main sun raha hoon. Aaram se batao kya hua—main judge nahi karunga. Agar tum chaho, hum ek-ek karke sochenge.");
+            return;
+        }
+        if (intent.contains("darr lag") || intent.contains("dar lag") || intent.contains("ghabra")
+                || intent.contains("anxiety") || intent.contains("tension ho rahi")) {
+            replyAndShow(original, "Theek hai, pehle dheere se saans lo aur apne aap ko safe jagah par rakho. Main sun raha hoon. Kis baat se darr ya tension ho rahi hai?");
+            return;
+        }
+        if (intent.contains("khush hoon") || intent.contains("bahut khush") || intent.contains("happy hoon")
+                || intent.contains("good news")) {
+            replyAndShow(original, "Arey wah, Boss! Ye toh achhi baat hai. Batao kya hua—saath mein celebrate karte hain!");
+            return;
+        }
+        if (intent.contains("akela feel") || intent.contains("lonely") || intent.contains("koi nahi hai")
+                || intent.contains("koi sunta nahi")) {
+            replyAndShow(original, "Bhai, tum jo keh rahe ho main dhyan se sununga. Tumhe sab kuch ek saath explain karne ki zaroorat nahi—jitna comfortable ho utna batao. Agar mumkin ho toh kisi bharosemand insaan se bhi baat karna.");
             return;
         }
 
