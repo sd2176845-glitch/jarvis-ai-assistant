@@ -241,6 +241,15 @@ public class MainActivity extends Activity {
                 transcript.append("\nUnable to open Chrome right now.");
             }
             return;
+        } else if (lower.contains("open whatsapp") || lower.contains("whatsapp kholo")) {
+            launchApp("com.whatsapp", "WhatsApp", "https://www.whatsapp.com");
+            return;
+        } else if (lower.contains("open instagram") || lower.contains("instagram kholo")) {
+            launchApp("com.instagram.android", "Instagram", "https://www.instagram.com");
+            return;
+        } else if (lower.contains("open facebook") || lower.contains("facebook kholo")) {
+            launchApp("com.facebook.katana", "Facebook", "https://www.facebook.com");
+            return;
         } else if (lower.contains("your name") || lower.contains("who are you")) {
             reply = "I am JARVIS, your personal assistant. Systems are standing by.";
         } else {
@@ -248,6 +257,22 @@ public class MainActivity extends Activity {
         }
         transcript.setText("YOU: " + command + "\n\nJARVIS: " + reply);
         speak(reply);
+    }
+
+
+    private void launchApp(String packageName, String appName, String fallbackUrl) {
+        String reply = "Opening " + appName + ".";
+        speak(reply);
+        try {
+            Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
+            if (launch != null) {
+                startActivity(launch);
+            } else {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)));
+            }
+        } catch (Exception e) {
+            transcript.append("\nUnable to open " + appName + " right now.");
+        }
     }
 
     private void speak(String text) {
