@@ -24,6 +24,8 @@ import android.text.InputType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -471,14 +473,23 @@ public class MainActivity extends Activity {
             try { startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)); }
             catch (Exception e) { transcript.append("\\nLocation settings nahi khul paayi."); }
             return;
-        } else if (intent.matches("^(call|phone karo|call karo)\\s+.+")) {
-            String target = intent.replaceFirst("^(call|phone karo|call karo)\\s+", "").trim();
-            speak("Calling screen khol raha hoon. Number check karke call confirm kar dena.");
-            try {
-                String digits = target.replaceAll("[^0-9+]", "");
-                if (digits.length() >= 5) startActivity(new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + digits)));
-                else { Intent dial = new Intent(Intent.ACTION_DIAL); startActivity(dial); }
-            } catch (Exception e) { transcript.append("\\nPhone dialer nahi khul paaya."); }
+        } else if (intent.contains("call") || intent.contains("phone karo") || intent.contains("phone lagao") || intent.contains("ko phone karo") || intent.contains("ko call karo")) {
+            String target = intent.replace("mere ", "").replace("meri ", "")
+                    .replace("ko call karo", "").replace("call karo", "").replace("call", "")
+                    .replace("ko phone karo", "").replace("phone karo", "").replace("phone lagao", "").trim();
+            if (target.replaceAll("[^0-9+]", "").length() >= 5) {
+                openDialer(target.replaceAll("[^0-9+]", ""));
+            } else if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
+                replyAndShow(original, "Contact permission allow karo, phir dobara bolo: " + target + " ko call karo.");
+            } else {
+                String number = findContactNumber(target);
+                if (number == null) replyAndShow(original, "Contacts mein '" + target + "' nahi mila. Contact ka naam phonebook mein check karo.");
+                else {
+                    speak("Dialer mein " + target + " ka number khol raha hoon. Call confirm kar dena.");
+                    openDialer(number);
+                }
+            }
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
             String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
@@ -560,6 +571,25 @@ public class MainActivity extends Activity {
             reply = "Maine suna: " + original + ". Is baat ko abhi poori tarah samajh nahi paaya, lekin tum doosre tareeke se bolo, main try karta hoon.";
         }
         replyAndShow(original, reply);
+    }
+
+    private String findContactNumber(String requestedName) {
+        String queryName = requestedName == null ? "" : requestedName.trim();
+        if (queryName.isEmpty()) return null;
+        Cursor cursor = null;
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            String[] args = new String[]{"%" + queryName + "%"};
+            cursor = getContentResolver().query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    selection, args, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null && cursor.moveToFirst()) return cursor.getString(0);
+        } catch (SecurityException ignored) {
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return null;
     }
 
     private void showEmergencyContactDialog() {
