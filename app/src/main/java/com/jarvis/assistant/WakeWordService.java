@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.provider.AlarmClock;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
