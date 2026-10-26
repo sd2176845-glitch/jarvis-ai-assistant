@@ -5,6 +5,9 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
+import android.provider.AlarmClock;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.RecognitionListener;
@@ -170,12 +173,12 @@ public class MainActivity extends Activity {
         transcript.setText("YOU: " + command);
         String lower = command.toLowerCase(Locale.ROOT);
         String reply;
-        if (lower.contains("hello") || lower.contains("hi") || lower.contains("jarvis")) {
+        if (lower.contains("hello") || lower.equals("hi") || lower.contains("jarvis") || lower.contains("namaste") || lower.contains("namaskar") || lower.contains("kaise ho")) {
             reply = "At your service. How may I assist you?";
-        } else if (lower.contains("time")) {
+        } else if (lower.contains("time") || lower.contains("samay") || lower.contains("kitne baje")) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
             reply = "The time is " + fmt.format(new java.util.Date());
-        } else if (lower.contains("open youtube")) {
+        } else if (lower.contains("date") || lower.contains("tarikh") || lower.contains("aaj ki date")) {\n            java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));\n            reply = "Today is " + dateFmt.format(new java.util.Date());\n        } else if (lower.contains("battery") || lower.contains("charge kitna")) {\n            Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));\n            if (batteryIntent != null) {\n                int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);\n                int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);\n                int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;\n                reply = percent >= 0 ? "Battery is at " + percent + " percent." : "I could not read the battery level.";\n            } else reply = "I could not read the battery level.";\n        } else if (lower.contains("open settings") || lower.contains("settings kholo") || lower.contains("phone settings")) {\n            reply = "Opening Settings.";\n            speak(reply);\n            try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); }\n            catch (Exception e) { transcript.append("\\nUnable to open Settings right now."); }\n            return;\n        } else if (lower.contains("set alarm") || lower.contains("alarm lagao") || lower.contains("alarm kholo")) {\n            reply = "Opening the alarm screen. Please choose the time and confirm it.";\n            speak(reply);\n            try { startActivity(new Intent(AlarmClock.ACTION_SET_ALARM)); }\n            catch (Exception e) { transcript.append("\\nNo alarm app is available."); }\n            return;\n        } else if (lower.contains("search for ") || lower.startsWith("google ") || lower.startsWith("search ")) {\n            String query = lower.replaceFirst("^.*?search for ", "").replaceFirst("^google ", "").replaceFirst("^search ", "").trim();\n            if (query.isEmpty()) query = command;\n            reply = "Searching the web for " + query;\n            speak(reply);\n            try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query)))); }\n            catch (Exception e) { transcript.append("\\nUnable to open web search."); }\n            return;\n        } else if (lower.contains("open youtube") || lower.contains("youtube kholo") || lower.contains("youtube chalao")) {
             reply = "Opening YouTube.";
             speak(reply);
             try {
@@ -186,7 +189,7 @@ public class MainActivity extends Activity {
                 transcript.append("\nUnable to open YouTube right now.");
             }
             return;
-        } else if (lower.contains("open chrome")) {
+        } else if (lower.contains("open chrome") || lower.contains("chrome kholo")) {
             reply = "Opening Chrome.";
             speak(reply);
             try {
