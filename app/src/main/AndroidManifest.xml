@@ -6,6 +6,9 @@
         </intent>
         <package android:name="com.google.android.youtube" />
         <package android:name="com.android.chrome" />
+        <package android:name="com.whatsapp" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.facebook.katana" />
     </queries>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
