@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
+    private static final int CALL_PERMISSION_REQUEST = 1003;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
 
@@ -267,6 +268,11 @@ public class MainActivity extends Activity {
             status.setText("ALLOW CONTACTS TO ENABLE VOICE CALL COMMANDS");
             return;
         }
+        if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PERMISSION_REQUEST);
+            status.setText("ALLOW CALLS FOR VOICE-CONFIRMED CALLING (OPTIONAL)");
+            return;
+        }
         try {
             Intent service = new Intent(this, WakeWordService.class);
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
@@ -311,6 +317,19 @@ public class MainActivity extends Activity {
                 startWakeWordListening();
             } else {
                 status.setText("CONTACTS DENIED • VOICE CALLS NEED CONTACT ACCESS");
+            }
+        } else if (requestCode == CALL_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startWakeWordListening();
+            } else {
+                // Other voice commands can still run without direct-call permission.
+                try {
+                    Intent service = new Intent(this, WakeWordService.class);
+                    if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
+                    status.setText("HEY JARVIS LISTENING • CALL PERMISSION NOT GRANTED");
+                } catch (Exception e) {
+                    status.setText("COULD NOT START BACKGROUND LISTENING");
+                }
             }
         }
     }
