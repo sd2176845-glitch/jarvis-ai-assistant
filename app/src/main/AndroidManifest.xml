@@ -24,7 +24,7 @@
         android:label="JARVIS"
         android:allowBackup="false"
         android:supportsRtl="true">
-        <receiver android:name=".PhoneEventReceiver" android:enabled="true" android:exported="true">
+        <receiver android:name=".PhoneEventReceiver" android:enabled="true" android:exported="true" android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
