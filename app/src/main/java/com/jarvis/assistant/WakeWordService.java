@@ -34,6 +34,9 @@ public class WakeWordService extends Service {
     private TextToSpeech tts;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean stopping = false;
+    // After the wake phrase, accept the next utterance as the command.
+    private boolean awaitingCommand = false;
+    private final Runnable commandTimeout = () -> awaitingCommand = false;
 
     @Override
     public void onCreate() {
@@ -133,16 +136,34 @@ public class WakeWordService extends Service {
 
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim();
-        // Speech services sometimes omit "hey" or transcribe JARVIS phonetically.
         String wake = text.replace("hey jarvis ji", "jarvis")
                 .replace("hey jarvesh", "jarvis").replace("hey jarvish", "jarvis")
                 .replace("hey jarvis", "jarvis").replace("jarvesh", "jarvis")
                 .replace("jarvish", "jarvis").replace("jarves", "jarvis");
-        if (!wake.contains("jarvis")) return;
-        String command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
-                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+
+        String command;
+        if (wake.contains("jarvis")) {
+            command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
+                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+            if (command.isEmpty()) {
+                // User said only "Hey Jarvis". Listen for the next sentence as the command.
+                awaitingCommand = true;
+                handler.removeCallbacks(commandTimeout);
+                handler.postDelayed(commandTimeout, 8000);
+                say("Haan Boss, bolo.");
+                return;
+            }
+        } else if (awaitingCommand) {
+            // The next speech may not contain the wake word, e.g. "YouTube kholo".
+            awaitingCommand = false;
+            handler.removeCallbacks(commandTimeout);
+            command = text.replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+        } else {
+            return;
+        }
+
         if (command.isEmpty()) {
-            say("Haan Boss, JARVIS sun raha hai. Boliye.");
+            say("Command samajh nahi aaya. Dobara boliye.");
         } else if (isCallCommand(command)) {
             String target = extractContactTarget(command);
             if (target.isEmpty()) say("Kis contact ko call karna hai? Contact ka naam boliye.");
@@ -167,7 +188,7 @@ public class WakeWordService extends Service {
                 } catch (Exception ignored) { say("WhatsApp abhi nahi khul paaya."); }
             }, 400);
         } else {
-            say("Haan Boss, command suni. Background mode mein abhi call, YouTube aur WhatsApp commands supported hain.");
+            say("Command suni, lekin ye command abhi supported nahi hai.");
         }
     }
 
@@ -179,7 +200,8 @@ public class WakeWordService extends Service {
 
     private String extractContactTarget(String command) {
         String target = command.replace("please", "").replace("mere ", "")
-                .replace("meri ", "").replace("ko call karo", "")
+                .replace("meri ", "").replace("ko call lagao", "").replace("call lagao", "")
+                .replace("ko call karo", "")
                 .replace("call karo", "").replace("call", "")
                 .replace("phone lagao", "").replace("ko phone karo", "")
                 .replace("phone karo", "").replace("dial", "")
