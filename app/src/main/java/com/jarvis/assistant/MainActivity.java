@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.BatteryManager;
 import android.provider.AlarmClock;
 import android.speech.RecognizerIntent;
@@ -16,6 +17,8 @@ import android.speech.tts.TextToSpeech;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.text.InputType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private boolean startWakeAfterPermission = false;
+    private SharedPreferences preferences;
 
     private int cyan = Color.rgb(70, 220, 255);
     private int bg = Color.rgb(3, 10, 22);
@@ -40,6 +44,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(bg);
         getWindow().setNavigationBarColor(bg);
+        preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
@@ -158,6 +163,20 @@ public class MainActivity extends Activity {
         health.setOnClickListener(v -> runSafetyCheck());
         root.addView(health, new LinearLayout.LayoutParams(-1, 48));
 
+        Button emergencyContact = new Button(this);
+        emergencyContact.setText("SET EMERGENCY CONTACT");
+        emergencyContact.setAllCaps(false);
+        emergencyContact.setTextColor(Color.WHITE);
+        emergencyContact.setOnClickListener(v -> showEmergencyContactDialog());
+        root.addView(emergencyContact, new LinearLayout.LayoutParams(-1, 48));
+
+        Button sos = new Button(this);
+        sos.setText("SOS • EMERGENCY OPTIONS");
+        sos.setAllCaps(false);
+        sos.setTextColor(Color.WHITE);
+        sos.setOnClickListener(v -> showSosOptions());
+        root.addView(sos, new LinearLayout.LayoutParams(-1, 48));
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.1");
         footer.setTextColor(Color.rgb(90, 130, 150));
@@ -249,6 +268,69 @@ public class MainActivity extends Activity {
                 "Yes Boss—I'm listening. Tell me."
             };
             replyAndShow(original, greetings[(int)(System.currentTimeMillis() % greetings.length)]);
+            return;
+        }
+
+        // Local, user-controlled preferences and memory. These never modify application code.
+        if (intent.startsWith("remember that ") || intent.startsWith("remember ")) {
+            String note = intent.replaceFirst("^remember( that)?\\s+", "").trim();
+            if (note.isEmpty()) {
+                replyAndShow(original, "Batao kya yaad rakhna hai.");
+            } else {
+                String old = preferences.getString("notes", "");
+                String updated = old.isEmpty() ? note : old + "\\n" + note;
+                String[] notes = updated.split("\\n");
+                StringBuilder kept = new StringBuilder();
+                int start = Math.max(0, notes.length - 10);
+                for (int i = start; i < notes.length; i++) {
+                    if (kept.length() > 0) kept.append("\\n");
+                    kept.append(notes[i]);
+                }
+                preferences.edit().putString("notes", kept.toString()).apply();
+                replyAndShow(original, "Theek hai, maine ye baat is phone par local memory mein save kar li.");
+            }
+            return;
+        }
+        if (intent.contains("what do you remember") || intent.contains("meri memory") || intent.contains("kya yaad hai")) {
+            String notes = preferences.getString("notes", "");
+            replyAndShow(original, notes.isEmpty() ? "Abhi koi saved note nahi hai. Kaho: remember that, phir apni baat." : "Tumhari saved notes: " + notes.replace("\\n", ". "));
+            return;
+        }
+        if (intent.contains("forget my memory") || intent.contains("clear memory") || intent.contains("memory delete") || intent.contains("sab yaad bhool")) {
+            new AlertDialog.Builder(this).setTitle("Clear JARVIS memory")
+                    .setMessage("Saved notes on this phone will be deleted. Emergency contact and voice style settings will stay.")
+                    .setNegativeButton("Cancel", (d, w) -> {})
+                    .setPositiveButton("Clear notes", (d, w) -> {
+                        preferences.edit().remove("notes").apply();
+                        replyAndShow(original, "Saved notes clear kar diye.");
+                    }).show();
+            return;
+        }
+        if (intent.contains("calm mode") || intent.contains("shaant mode")) {
+            preferences.edit().putString("voice_style", "calm").apply();
+            replyAndShow(original, "Calm mode on. Main dheere aur shaant awaaz mein jawab dene ki koshish karunga.");
+            return;
+        }
+        if (intent.contains("energetic mode") || intent.contains("fast voice")) {
+            preferences.edit().putString("voice_style", "energetic").apply();
+            replyAndShow(original, "Energetic mode on. Main thoda zyada energetic bolunga.");
+            return;
+        }
+        if (intent.contains("normal voice") || intent.contains("normal mode")) {
+            preferences.edit().putString("voice_style", "normal").apply();
+            replyAndShow(original, "Normal voice mode on.");
+            return;
+        }
+        if (intent.contains("set emergency contact") || intent.contains("emergency contact set") || intent.contains("emergency contact")) {
+            showEmergencyContactDialog();
+            return;
+        }
+        if (intent.equals("sos") || intent.contains("emergency options") || intent.contains("sos options")) {
+            showSosOptions();
+            return;
+        }
+        if (intent.contains("help commands") || intent.equals("what can you do") || intent.contains("commands list")) {
+            replyAndShow(original, "I can open apps and settings, tell time and battery, set alarms, search the web, save local notes with remember that, read notes with what do you remember, change calm or energetic voice mode, and open SOS options.");
             return;
         }
 
@@ -450,6 +532,50 @@ public class MainActivity extends Activity {
         replyAndShow(original, reply);
     }
 
+    private void showEmergencyContactDialog() {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_PHONE);
+        input.setHint("Phone number, e.g. +91...");
+        input.setText(preferences.getString("emergency_contact", ""));
+        new AlertDialog.Builder(this)
+                .setTitle("Set emergency contact")
+                .setMessage("Save a trusted person's number on this phone. JARVIS will open the dialer; it will not call automatically.")
+                .setView(input)
+                .setNegativeButton("Cancel", (d, w) -> {})
+                .setPositiveButton("Save", (d, w) -> {
+                    String number = input.getText().toString().trim();
+                    if (number.replaceAll("[^0-9]", "").length() < 5) {
+                        status.setText("ENTER A VALID PHONE NUMBER");
+                        return;
+                    }
+                    preferences.edit().putString("emergency_contact", number).apply();
+                    replyAndShow("emergency contact", "Emergency contact saved on this phone.");
+                }).show();
+    }
+
+    private void showSosOptions() {
+        String contact = preferences.getString("emergency_contact", "");
+        String[] options = contact.isEmpty()
+                ? new String[]{"Open 112 dialer", "Set emergency contact"}
+                : new String[]{"Open 112 dialer", "Call saved emergency contact", "Change emergency contact"};
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • SOS options")
+                .setMessage("For immediate danger in India, call 112. Choose an option; JARVIS will open the dialer and you confirm the call.")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) openDialer("112");
+                    else if (options[which].equals("Set emergency contact") || options[which].equals("Change emergency contact")) showEmergencyContactDialog();
+                    else openDialer(contact);
+                }).show();
+    }
+
+    private void openDialer(String number) {
+        try {
+            startActivity(new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number))));
+        } catch (Exception e) {
+            status.setText("PLEASE OPEN PHONE AND DIAL " + number);
+        }
+    }
+
     private void replyAndShow(String original, String reply) {
         transcript.setText("YOU: " + original + "\\n\\nJARVIS: " + reply);
         speak(reply);
@@ -471,7 +597,12 @@ public class MainActivity extends Activity {
     }
 
     private void speak(String text) {
-        if (tts != null) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+        if (tts != null) {
+            String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
+            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
+            tts.setSpeechRate(rate);
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+        }
     }
 
     @Override
