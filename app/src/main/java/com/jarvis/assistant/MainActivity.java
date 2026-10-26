@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
-    private static final int CALL_PERMISSION_REQUEST = 1003;
+    private static final int CALL_PERMISSION_REQUEST = 1003;\n    private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
 
@@ -210,6 +210,23 @@ public class MainActivity extends Activity {
         });
         root.addView(wakeOff, new LinearLayout.LayoutParams(-1, 46));
 
+        Button phoneEvents = new Button(this);
+        phoneEvents.setText("ENABLE CALL & SMS ANNOUNCEMENTS");
+        phoneEvents.setAllCaps(false);
+        phoneEvents.setTextColor(cyan);
+        phoneEvents.setOnClickListener(v -> enablePhoneEventPermissions());
+        root.addView(phoneEvents, new LinearLayout.LayoutParams(-1, 46));
+
+        Button callControls = new Button(this);
+        callControls.setText("SET UP VOICE CALL CONTROLS");
+        callControls.setAllCaps(false);
+        callControls.setTextColor(Color.WHITE);
+        callControls.setOnClickListener(v -> {
+            try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+            catch (Exception e) { status.setText("OPEN SETTINGS > ACCESSIBILITY"); }
+        });
+        root.addView(callControls, new LinearLayout.LayoutParams(-1, 46));
+
         Button health = new Button(this);
         health.setText("RUN SYSTEM SAFETY CHECK");
         health.setAllCaps(false);
@@ -254,6 +271,18 @@ public class MainActivity extends Activity {
         transcript.setText(report.toString());
         status.setText("SAFETY CHECK COMPLETE");
         speak("Safety check complete. Please review the report on screen.");
+    }
+
+    private void enablePhoneEventPermissions() {
+        java.util.ArrayList<String> needed = new java.util.ArrayList<>();
+        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
+        if (checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.RECEIVE_SMS);
+        if (checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_SMS);
+        if (!needed.isEmpty()) requestPermissions(needed.toArray(new String[0]), PHONE_EVENTS_PERMISSION_REQUEST);
+        else {
+            status.setText("CALL & SMS ANNOUNCEMENTS ENABLED");
+            speak("Call aur SMS announcements enabled.");
+        }
     }
 
     private void startWakeWordListening() {
@@ -318,7 +347,7 @@ public class MainActivity extends Activity {
             } else {
                 status.setText("CONTACTS DENIED • VOICE CALLS NEED CONTACT ACCESS");
             }
-        } else if (requestCode == CALL_PERMISSION_REQUEST) {
+        } else if (requestCode == PHONE_EVENTS_PERMISSION_REQUEST) {\n            boolean allGranted = true;\n            for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;\n            status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");\n            if (allGranted) speak("Call aur SMS announcements enabled.");\n        } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startWakeWordListening();
             } else {
