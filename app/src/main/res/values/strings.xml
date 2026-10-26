@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">JARVIS</string>
+    <string name="call_control_accessibility_description">JARVIS voice call controls. Allows JARVIS to press answer, end call, and speaker buttons only when you enable this service in Android Accessibility settings.</string>
+</resources>
