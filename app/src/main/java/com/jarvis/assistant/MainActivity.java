@@ -170,95 +170,100 @@ public class MainActivity extends Activity {
 
     private void handleCommand(String command) {
         transcript.setText("YOU: " + command);
-        String lower = command.toLowerCase(Locale.ROOT);
+        String original = command == null ? "" : command.trim();
+        String lower = original.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+
+        // Recognize common ways the user may pronounce or address JARVIS.
+        String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
+        cleaned = cleaned.replaceFirst("^(jarvis|jarvesh|jarvish|jarvish|jarvis ji|j a r v i s)(\\s+)", "");
+        String intent = cleaned.trim();
+        if (intent.isEmpty() || intent.matches("^(jarvis|jarvesh|jarvish|jarvish ji|j a r v i s)$")) {
+            String[] greetings = {
+                "Yes, I'm listening. Tell me, what do you need?",
+                "I'm here. Go ahead, I'm listening.",
+                "At your service. What's up?",
+                "Yes Boss—I'm listening. Tell me."
+            };
+            replyAndShow(original, greetings[(int)(System.currentTimeMillis() % greetings.length)]);
+            return;
+        }
+
         String reply;
-        if (lower.contains("hello") || lower.equals("hi") || lower.contains("jarvis") || lower.contains("namaste") || lower.contains("namaskar") || lower.contains("kaise ho")) {
-            reply = "At your service. How may I assist you?";
-        } else if (lower.contains("time") || lower.contains("samay") || lower.contains("kitne baje")) {
+        if (intent.matches(".*\\b(hello|hi|hey|namaste|namaskar)\\b.*")) {
+            reply = "Hello! I'm here. What can I do for you?";
+        } else if (intent.contains("kaise ho") || intent.contains("how are you")) {
+            reply = "I'm running well and ready to help you. Tum batao, kya haal hai?";
+        } else if (intent.contains("kya kar rahe") || intent.contains("what are you doing")) {
+            reply = "Main tumhari help ke liye ready hoon. Batao, kya karna hai?";
+        } else if (intent.contains("thank") || intent.contains("shukriya") || intent.contains("dhanyavad")) {
+            reply = "You're welcome! Main yahin hoon, jab bhi help chahiye.";
+        } else if (intent.contains("time") || intent.contains("samay") || intent.contains("kitne baje")) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
-            reply = "The time is " + fmt.format(new java.util.Date());
-        } else if (lower.contains("date") || lower.contains("tarikh") || lower.contains("aaj ki date")) {
+            reply = "Abhi time hai " + fmt.format(new java.util.Date());
+        } else if (intent.contains("date") || intent.contains("tarikh") || intent.contains("aaj ki date")) {
             java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));
-            reply = "Today is " + dateFmt.format(new java.util.Date());
-        } else if (lower.contains("battery") || lower.contains("charge kitna")) {
+            reply = "Aaj " + dateFmt.format(new java.util.Date());
+        } else if (intent.contains("battery") || intent.contains("charge kitna")) {
             Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (batteryIntent != null) {
                 int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
                 int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
                 int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;
-                reply = percent >= 0 ? "Battery is at " + percent + " percent." : "I could not read the battery level.";
-            } else {
-                reply = "I could not read the battery level.";
-            }
-        } else if (lower.contains("open settings") || lower.contains("settings kholo") || lower.contains("phone settings")) {
-            reply = "Opening Settings.";
-            speak(reply);
-            try {
-                startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
-            } catch (Exception e) {
-                transcript.append("\nUnable to open Settings right now.");
-            }
+                reply = percent >= 0 ? "Battery " + percent + " percent hai." : "Battery level read nahi ho paya.";
+            } else reply = "Battery level read nahi ho paya.";
+        } else if (intent.contains("open settings") || intent.contains("settings kholo") || intent.contains("phone settings") || intent.equals("settings")) {
+            speak("Opening Settings.");
+            try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); }
+            catch (Exception e) { transcript.append("\\nSettings abhi nahi khul pa raha."); }
             return;
-        } else if (lower.contains("set alarm") || lower.contains("alarm lagao") || lower.contains("alarm kholo")) {
-            reply = "Opening the alarm screen. Please choose the time and confirm it.";
-            speak(reply);
-            try {
-                startActivity(new Intent(AlarmClock.ACTION_SET_ALARM));
-            } catch (Exception e) {
-                transcript.append("\nNo alarm app is available.");
-            }
+        } else if (intent.contains("set alarm") || intent.contains("alarm lagao") || intent.contains("alarm kholo")) {
+            speak("Alarm screen khol raha hoon. Time select karke confirm kar dena.");
+            try { startActivity(new Intent(AlarmClock.ACTION_SET_ALARM)); }
+            catch (Exception e) { transcript.append("\\nAlarm app available nahi hai."); }
             return;
-        } else if (lower.contains("search for ") || lower.startsWith("google ") || lower.startsWith("search ")) {
-            String query = lower.replaceFirst("^.*?search for ", "").replaceFirst("^google ", "").replaceFirst("^search ", "").trim();
-            if (query.isEmpty()) query = command;
-            reply = "Searching the web for " + query;
-            speak(reply);
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query))));
-            } catch (Exception e) {
-                transcript.append("\nUnable to open web search.");
-            }
+        } else if (intent.contains("search for ") || intent.startsWith("google ") || intent.startsWith("search ")) {
+            String query = intent.replaceFirst("^.*?search for ", "").replaceFirst("^google ", "").replaceFirst("^search ", "").trim();
+            if (query.isEmpty()) query = intent;
+            speak("Searching the web for " + query);
+            try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query)))); }
+            catch (Exception e) { transcript.append("\\nWeb search nahi khul paaya."); }
             return;
-        } else if (lower.contains("open youtube") || lower.contains("youtube kholo") || lower.contains("youtube chalao")) {
-            reply = "Opening YouTube.";
-            speak(reply);
+        } else if (intent.contains("open youtube") || intent.contains("youtube kholo") || intent.contains("youtube chalao") || intent.equals("youtube")) {
+            speak("YouTube khol raha hoon.");
             try {
                 Intent launch = getPackageManager().getLaunchIntentForPackage("com.google.android.youtube");
                 if (launch != null) startActivity(launch);
                 else startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com")));
-            } catch (Exception e) {
-                transcript.append("\nUnable to open YouTube right now.");
-            }
+            } catch (Exception e) { transcript.append("\\nYouTube nahi khul paaya."); }
             return;
-        } else if (lower.contains("open chrome") || lower.contains("chrome kholo")) {
-            reply = "Opening Chrome.";
-            speak(reply);
+        } else if (intent.contains("open chrome") || intent.contains("chrome kholo") || intent.equals("chrome")) {
+            speak("Chrome khol raha hoon.");
             try {
                 Intent launch = getPackageManager().getLaunchIntentForPackage("com.android.chrome");
                 if (launch != null) startActivity(launch);
                 else startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com")));
-            } catch (Exception e) {
-                transcript.append("\nUnable to open Chrome right now.");
-            }
+            } catch (Exception e) { transcript.append("\\nChrome nahi khul paaya."); }
             return;
-        } else if (lower.contains("open whatsapp") || lower.contains("whatsapp kholo")) {
-            launchApp("com.whatsapp", "WhatsApp", "https://www.whatsapp.com");
-            return;
-        } else if (lower.contains("open instagram") || lower.contains("instagram kholo")) {
-            launchApp("com.instagram.android", "Instagram", "https://www.instagram.com");
-            return;
-        } else if (lower.contains("open facebook") || lower.contains("facebook kholo")) {
-            launchApp("com.facebook.katana", "Facebook", "https://www.facebook.com");
-            return;
-        } else if (lower.contains("your name") || lower.contains("who are you")) {
-            reply = "I am JARVIS, your personal assistant. Systems are standing by.";
+        } else if (intent.contains("open whatsapp") || intent.contains("whatsapp kholo") || intent.equals("whatsapp")) {
+            launchApp("com.whatsapp", "WhatsApp", "https://www.whatsapp.com"); return;
+        } else if (intent.contains("open instagram") || intent.contains("instagram kholo") || intent.equals("instagram")) {
+            launchApp("com.instagram.android", "Instagram", "https://www.instagram.com"); return;
+        } else if (intent.contains("open facebook") || intent.contains("facebook kholo") || intent.equals("facebook")) {
+            launchApp("com.facebook.katana", "Facebook", "https://www.facebook.com"); return;
+        } else if (intent.contains("your name") || intent.contains("who are you") || intent.contains("tum kaun ho") || intent.contains("tera naam")) {
+            reply = "Main JARVIS hoon, tumhara personal assistant. Batao, kya help karun?";
+        } else if (intent.contains("listen") || intent.contains("suno") || intent.contains("meri baat sun")) {
+            reply = "Haan, sun raha hoon. Bolo, kya baat hai?";
         } else {
-            reply = "I heard you say: " + command + ". My command library is still growing.";
+            reply = "Maine suna: " + original + ". Is baat ko abhi poori tarah samajh nahi paaya, lekin tum doosre tareeke se bolo, main try karta hoon.";
         }
-        transcript.setText("YOU: " + command + "\n\nJARVIS: " + reply);
-        speak(reply);
+        replyAndShow(original, reply);
     }
 
+    private void replyAndShow(String original, String reply) {
+        transcript.setText("YOU: " + original + "\\n\\nJARVIS: " + reply);
+        speak(reply);
+    }
 
     private void launchApp(String packageName, String appName, String fallbackUrl) {
         String reply = "Opening " + appName + ".";
