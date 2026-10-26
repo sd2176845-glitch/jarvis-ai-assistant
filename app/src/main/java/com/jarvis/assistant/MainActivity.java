@@ -233,7 +233,7 @@ public class MainActivity extends Activity {
             return;
         } else if (intent.contains("open clock") || intent.contains("clock kholo") || intent.contains("ghadi kholo")) {
             speak("Clock khol raha hoon.");
-            try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CLOCK)); }
+            try { startActivity(new Intent(AlarmClock.ACTION_SHOW_ALARMS)); }
             catch (Exception e) { transcript.append("\\nClock app nahi mili."); }
             return;
         } else if (intent.contains("wifi settings") || intent.contains("wifi kholo")) {
