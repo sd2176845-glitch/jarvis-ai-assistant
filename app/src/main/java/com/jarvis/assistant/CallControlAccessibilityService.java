@@ -39,15 +39,42 @@ public class CallControlAccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return;
         try {
-            for (String label : labels) {
-                java.util.List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByText(label);
-                if (nodes == null) continue;
-                for (AccessibilityNodeInfo node : nodes) {
-                    if (node != null && node.isClickable() && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return;
-                    AccessibilityNodeInfo parent = node == null ? null : node.getParent();
-                    if (parent != null && parent.isClickable() && parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return;
-                }
-            }
+            clickInTree(root, labels);
         } finally { root.recycle(); }
+    }
+
+    private boolean clickInTree(AccessibilityNodeInfo node, String[] labels) {
+        if (node == null) return false;
+        CharSequence text = node.getText();
+        CharSequence description = node.getContentDescription();
+        String textValue = text == null ? "" : text.toString().toLowerCase(java.util.Locale.ROOT);
+        String descriptionValue = description == null ? "" : description.toString().toLowerCase(java.util.Locale.ROOT);
+        boolean matches = false;
+        for (String label : labels) {
+            String target = label.toLowerCase(java.util.Locale.ROOT);
+            if ((!textValue.isEmpty() && textValue.contains(target)) ||
+                    (!descriptionValue.isEmpty() && descriptionValue.contains(target))) {
+                matches = true;
+                break;
+            }
+        }
+        if (matches) {
+            if (node.isClickable() && node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return true;
+            AccessibilityNodeInfo parent = node.getParent();
+            if (parent != null) {
+                boolean clicked = parent.isClickable() && parent.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                parent.recycle();
+                if (clicked) return true;
+            }
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            AccessibilityNodeInfo child = node.getChild(i);
+            if (child != null) {
+                boolean clicked = clickInTree(child, labels);
+                child.recycle();
+                if (clicked) return true;
+            }
+        }
+        return false;
     }
 }
