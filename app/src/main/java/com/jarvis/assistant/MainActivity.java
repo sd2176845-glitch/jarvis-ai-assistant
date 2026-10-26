@@ -218,6 +218,13 @@ public class MainActivity extends Activity {
         phoneEvents.setOnClickListener(v -> enablePhoneEventPermissions());
         root.addView(phoneEvents, new LinearLayout.LayoutParams(-1, 46));
 
+        Button backgroundLaunch = new Button(this);
+        backgroundLaunch.setText("ENABLE BACKGROUND APP OPENING");
+        backgroundLaunch.setAllCaps(false);
+        backgroundLaunch.setTextColor(cyan);
+        backgroundLaunch.setOnClickListener(v -> enableBackgroundAppOpening());
+        root.addView(backgroundLaunch, new LinearLayout.LayoutParams(-1, 46));
+
         Button callControls = new Button(this);
         callControls.setText("SET UP VOICE CALL CONTROLS");
         callControls.setAllCaps(false);
@@ -258,6 +265,27 @@ public class MainActivity extends Activity {
         root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
 
         setContentView(scroll);
+    }
+
+    private void enableBackgroundAppOpening() {
+        if (android.os.Build.VERSION.SDK_INT < 23) {
+            status.setText("BACKGROUND APP OPENING READY");
+            return;
+        }
+        if (android.provider.Settings.canDrawOverlays(this)) {
+            status.setText("BACKGROUND APP OPENING ENABLED");
+            speak("Background app opening permission is already enabled.");
+            return;
+        }
+        try {
+            Intent overlaySettings = new Intent(
+                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    android.net.Uri.parse("package:" + getPackageName()));
+            startActivity(overlaySettings);
+            status.setText("ALLOW DISPLAY OVER OTHER APPS, THEN RETURN TO JARVIS");
+        } catch (Exception e) {
+            status.setText("OPEN SETTINGS AND ALLOW DISPLAY OVER OTHER APPS");
+        }
     }
 
     private void runSafetyCheck() {
