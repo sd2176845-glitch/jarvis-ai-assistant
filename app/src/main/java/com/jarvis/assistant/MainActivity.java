@@ -38,7 +38,8 @@ public class MainActivity extends Activity {
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
-    private static final int CALL_PERMISSION_REQUEST = 1003;\n    private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int CALL_PERMISSION_REQUEST = 1003;
+    private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
 
@@ -347,7 +348,12 @@ public class MainActivity extends Activity {
             } else {
                 status.setText("CONTACTS DENIED • VOICE CALLS NEED CONTACT ACCESS");
             }
-        } else if (requestCode == PHONE_EVENTS_PERMISSION_REQUEST) {\n            boolean allGranted = true;\n            for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;\n            status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");\n            if (allGranted) speak("Call aur SMS announcements enabled.");\n        } else if (requestCode == CALL_PERMISSION_REQUEST) {
+        } else if (requestCode == PHONE_EVENTS_PERMISSION_REQUEST) {
+            boolean allGranted = true;
+            for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;
+            status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");
+            if (allGranted) speak("Call aur SMS announcements enabled.");
+        } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startWakeWordListening();
             } else {
