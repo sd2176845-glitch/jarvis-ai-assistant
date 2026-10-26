@@ -118,11 +118,11 @@ public class WakeWordService extends Service {
                 @Override public void onRmsChanged(float rmsdB) {}
                 @Override public void onBufferReceived(byte[] buffer) {}
                 @Override public void onEndOfSpeech() {}
-                @Override public void onError(int error) { scheduleRestart(1200); }
+                @Override public void onError(int error) { scheduleRestart(500); }
                 @Override public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) handleRecognized(matches.get(0));
-                    scheduleRestart(1800);
+                    scheduleRestart(400);
                 }
                 @Override public void onPartialResults(Bundle partialResults) {}
                 @Override public void onEvent(int eventType, Bundle params) {}
@@ -134,7 +134,7 @@ public class WakeWordService extends Service {
             speech.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false);
             recognizer.startListening(speech);
         } catch (Exception e) {
-            scheduleRestart(2500);
+            scheduleRestart(800);
         }
     }
 
@@ -168,7 +168,7 @@ public class WakeWordService extends Service {
                         } catch (Exception e) {
                             say("Call nahi lag paayi. Phone app se try karo.");
                         }
-                    }, 350);
+                    }, 150);
                 }
                 return;
             }
@@ -311,7 +311,7 @@ public class WakeWordService extends Service {
             } catch (Exception ignored) {
                 say(appName + " abhi nahi khul paaya.");
             }
-        }, 350);
+        }, 150);
     }
 
     private void launchIntent(Intent intent, String response) {
@@ -323,7 +323,7 @@ public class WakeWordService extends Service {
             } catch (Exception ignored) {
                 say("Ye app ya screen is phone par nahi khul paayi.");
             }
-        }, 350);
+        }, 150);
     }
 
     private boolean isCallCommand(String command) {
