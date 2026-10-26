@@ -216,6 +216,9 @@ public class WakeWordService extends Service {
             sendCallControl(CallControlAccessibilityService.ACTION_SPEAKER, "Speaker button dabane ki koshish kar raha hoon.");
         } else if (command.isEmpty()) {
             say("Command samajh nahi aaya. Dobara boliye.");
+        } else if (command.equals("call screen kholo") || command.equals("dialer kholo") ||
+                command.equals("phone kholo") || command.equals("open phone") || command.equals("phone")) {
+            launchIntent(new Intent(Intent.ACTION_DIAL), "Phone dialer khol raha hoon.");
         } else if (isCallCommand(command)) {
             String target = extractContactTarget(command);
             if (target.isEmpty()) say("Kis contact ko call karna hai? Contact ka naam boliye.");
