@@ -133,10 +133,13 @@ public class WakeWordService extends Service {
 
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim();
-        String wake = text.replace("hey jarvis ji", "hey jarvis")
-                .replace("hey jarvesh", "hey jarvis").replace("hey jarvish", "hey jarvis");
-        if (!(wake.contains("hey jarvis") || wake.contains("hey jarvesh") || wake.contains("hey jarvish"))) return;
-        String command = wake.replace("hey jarvis", "").trim()
+        // Speech services sometimes omit "hey" or transcribe JARVIS phonetically.
+        String wake = text.replace("hey jarvis ji", "jarvis")
+                .replace("hey jarvesh", "jarvis").replace("hey jarvish", "jarvis")
+                .replace("hey jarvis", "jarvis").replace("jarvesh", "jarvis")
+                .replace("jarvish", "jarvis").replace("jarves", "jarvis");
+        if (!wake.contains("jarvis")) return;
+        String command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
                 .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
         if (command.isEmpty()) {
             say("Haan Boss, JARVIS sun raha hai. Boliye.");
