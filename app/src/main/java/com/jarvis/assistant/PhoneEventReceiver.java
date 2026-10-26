@@ -91,9 +91,8 @@ public class PhoneEventReceiver extends BroadcastReceiver {
                 if (sms != null) {
                     String sender = sms.getDisplayOriginatingAddress();
                     String body = sms.getMessageBody();
-                    if (sender != null) message.append("Sender ").append(sender).append(". ");
-                    if (body != null) message.append(body);
-                    break;
+                    if (sender != null && message.indexOf("Sender ") < 0) message.append("Sender ").append(sender).append(". ");
+                    if (body != null) message.append(body).append(" ");
                 }
             }
             announce(context, message.toString(), goAsync());
