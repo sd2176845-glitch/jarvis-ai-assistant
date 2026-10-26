@@ -211,6 +211,70 @@ public class MainActivity extends Activity {
                 int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;
                 reply = percent >= 0 ? "Battery " + percent + " percent hai." : "Battery level read nahi ho paya.";
             } else reply = "Battery level read nahi ho paya.";
+        } else if (intent.contains("open camera") || intent.contains("camera kholo") || intent.equals("camera")) {
+            speak("Camera khol raha hoon.");
+            try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
+            catch (Exception e) { transcript.append("\\nCamera abhi nahi khul paaya."); }
+            return;
+        } else if (intent.contains("open maps") || intent.contains("maps kholo") || intent.contains("google maps") || intent.contains("map kholo")) {
+            speak("Maps khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q="))); }
+            catch (Exception e) { transcript.append("\\nMaps abhi nahi khul paaya."); }
+            return;
+        } else if (intent.contains("open calculator") || intent.contains("calculator kholo") || intent.equals("calculator")) {
+            speak("Calculator khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR)); }
+            catch (Exception e) { transcript.append("\\nCalculator app nahi mili."); }
+            return;
+        } else if (intent.contains("open calendar") || intent.contains("calendar kholo") || intent.equals("calendar")) {
+            speak("Calendar khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)); }
+            catch (Exception e) { transcript.append("\\nCalendar app nahi mili."); }
+            return;
+        } else if (intent.contains("open clock") || intent.contains("clock kholo") || intent.contains("ghadi kholo")) {
+            speak("Clock khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CLOCK)); }
+            catch (Exception e) { transcript.append("\\nClock app nahi mili."); }
+            return;
+        } else if (intent.contains("wifi settings") || intent.contains("wifi kholo")) {
+            speak("Wi-Fi settings khol raha hoon.");
+            try { startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS)); }
+            catch (Exception e) { transcript.append("\\nWi-Fi settings nahi khul paayi."); }
+            return;
+        } else if (intent.contains("bluetooth settings") || intent.contains("bluetooth kholo")) {
+            speak("Bluetooth settings khol raha hoon.");
+            try { startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS)); }
+            catch (Exception e) { transcript.append("\\nBluetooth settings nahi khul paayi."); }
+            return;
+        } else if (intent.contains("location settings") || intent.contains("location kholo")) {
+            speak("Location settings khol raha hoon.");
+            try { startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)); }
+            catch (Exception e) { transcript.append("\\nLocation settings nahi khul paayi."); }
+            return;
+        } else if (intent.contains("open phone") || intent.contains("dialer kholo") || intent.contains("call screen kholo") || intent.equals("dialer")) {
+            speak("Phone dialer khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_DIAL)); }
+            catch (Exception e) { transcript.append("\\nPhone app nahi khul paayi."); }
+            return;
+        } else if (intent.contains("open contacts") || intent.contains("contacts kholo") || intent.contains("contact kholo")) {
+            speak("Contacts khol raha hoon.");
+            try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("content://contacts/people/"))); }
+            catch (Exception e) {
+                try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CONTACTS)); }
+                catch (Exception ignored) { transcript.append("\\nContacts app nahi khul paayi."); }
+            }
+            return;
+        } else if (intent.contains("joke") || intent.contains("jokes") || intent.contains("mazaak")) {
+            String[] jokes = {
+                "Bhai, computer ko thand kyun lagti hai? Kyunki uske paas Windows hain!",
+                "Ek phone ne doosre se kaha: tu itna smart kaise? Doosra bola: mere paas achha network hai!",
+                "Main JARVIS hoon, bhai. Mere jokes bhi system update ke saath aate hain!"
+            };
+            reply = jokes[(int)(System.currentTimeMillis() % jokes.length)];
+        } else if (intent.contains("motivate") || intent.contains("motivation") || intent.contains("himmat de")) {
+            reply = "Bhai, ek-ek kadam se hi manzil milti hai. Rukna mat—aaram kar, phir dobara koshish kar. Main help ke liye yahin hoon.";
+        } else if (intent.contains("who made you") || intent.contains("kisne banaya") || intent.contains("tumhe kisne banaya")) {
+            reply = "Mujhe tumhare JARVIS project ke roop mein banaya ja raha hai. Abhi main basic voice commands aur phone actions handle karta hoon.";
         } else if (intent.contains("open settings") || intent.contains("settings kholo") || intent.contains("phone settings") || intent.equals("settings")) {
             speak("Opening Settings.");
             try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); }
