@@ -91,11 +91,9 @@ public class MainActivity extends Activity {
         root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
         TextView orb = new TextView(this);
-        orb.setText("◉");
-        orb.setTextColor(cyan);
-        orb.setTextSize(90);
         orb.setGravity(Gravity.CENTER);
         orb.setPadding(0, 14, 0, 14);
+        orb.setBackgroundResource(com.jarvis.assistant.R.drawable.jarvis_orb);
         root.addView(orb, new LinearLayout.LayoutParams(-1, 0, 1));
         android.view.animation.ScaleAnimation pulse = new android.view.animation.ScaleAnimation(
                 0.94f, 1.06f, 0.94f, 1.06f, android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
