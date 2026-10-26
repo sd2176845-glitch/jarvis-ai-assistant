@@ -144,7 +144,7 @@ public class WakeWordService extends Service {
 
         // A pending call always requires a clear spoken yes/no confirmation.
         if (awaitingCallConfirmation) {
-            if (matches(text, "yes", "haan", "ha", "confirm", "call karo", "kar do")) {
+            if (text.equals("yes") || text.equals("haan") || text.equals("ha") || text.equals("confirm") || text.equals("yes please") || text.equals("haan call karo") || text.equals("haan kar do")) {
                 String number = pendingCallNumber;
                 String name = pendingCallName;
                 awaitingCallConfirmation = false;
