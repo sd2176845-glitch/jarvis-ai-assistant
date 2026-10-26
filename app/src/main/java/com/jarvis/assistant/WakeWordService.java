@@ -208,7 +208,13 @@ public class WakeWordService extends Service {
             return;
         }
 
-        if (command.isEmpty()) {
+        if (matches(command, "call uthao", "phone uthao", "answer call", "pick up call", "call answer karo")) {
+            sendCallControl(CallControlAccessibilityService.ACTION_ANSWER, "Call uthाने ki koshish kar raha hoon. Accessibility service enabled honi chahiye.");
+        } else if (matches(command, "call kaat do", "phone kaat do", "end call", "hang up", "call disconnect karo")) {
+            sendCallControl(CallControlAccessibilityService.ACTION_END, "Call kaatne ki koshish kar raha hoon.");
+        } else if (matches(command, "speaker on", "speaker chalu", "speakerphone on", "loudspeaker on")) {
+            sendCallControl(CallControlAccessibilityService.ACTION_SPEAKER, "Speaker button dabane ki koshish kar raha hoon.");
+        } else if (command.isEmpty()) {
             say("Command samajh nahi aaya. Dobara boliye.");
         } else if (isCallCommand(command)) {
             String target = extractContactTarget(command);
