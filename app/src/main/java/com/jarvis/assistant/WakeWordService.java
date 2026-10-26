@@ -146,50 +146,105 @@ public class WakeWordService extends Service {
             command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
                     .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
             if (command.isEmpty()) {
-                // User said only "Hey Jarvis". Listen for the next sentence as the command.
-                awaitingCommand = true;
-                handler.removeCallbacks(commandTimeout);
-                handler.postDelayed(commandTimeout, 8000);
-                say("Haan Boss, bolo.");
-                return;
-            }
-        } else if (awaitingCommand) {
-            // The next speech may not contain the wake word, e.g. "YouTube kholo".
-            awaitingCommand = false;
-            handler.removeCallbacks(commandTimeout);
-            command = text.replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
-        } else {
-            return;
-        }
-
-        if (command.isEmpty()) {
             say("Command samajh nahi aaya. Dobara boliye.");
         } else if (isCallCommand(command)) {
             String target = extractContactTarget(command);
             if (target.isEmpty()) say("Kis contact ko call karna hai? Contact ka naam boliye.");
             else openContactDialer(target);
-        } else if (command.contains("open youtube") || command.contains("youtube kholo") || command.contains("youtube chalao")) {
-            say("YouTube khol raha hoon.");
-            handler.postDelayed(() -> {
-                try {
-                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.google.android.youtube");
-                    if (launch == null) launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.youtube.com"));
-                    launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(launch);
-                } catch (Exception ignored) { say("YouTube abhi nahi khul paaya."); }
-            }, 400);
-        } else if (command.contains("open whatsapp") || command.contains("whatsapp kholo") || command.contains("whatsapp khol")) {
-            say("WhatsApp khol raha hoon.");
-            handler.postDelayed(() -> {
-                try {
-                    Intent launch = getPackageManager().getLaunchIntentForPackage("com.whatsapp");
-                    if (launch != null) { launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(launch); }
-                    else say("WhatsApp is phone par nahi mila.");
-                } catch (Exception ignored) { say("WhatsApp abhi nahi khul paaya."); }
-            }, 400);
+        } else if (matches(command, "youtube", "open youtube", "youtube kholo", "youtube khol", "youtube chalao")) {
+            launchApp("com.google.android.youtube", "YouTube", "https://www.youtube.com");
+        } else if (matches(command, "whatsapp", "open whatsapp", "whatsapp kholo", "whatsapp khol", "whatsapp khol do")) {
+            launchApp("com.whatsapp", "WhatsApp", "https://www.whatsapp.com");
+        } else if (matches(command, "instagram", "open instagram", "instagram kholo", "instagram khol")) {
+            launchApp("com.instagram.android", "Instagram", "https://www.instagram.com");
+        } else if (matches(command, "facebook", "open facebook", "facebook kholo", "facebook khol")) {
+            launchApp("com.facebook.katana", "Facebook", "https://www.facebook.com");
+        } else if (matches(command, "chrome", "open chrome", "chrome kholo", "browser kholo", "internet kholo")) {
+            launchApp("com.android.chrome", "Chrome", "https://www.google.com");
+        } else if (matches(command, "camera", "open camera", "camera kholo", "camera khol")) {
+            launchIntent(new Intent("android.media.action.IMAGE_CAPTURE"), "Camera khol raha hoon.");
+        } else if (matches(command, "maps", "open maps", "maps kholo", "google maps", "map kholo")) {
+            launchIntent(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q=")), "Maps khol raha hoon.");
+        } else if (matches(command, "calculator", "open calculator", "calculator kholo")) {
+            launchIntent(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALCULATOR), "Calculator khol raha hoon.");
+        } else if (matches(command, "calendar", "open calendar", "calendar kholo")) {
+            launchIntent(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR), "Calendar khol raha hoon.");
+        } else if (matches(command, "clock", "open clock", "clock kholo", "ghadi kholo", "alarms kholo")) {
+            launchIntent(new Intent(AlarmClock.ACTION_SHOW_ALARMS), "Clock khol raha hoon.");
+        } else if (matches(command, "settings", "open settings", "settings kholo", "phone settings")) {
+            launchIntent(new Intent(android.provider.Settings.ACTION_SETTINGS), "Settings khol raha hoon.");
+        } else if (matches(command, "wifi settings", "wifi kholo", "wi fi settings")) {
+            launchIntent(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS), "Wi-Fi settings khol raha hoon.");
+        } else if (matches(command, "bluetooth settings", "bluetooth kholo")) {
+            launchIntent(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS), "Bluetooth settings khol raha hoon.");
+        } else if (matches(command, "location settings", "location kholo", "gps settings")) {
+            launchIntent(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), "Location settings khol raha hoon.");
+        } else if (matches(command, "phone", "open phone", "dialer kholo", "phone kholo", "call screen kholo")) {
+            launchIntent(new Intent(Intent.ACTION_DIAL), "Phone dialer khol raha hoon.");
+        } else if (matches(command, "contacts", "open contacts", "contacts kholo", "contact kholo")) {
+            launchIntent(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CONTACTS), "Contacts khol raha hoon.");
+        } else if (matches(command, "time", "what time is it", "kitne baje", "samay batao")) {
+            java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
+            say("Abhi time hai " + fmt.format(new java.util.Date()));
+        } else if (matches(command, "date", "today date", "aaj ki date", "tarikh batao")) {
+            java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));
+            say("Aaj " + fmt.format(new java.util.Date()));
+        } else if (command.contains("battery") || command.contains("charge kitna") || command.contains("battery kitna")) {
+            Intent battery = registerReceiver(null, new android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) {
+                int level = battery.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1);
+                int scale = battery.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1);
+                say(level >= 0 && scale > 0 ? "Battery " + (level * 100 / scale) + " percent hai." : "Battery level nahi mil paaya.");
+            } else say("Battery level nahi mil paaya.");
+        } else if (matches(command, "alarm lagao", "set alarm", "alarm kholo", "alarm set karo")) {
+            launchIntent(new Intent(AlarmClock.ACTION_SET_ALARM), "Alarm screen khol raha hoon. Time set karke confirm kar dena.");
+        } else if (command.startsWith("search ") || command.startsWith("google ") || command.startsWith("search for ")) {
+            String query = command.replaceFirst("^search for ", "").replaceFirst("^search ", "").replaceFirst("^google ", "").trim();
+            if (query.isEmpty()) say("Kya search karna hai, Boss?");
+            else launchIntent(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query))), "Web par search kar raha hoon.");
+        } else if (command.startsWith("message ") || command.startsWith("sms ") || command.startsWith("text ")) {
+            String body = command.replaceFirst("^(message|sms|text)\\s+", "").trim();
+            Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+            sms.putExtra("sms_body", body);
+            launchIntent(sms, "Message draft khol raha hoon. Bhejne se pehle check kar lena.");
+        } else if (command.contains("phone lock") || command.contains("lock phone") || command.contains("phone lock karo") || command.contains("screen lock karo")) {
+            say("Phone lock karne ke liye Android mein Device Admin ya Accessibility permission setup chahiye. Abhi ye command enabled nahi hai.");
         } else {
-            say("Command suni, lekin ye command abhi supported nahi hai.");
+            say("Ye command abhi add nahi hai. Try karo: YouTube, WhatsApp, Instagram, Facebook, Chrome, camera, maps, calculator, settings, time, date, battery, alarm, search, ya call.");
         }
+    }
+
+    private boolean matches(String command, String... phrases) {
+        for (String phrase : phrases) {
+            if (command.equals(phrase) || command.contains(phrase)) return true;
+        }
+        return false;
+    }
+
+    private void launchApp(String packageName, String appName, String fallbackUrl) {
+        say(appName + " khol raha hoon.");
+        handler.postDelayed(() -> {
+            try {
+                Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
+                if (launch != null) launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                else launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(launch);
+            } catch (Exception ignored) {
+                say(appName + " abhi nahi khul paaya.");
+            }
+        }, 350);
+    }
+
+    private void launchIntent(Intent intent, String response) {
+        say(response);
+        handler.postDelayed(() -> {
+            try {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            } catch (Exception ignored) {
+                say("Ye app ya screen is phone par nahi khul paayi.");
+            }
+        }, 350);
     }
 
     private boolean isCallCommand(String command) {
