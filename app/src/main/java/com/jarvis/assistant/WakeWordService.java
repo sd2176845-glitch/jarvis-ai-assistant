@@ -140,11 +140,11 @@ public class WakeWordService extends Service {
 
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim()
-                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+                .replaceAll("[^a-z0-9\\u0900-\\u097F\\s]", " ").replaceAll("\\s+", " ").trim();
 
         // A pending call always requires a clear spoken yes/no confirmation.
         if (awaitingCallConfirmation) {
-            if (text.equals("yes") || text.equals("haan") || text.equals("ha") || text.equals("confirm") || text.equals("yes please") || text.equals("haan call karo") || text.equals("haan kar do")) {
+            if (matches(text, "yes", "haan", "han", "ha", "confirm", "yes please", "haan call karo", "haan kar do", "हाँ", "हां", "हाँ जी", "हां जी", "जी हाँ", "जी हां", "हाँ कॉल करो", "हां कॉल करो", "हाँ कर दो", "हां कर दो")) {
                 String number = pendingCallNumber;
                 String name = pendingCallName;
                 awaitingCallConfirmation = false;
