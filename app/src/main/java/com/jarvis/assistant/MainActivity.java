@@ -12,7 +12,6 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.RecognitionListener;
 import android.speech.tts.TextToSpeech;
-import android.speech.SpeechRecognizer;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -178,7 +177,49 @@ public class MainActivity extends Activity {
         } else if (lower.contains("time") || lower.contains("samay") || lower.contains("kitne baje")) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
             reply = "The time is " + fmt.format(new java.util.Date());
-        } else if (lower.contains("date") || lower.contains("tarikh") || lower.contains("aaj ki date")) {\n            java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));\n            reply = "Today is " + dateFmt.format(new java.util.Date());\n        } else if (lower.contains("battery") || lower.contains("charge kitna")) {\n            Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));\n            if (batteryIntent != null) {\n                int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);\n                int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);\n                int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;\n                reply = percent >= 0 ? "Battery is at " + percent + " percent." : "I could not read the battery level.";\n            } else reply = "I could not read the battery level.";\n        } else if (lower.contains("open settings") || lower.contains("settings kholo") || lower.contains("phone settings")) {\n            reply = "Opening Settings.";\n            speak(reply);\n            try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); }\n            catch (Exception e) { transcript.append("\\nUnable to open Settings right now."); }\n            return;\n        } else if (lower.contains("set alarm") || lower.contains("alarm lagao") || lower.contains("alarm kholo")) {\n            reply = "Opening the alarm screen. Please choose the time and confirm it.";\n            speak(reply);\n            try { startActivity(new Intent(AlarmClock.ACTION_SET_ALARM)); }\n            catch (Exception e) { transcript.append("\\nNo alarm app is available."); }\n            return;\n        } else if (lower.contains("search for ") || lower.startsWith("google ") || lower.startsWith("search ")) {\n            String query = lower.replaceFirst("^.*?search for ", "").replaceFirst("^google ", "").replaceFirst("^search ", "").trim();\n            if (query.isEmpty()) query = command;\n            reply = "Searching the web for " + query;\n            speak(reply);\n            try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query)))); }\n            catch (Exception e) { transcript.append("\\nUnable to open web search."); }\n            return;\n        } else if (lower.contains("open youtube") || lower.contains("youtube kholo") || lower.contains("youtube chalao")) {
+        } else if (lower.contains("date") || lower.contains("tarikh") || lower.contains("aaj ki date")) {
+            java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));
+            reply = "Today is " + dateFmt.format(new java.util.Date());
+        } else if (lower.contains("battery") || lower.contains("charge kitna")) {
+            Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (batteryIntent != null) {
+                int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;
+                reply = percent >= 0 ? "Battery is at " + percent + " percent." : "I could not read the battery level.";
+            } else {
+                reply = "I could not read the battery level.";
+            }
+        } else if (lower.contains("open settings") || lower.contains("settings kholo") || lower.contains("phone settings")) {
+            reply = "Opening Settings.";
+            speak(reply);
+            try {
+                startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+            } catch (Exception e) {
+                transcript.append("\nUnable to open Settings right now.");
+            }
+            return;
+        } else if (lower.contains("set alarm") || lower.contains("alarm lagao") || lower.contains("alarm kholo")) {
+            reply = "Opening the alarm screen. Please choose the time and confirm it.";
+            speak(reply);
+            try {
+                startActivity(new Intent(AlarmClock.ACTION_SET_ALARM));
+            } catch (Exception e) {
+                transcript.append("\nNo alarm app is available.");
+            }
+            return;
+        } else if (lower.contains("search for ") || lower.startsWith("google ") || lower.startsWith("search ")) {
+            String query = lower.replaceFirst("^.*?search for ", "").replaceFirst("^google ", "").replaceFirst("^search ", "").trim();
+            if (query.isEmpty()) query = command;
+            reply = "Searching the web for " + query;
+            speak(reply);
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query))));
+            } catch (Exception e) {
+                transcript.append("\nUnable to open web search.");
+            }
+            return;
+        } else if (lower.contains("open youtube") || lower.contains("youtube kholo") || lower.contains("youtube chalao")) {
             reply = "Opening YouTube.";
             speak(reply);
             try {
