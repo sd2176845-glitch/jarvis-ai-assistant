@@ -78,16 +78,21 @@ public class MainActivity extends Activity {
     }
 
     private void buildInterface() {
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(bg);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER_HORIZONTAL);
-        root.setPadding(24, 36, 24, 24);
+        root.setPadding(24, 24, 24, 22);
         root.setBackgroundColor(bg);
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         TextView label = new TextView(this);
         label.setText("STARK INDUSTRIES  •  PERSONAL AI");
         label.setTextColor(cyan);
-        label.setTextSize(12);
+        label.setTextSize(11);
         label.setLetterSpacing(0.16f);
         label.setGravity(Gravity.CENTER);
         root.addView(label, new LinearLayout.LayoutParams(-1, -2));
@@ -96,50 +101,81 @@ public class MainActivity extends Activity {
         title.setText("J.A.R.V.I.S.");
         title.setTextColor(Color.WHITE);
         title.setTextSize(36);
+        title.setLetterSpacing(0.12f);
         title.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 26, 0, 4);
+        title.setPadding(0, 14, 0, 4);
         root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        // Keep the avatar at a stable size so the vector never stretches to fill the whole screen.
+        TextView subtitle = new TextView(this);
+        subtitle.setText("PERSONAL VOICE ASSISTANT");
+        subtitle.setTextColor(Color.rgb(105, 155, 180));
+        subtitle.setTextSize(10);
+        subtitle.setLetterSpacing(0.20f);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setPadding(0, 0, 0, 8);
+        root.addView(subtitle, new LinearLayout.LayoutParams(-1, -2));
+
+        // Fixed avatar area prevents the orb and the UI beneath it from being pushed off-screen.
         FrameLayout avatarFrame = new FrameLayout(this);
-        LinearLayout.LayoutParams avatarFrameParams = new LinearLayout.LayoutParams(-1, 0, 1);
-        avatarFrameParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        avatarFrameParams.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        LinearLayout.LayoutParams avatarFrameParams = new LinearLayout.LayoutParams(-1,
+                (int) (258 * getResources().getDisplayMetrics().density));
+        avatarFrameParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
         root.addView(avatarFrame, avatarFrameParams);
 
         ImageView avatar = new ImageView(this);
         avatar.setImageResource(com.jarvis.assistant.R.drawable.jarvis_orb);
         avatar.setScaleType(ImageView.ScaleType.FIT_CENTER);
         avatar.setAdjustViewBounds(true);
-        int avatarSize = (int) (240 * getResources().getDisplayMetrics().density);
+        int avatarSize = (int) (226 * getResources().getDisplayMetrics().density);
         FrameLayout.LayoutParams avatarParams = new FrameLayout.LayoutParams(
                 avatarSize, avatarSize, Gravity.CENTER);
         avatarFrame.addView(avatar, avatarParams);
 
         android.view.animation.ScaleAnimation pulse = new android.view.animation.ScaleAnimation(
-                0.98f, 1.02f, 0.98f, 1.02f,
+                0.985f, 1.015f, 0.985f, 1.015f,
                 android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
                 android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-        pulse.setDuration(1800);
+        pulse.setDuration(2000);
         pulse.setRepeatMode(android.view.animation.Animation.REVERSE);
         pulse.setRepeatCount(android.view.animation.Animation.INFINITE);
         avatar.startAnimation(pulse);
 
+        // Futuristic divider directly under the avatar: cyan core with a dim outer track.
+        FrameLayout dividerTrack = new FrameLayout(this);
+        GradientDrawable track = new GradientDrawable();
+        track.setColor(Color.rgb(14, 43, 63));
+        track.setCornerRadius(4 * getResources().getDisplayMetrics().density);
+        dividerTrack.setBackground(track);
+        LinearLayout.LayoutParams trackParams = new LinearLayout.LayoutParams(
+                (int) (220 * getResources().getDisplayMetrics().density),
+                (int) (3 * getResources().getDisplayMetrics().density));
+        trackParams.topMargin = (int) (1 * getResources().getDisplayMetrics().density);
+        trackParams.bottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+        root.addView(dividerTrack, trackParams);
+        View dividerGlow = new View(this);
+        GradientDrawable glow = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.TRANSPARENT, cyan, Color.TRANSPARENT});
+        glow.setCornerRadius(4 * getResources().getDisplayMetrics().density);
+        dividerGlow.setBackground(glow);
+        FrameLayout.LayoutParams glowParams = new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER);
+        dividerTrack.addView(dividerGlow, glowParams);
+
         status = new TextView(this);
-        status.setText("SYSTEM ONLINE • STANDBY");
+        status.setText("SYSTEM ONLINE  •  STANDBY");
         status.setTextColor(cyan);
         status.setTextSize(12);
         status.setGravity(Gravity.CENTER);
         status.setLetterSpacing(0.12f);
+        status.setPadding(0, 2, 0, 8);
         root.addView(status, new LinearLayout.LayoutParams(-1, -2));
 
         transcript = new TextView(this);
-        transcript.setText("Good evening. JARVIS interface initialized.\nTap the microphone control to speak.");
+        transcript.setText("Good evening, Boss.\\nJARVIS interface initialized.");
         transcript.setTextColor(Color.rgb(190, 215, 230));
-        transcript.setTextSize(15);
+        transcript.setTextSize(14);
         transcript.setGravity(Gravity.CENTER);
-        transcript.setPadding(8, 22, 8, 22);
+        transcript.setPadding(8, 8, 8, 14);
         root.addView(transcript, new LinearLayout.LayoutParams(-1, -2));
 
         Button speak = new Button(this);
@@ -152,8 +188,8 @@ public class MainActivity extends Activity {
         shape.setCornerRadius(48);
         speak.setBackground(shape);
         speak.setOnClickListener(v -> startListening());
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, 60);
-        bp.setMargins(8, 12, 8, 18);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, 56);
+        bp.setMargins(8, 6, 8, 12);
         root.addView(speak, bp);
 
         Button wakeOn = new Button(this);
@@ -161,7 +197,7 @@ public class MainActivity extends Activity {
         wakeOn.setAllCaps(false);
         wakeOn.setTextColor(Color.WHITE);
         wakeOn.setOnClickListener(v -> startWakeWordListening());
-        root.addView(wakeOn, new LinearLayout.LayoutParams(-1, 52));
+        root.addView(wakeOn, new LinearLayout.LayoutParams(-1, 50));
 
         Button wakeOff = new Button(this);
         wakeOff.setText("STOP BACKGROUND LISTENING");
@@ -171,37 +207,38 @@ public class MainActivity extends Activity {
             stopService(new Intent(MainActivity.this, WakeWordService.class));
             status.setText("BACKGROUND LISTENING STOPPED");
         });
-        root.addView(wakeOff, new LinearLayout.LayoutParams(-1, 48));
+        root.addView(wakeOff, new LinearLayout.LayoutParams(-1, 46));
 
         Button health = new Button(this);
         health.setText("RUN SYSTEM SAFETY CHECK");
         health.setAllCaps(false);
         health.setTextColor(cyan);
         health.setOnClickListener(v -> runSafetyCheck());
-        root.addView(health, new LinearLayout.LayoutParams(-1, 48));
+        root.addView(health, new LinearLayout.LayoutParams(-1, 46));
 
         Button emergencyContact = new Button(this);
         emergencyContact.setText("SET EMERGENCY CONTACT");
         emergencyContact.setAllCaps(false);
         emergencyContact.setTextColor(Color.WHITE);
         emergencyContact.setOnClickListener(v -> showEmergencyContactDialog());
-        root.addView(emergencyContact, new LinearLayout.LayoutParams(-1, 48));
+        root.addView(emergencyContact, new LinearLayout.LayoutParams(-1, 46));
 
         Button sos = new Button(this);
-        sos.setText("SOS • EMERGENCY OPTIONS");
+        sos.setText("SOS  •  EMERGENCY OPTIONS");
         sos.setAllCaps(false);
         sos.setTextColor(Color.WHITE);
         sos.setOnClickListener(v -> showSosOptions());
-        root.addView(sos, new LinearLayout.LayoutParams(-1, 48));
+        root.addView(sos, new LinearLayout.LayoutParams(-1, 46));
 
         TextView footer = new TextView(this);
-        footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.1");
+        footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
         footer.setTextColor(Color.rgb(90, 130, 150));
         footer.setTextSize(9);
         footer.setGravity(Gravity.CENTER);
+        footer.setPadding(0, 12, 0, 4);
         root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
 
-        setContentView(root);
+        setContentView(scroll);
     }
 
     private void runSafetyCheck() {
