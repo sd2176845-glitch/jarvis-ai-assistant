@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private TextToSpeech tts;
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
+    private boolean startWakeAfterPermission = false;
 
     private int cyan = Color.rgb(70, 220, 255);
     private int bg = Color.rgb(3, 10, 22);
@@ -96,6 +97,13 @@ public class MainActivity extends Activity {
         orb.setGravity(Gravity.CENTER);
         orb.setPadding(0, 14, 0, 14);
         root.addView(orb, new LinearLayout.LayoutParams(-1, 0, 1));
+        android.view.animation.ScaleAnimation pulse = new android.view.animation.ScaleAnimation(
+                0.94f, 1.06f, 0.94f, 1.06f, android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+                android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
+        pulse.setDuration(1300);
+        pulse.setRepeatMode(android.view.animation.Animation.REVERSE);
+        pulse.setRepeatCount(android.view.animation.Animation.INFINITE);
+        orb.startAnimation(pulse);
 
         status = new TextView(this);
         status.setText("SYSTEM ONLINE • STANDBY");
@@ -127,6 +135,23 @@ public class MainActivity extends Activity {
         bp.setMargins(8, 12, 8, 18);
         root.addView(speak, bp);
 
+        Button wakeOn = new Button(this);
+        wakeOn.setText("ENABLE HEY JARVIS (BACKGROUND)");
+        wakeOn.setAllCaps(false);
+        wakeOn.setTextColor(Color.WHITE);
+        wakeOn.setOnClickListener(v -> startWakeWordListening());
+        root.addView(wakeOn, new LinearLayout.LayoutParams(-1, 52));
+
+        Button wakeOff = new Button(this);
+        wakeOff.setText("STOP BACKGROUND LISTENING");
+        wakeOff.setAllCaps(false);
+        wakeOff.setTextColor(Color.WHITE);
+        wakeOff.setOnClickListener(v -> {
+            stopService(new Intent(MainActivity.this, WakeWordService.class));
+            status.setText("BACKGROUND LISTENING STOPPED");
+        });
+        root.addView(wakeOff, new LinearLayout.LayoutParams(-1, 48));
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  PERSONAL ASSISTANT  /  V1.0");
         footer.setTextColor(Color.rgb(90, 130, 150));
@@ -135,6 +160,22 @@ public class MainActivity extends Activity {
         root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
 
         setContentView(root);
+    }
+
+    private void startWakeWordListening() {
+        if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            startWakeAfterPermission = true;
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
+            status.setText("MICROPHONE PERMISSION NEEDED");
+            return;
+        }
+        try {
+            Intent service = new Intent(this, WakeWordService.class);
+            if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
+            status.setText("HEY JARVIS LISTENING • CHECK NOTIFICATION");
+        } catch (Exception e) {
+            status.setText("COULD NOT START BACKGROUND LISTENING");
+        }
     }
 
     private void startListening() {
@@ -163,7 +204,10 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MIC_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) startListening();
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (startWakeAfterPermission) { startWakeAfterPermission = false; startWakeWordListening(); }
+                else startListening();
+            }
             else status.setText("MICROPHONE PERMISSION DENIED");
         }
     }
@@ -250,6 +294,24 @@ public class MainActivity extends Activity {
             speak("Location settings khol raha hoon.");
             try { startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)); }
             catch (Exception e) { transcript.append("\\nLocation settings nahi khul paayi."); }
+            return;
+        } else if (intent.matches("^(call|phone karo|call karo)\\s+.+")) {
+            String target = intent.replaceFirst("^(call|phone karo|call karo)\\s+", "").trim();
+            speak("Calling screen khol raha hoon. Number check karke call confirm kar dena.");
+            try {
+                String digits = target.replaceAll("[^0-9+]", "");
+                if (digits.length() >= 5) startActivity(new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + digits)));
+                else { Intent dial = new Intent(Intent.ACTION_DIAL); startActivity(dial); }
+            } catch (Exception e) { transcript.append("\\nPhone dialer nahi khul paaya."); }
+            return;
+        } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
+            String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
+            speak("Message draft khol raha hoon. Bhejne se pehle check kar lena.");
+            try {
+                Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                sms.putExtra("sms_body", body);
+                startActivity(sms);
+            } catch (Exception e) { transcript.append("\\nMessage app nahi khul paayi."); }
             return;
         } else if (intent.contains("open phone") || intent.contains("dialer kholo") || intent.contains("call screen kholo") || intent.equals("dialer")) {
             speak("Phone dialer khol raha hoon.");
