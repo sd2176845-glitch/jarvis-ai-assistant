@@ -18,6 +18,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.text.InputType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -96,18 +98,30 @@ public class MainActivity extends Activity {
         title.setPadding(0, 26, 0, 4);
         root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        TextView orb = new TextView(this);
-        orb.setGravity(Gravity.CENTER);
-        orb.setPadding(0, 14, 0, 14);
-        orb.setBackgroundResource(com.jarvis.assistant.R.drawable.jarvis_orb);
-        root.addView(orb, new LinearLayout.LayoutParams(-1, 0, 1));
+        // Keep the avatar at a stable size so the vector never stretches to fill the whole screen.
+        FrameLayout avatarFrame = new FrameLayout(this);
+        LinearLayout.LayoutParams avatarFrameParams = new LinearLayout.LayoutParams(-1, 0, 1);
+        avatarFrameParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        avatarFrameParams.bottomMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        root.addView(avatarFrame, avatarFrameParams);
+
+        ImageView avatar = new ImageView(this);
+        avatar.setImageResource(com.jarvis.assistant.R.drawable.jarvis_orb);
+        avatar.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        avatar.setAdjustViewBounds(true);
+        int avatarSize = (int) (240 * getResources().getDisplayMetrics().density);
+        FrameLayout.LayoutParams avatarParams = new FrameLayout.LayoutParams(
+                avatarSize, avatarSize, Gravity.CENTER);
+        avatarFrame.addView(avatar, avatarParams);
+
         android.view.animation.ScaleAnimation pulse = new android.view.animation.ScaleAnimation(
-                0.94f, 1.06f, 0.94f, 1.06f, android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+                0.98f, 1.02f, 0.98f, 1.02f,
+                android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
                 android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-        pulse.setDuration(1300);
+        pulse.setDuration(1800);
         pulse.setRepeatMode(android.view.animation.Animation.REVERSE);
         pulse.setRepeatCount(android.view.animation.Animation.INFINITE);
-        orb.startAnimation(pulse);
+        avatar.startAnimation(pulse);
 
         status = new TextView(this);
         status.setText("SYSTEM ONLINE • STANDBY");
