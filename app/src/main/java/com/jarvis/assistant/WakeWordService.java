@@ -279,9 +279,9 @@ public class WakeWordService extends Service {
 
     private void sendCallControl(String action, String response) {
         say(response);
-        Intent control = new Intent(this, CallControlAccessibilityService.class);
-        control.setAction(action);
-        try { startService(control); } catch (Exception ignored) {}
+        Intent control = new Intent(action);
+        control.setPackage(getPackageName());
+        sendBroadcast(control);
     }
 
     private boolean matches(String command, String... phrases) {
