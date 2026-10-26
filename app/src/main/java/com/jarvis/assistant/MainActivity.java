@@ -1,6 +1,8 @@
 package com.jarvis.assistant;
 
 import android.app.Activity;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
@@ -24,6 +26,7 @@ public class MainActivity extends Activity {
     private TextView status, transcript;
     private TextToSpeech tts;
     private SpeechRecognizer recognizer;
+    private static final int MIC_PERMISSION_REQUEST = 1001;
 
     private int cyan = Color.rgb(70, 220, 255);
     private int bg = Color.rgb(3, 10, 22);
@@ -133,6 +136,11 @@ public class MainActivity extends Activity {
     }
 
     private void startListening() {
+        if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
+            status.setText("MICROPHONE PERMISSION NEEDED");
+            return;
+        }
         if (recognizer == null) {
             status.setText("VOICE RECOGNITION UNAVAILABLE");
             return;
@@ -146,6 +154,15 @@ public class MainActivity extends Activity {
             recognizer.startListening(intent);
         } catch (Exception e) {
             status.setText("COULD NOT START MICROPHONE");
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MIC_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) startListening();
+            else status.setText("MICROPHONE PERMISSION DENIED");
         }
     }
 
