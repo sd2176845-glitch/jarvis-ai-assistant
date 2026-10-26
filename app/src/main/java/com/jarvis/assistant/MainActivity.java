@@ -278,12 +278,12 @@ public class MainActivity extends Activity {
                 replyAndShow(original, "Batao kya yaad rakhna hai.");
             } else {
                 String old = preferences.getString("notes", "");
-                String updated = old.isEmpty() ? note : old + "\\n" + note;
-                String[] notes = updated.split("\\n");
+                String updated = old.isEmpty() ? note : old + "\n" + note;
+                String[] notes = updated.split("\n");
                 StringBuilder kept = new StringBuilder();
                 int start = Math.max(0, notes.length - 10);
                 for (int i = start; i < notes.length; i++) {
-                    if (kept.length() > 0) kept.append("\\n");
+                    if (kept.length() > 0) kept.append("\n");
                     kept.append(notes[i]);
                 }
                 preferences.edit().putString("notes", kept.toString()).apply();
@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
         }
         if (intent.contains("what do you remember") || intent.contains("meri memory") || intent.contains("kya yaad hai")) {
             String notes = preferences.getString("notes", "");
-            replyAndShow(original, notes.isEmpty() ? "Abhi koi saved note nahi hai. Kaho: remember that, phir apni baat." : "Tumhari saved notes: " + notes.replace("\\n", ". "));
+            replyAndShow(original, notes.isEmpty() ? "Abhi koi saved note nahi hai. Kaho: remember that, phir apni baat." : "Tumhari saved notes: " + notes.replace("\n", ". "));
             return;
         }
         if (intent.contains("forget my memory") || intent.contains("clear memory") || intent.contains("memory delete") || intent.contains("sab yaad bhool")) {
@@ -334,8 +334,13 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (intent.equals("sos") || intent.contains("sos options") || intent.contains("emergency options")) {
+            showSosOptions();
+            return;
+        }
+
         // Emergency phrases open a clear confirmation before the emergency dialer.
-        if (intent.contains("accident") || intent.contains("emergency") || intent.contains("sos")
+        if (intent.contains("accident") || intent.contains("emergency")
                 || intent.contains("help me urgently") || intent.contains("bachao") || intent.contains("madad karo abhi")) {
             speak("Emergency help may be needed. Please confirm on screen.");
             new AlertDialog.Builder(this)
