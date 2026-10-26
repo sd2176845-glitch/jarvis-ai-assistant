@@ -37,7 +37,10 @@ public class WakeWordService extends Service {
     private boolean stopping = false;
     // After the wake phrase, accept the next utterance as the command.
     private boolean awaitingCommand = false;
-    private final Runnable commandTimeout = () -> awaitingCommand = false;
+    private String pendingCallNumber = null;
+    private String pendingCallName = null;
+    private boolean awaitingCallConfirmation = false;
+    private final Runnable commandTimeout = () -> { awaitingCommand = false; awaitingCallConfirmation = false; pendingCallNumber = null; pendingCallName = null; };
 
     @Override
     public void onCreate() {
@@ -136,13 +139,75 @@ public class WakeWordService extends Service {
     }
 
     private void handleRecognized(String heard) {
-        String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim();
+        String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim()
+                .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+
+        // A pending call always requires a clear spoken yes/no confirmation.
+        if (awaitingCallConfirmation) {
+            if (matches(text, "yes", "haan", "ha", "confirm", "call karo", "kar do")) {
+                String number = pendingCallNumber;
+                String name = pendingCallName;
+                awaitingCallConfirmation = false;
+                awaitingCommand = false;
+                pendingCallNumber = null;
+                pendingCallName = null;
+                handler.removeCallbacks(commandTimeout);
+                if (number == null || number.trim().isEmpty()) {
+                    say("Number nahi mila. Dobara contact ka naam bolo.");
+                } else if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    say("Direct call permission nahi mili. JARVIS app kholo aur permission allow karo.");
+                } else {
+                    say(name + " ko call laga raha hoon.");
+                    handler.postDelayed(() -> {
+                        try {
+                            Intent call = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
+                            call.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(call);
+                        } catch (SecurityException e) {
+                            say("Call permission nahi mili. Phone app se call kar lo.");
+                        } catch (Exception e) {
+                            say("Call nahi lag paayi. Phone app se try karo.");
+                        }
+                    }, 350);
+                }
+                return;
+            }
+            if (matches(text, "no", "nahi", "nahin", "cancel", "mat karo", "rehne do")) {
+                awaitingCallConfirmation = false;
+                pendingCallNumber = null;
+                pendingCallName = null;
+                handler.removeCallbacks(commandTimeout);
+                say("Theek hai, call cancel kar di.");
+                return;
+            }
+            say("Call confirm karne ke liye haan bolo, ya cancel karne ke liye nahi bolo.");
+            return;
+        }
+
         String wake = text.replace("hey jarvis ji", "jarvis")
                 .replace("hey jarvesh", "jarvis").replace("hey jarvish", "jarvis")
                 .replace("hey jarvis", "jarvis").replace("jarvesh", "jarvis")
                 .replace("jarvish", "jarvis").replace("jarves", "jarvis");
 
         String command;
+        if (wake.contains("jarvis")) {
+            command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
+                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+            if (command.isEmpty()) {
+                awaitingCommand = true;
+                handler.removeCallbacks(commandTimeout);
+                handler.postDelayed(commandTimeout, 8000);
+                say("Haan Boss, bolo.");
+                return;
+            }
+        } else if (awaitingCommand) {
+            command = text;
+            awaitingCommand = false;
+            handler.removeCallbacks(commandTimeout);
+        } else {
+            return;
+        }
+
         if (wake.contains("jarvis")) {
             command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
                     .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
@@ -267,10 +332,11 @@ public class WakeWordService extends Service {
 
     private void openContactDialer(String requestedName) {
         if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            say("Contact permission nahi mili. JARVIS app kholo aur background listening dobara enable karo.");
+            say("Contact permission nahi mili. JARVIS app kholo aur contact permission allow karo.");
             return;
         }
         String number = null;
+        String matchedName = requestedName;
         Cursor cursor = null;
         try {
             String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
@@ -280,26 +346,25 @@ public class WakeWordService extends Service {
                     new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER,
                             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME},
                     selection, args, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
-            if (cursor != null && cursor.moveToFirst()) number = cursor.getString(0);
+            if (cursor != null && cursor.moveToFirst()) {
+                number = cursor.getString(0);
+                matchedName = cursor.getString(1);
+            }
         } catch (SecurityException ignored) {
         } finally {
             if (cursor != null) cursor.close();
         }
         if (number == null || number.trim().isEmpty()) {
-            say("Phone contacts mein " + requestedName + " nahi mila. Contact ko isi naam se save karke dobara koshish karo.");
+            say("Phone contacts mein " + requestedName + " nahi mila. Contact ka naam check karke dobara bolo.");
             return;
         }
-        final String phoneNumber = number;
-        say("Dialer mein " + requestedName + " ka number khol raha hoon. Call confirm kar dena.");
-        handler.postDelayed(() -> {
-            try {
-                Intent dial = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + android.net.Uri.encode(phoneNumber)));
-                dial.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(dial);
-            } catch (Exception ignored) {
-                say("Dialer nahi khul paaya. Phone app se call kar lo.");
-            }
-        }, 450);
+        pendingCallNumber = number;
+        pendingCallName = matchedName == null ? requestedName : matchedName;
+        awaitingCallConfirmation = true;
+        awaitingCommand = false;
+        handler.removeCallbacks(commandTimeout);
+        handler.postDelayed(commandTimeout, 10000);
+        say(pendingCallName + " ko call karun? Haan bolo, ya nahi bolkar cancel karo.");
     }
 
     private void say(String text) {
