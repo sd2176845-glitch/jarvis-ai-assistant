@@ -208,10 +208,7 @@ public class WakeWordService extends Service {
             return;
         }
 
-        if (wake.contains("jarvis")) {
-            command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
-                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
-            if (command.isEmpty()) {
+        if (command.isEmpty()) {
             say("Command samajh nahi aaya. Dobara boliye.");
         } else if (isCallCommand(command)) {
             String target = extractContactTarget(command);
