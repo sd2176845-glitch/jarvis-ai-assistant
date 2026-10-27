@@ -1052,3 +1052,24 @@ public class MainActivity extends Activity {
             } else {
                 startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)));
             }
+        } catch (Exception e) {
+            transcript.append("\nUnable to open " + appName + " right now.");
+        }
+    }
+
+    private void speak(String text) {
+        if (tts != null) {
+            String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
+            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
+            tts.setSpeechRate(rate);
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (recognizer != null) recognizer.destroy();
+        if (tts != null) tts.shutdown();
+        super.onDestroy();
+    }
+}
