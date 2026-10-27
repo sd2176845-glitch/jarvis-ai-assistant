@@ -2,8 +2,6 @@ package com.jarvis.assistant.ui
 
 import android.Manifest
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -16,7 +14,6 @@ import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.widget.Button
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -53,9 +50,8 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
         window.navigationBarColor = darkBgColor
 
         actionController = SystemActionController(this)
-        val prefs = getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE)
-        val savedKey = prefs.getString("gemini_api_key", "").orEmpty()
-        geminiClient = GeminiApiClient(savedKey)
+        // Gemini API keys must stay on the server, never inside the Android app.
+        geminiClient = GeminiApiClient()
 
         buildCyberneticHud()
         textToSpeech = TextToSpeech(this, this)
@@ -144,14 +140,6 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
         }
         controls.addView(btnListen)
 
-        val btnConfig = Button(this).apply {
-            text = "API KEY"
-            setTextColor(cyanColor)
-            setBackgroundColor(Color.TRANSPARENT)
-            setOnClickListener { showApiKeyDialog() }
-        }
-        controls.addView(btnConfig)
-
         root.addView(controls)
         setContentView(root)
     }
@@ -222,27 +210,6 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
 
     private fun speak(text: String) {
         textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "JARVIS_REPLY")
-    }
-
-    private fun showApiKeyDialog() {
-        val input = EditText(this).apply {
-            hint = "Enter Gemini API Key"
-        }
-        AlertDialog.Builder(this)
-            .setTitle("JARVIS AI Core Config")
-            .setMessage("Set your Gemini API key to activate next-gen neural responses:")
-            .setView(input)
-            .setPositiveButton("Save") { _, _ ->
-                val key = input.text.toString().trim()
-                getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE)
-                    .edit()
-                    .putString("gemini_api_key", key)
-                    .apply()
-                geminiClient = GeminiApiClient(key)
-                speak("Core neural keys updated and verified, sir.")
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     private fun checkPermissions() {
