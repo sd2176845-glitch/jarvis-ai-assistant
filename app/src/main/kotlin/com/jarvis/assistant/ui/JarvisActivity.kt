@@ -195,19 +195,25 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
 
     private fun processAiResponse(raw: String) {
         var cleanText = raw
-        if (raw.contains("[ACTION:CALL")) {
-            val target = raw.substringAfter("[ACTION:CALL|").substringBefore("]").trim()
-            actionController.executeAction(ActionType.MAKE_CALL, target, null)
-            cleanText = raw.replace(Regex("\\[ACTION:CALL.*\\]"), "").trim()
-        } else if (raw.contains("[ACTION:TORCH")) {
-            actionController.executeAction(ActionType.TOGGLE_TORCH, null, null)
-            cleanText = raw.replace(Regex("\\[ACTION:TORCH.*\\]"), "").trim()
+        val actionMatch = Regex("\\\\[ACTION:(CALL|WHATSAPP|OPEN_APP|SEARCH|TORCH|BATTERY)\\\\s*\\\\|([^]]*)]", RegexOption.IGNORE_CASE).find(raw)
+        if (actionMatch != null) {
+            val actionName = actionMatch.groupValues[1].uppercase(Locale.ROOT)
+            val parts = actionMatch.groupValues[2].split('|').map { it.trim() }
+            val result = when (actionName) {
+                "CALL" -> actionController.executeAction(ActionType.MAKE_CALL, parts.getOrNull(0), null)
+                "WHATSAPP" -> actionController.executeAction(ActionType.SEND_WHATSAPP, parts.getOrNull(0), parts.getOrNull(1))
+                "OPEN_APP" -> actionController.executeAction(ActionType.OPEN_APP, parts.getOrNull(0), null)
+                "SEARCH" -> actionController.executeAction(ActionType.SEARCH_WEB, parts.getOrNull(0), null)
+                "TORCH" -> actionController.executeAction(ActionType.TOGGLE_TORCH, parts.getOrNull(0), null)
+                "BATTERY" -> actionController.executeAction(ActionType.CHECK_BATTERY, null, null)
+                else -> null
+            }
+            cleanText = raw.replace(actionMatch.value, "").trim()
+            if (result != null) cleanText = listOf(cleanText, result.userFeedback).filter { it.isNotBlank() }.joinToString("\\n")
         }
-
-        transcriptView.text = "JARVIS:\n$cleanText"
+        transcriptView.text = "JARVIS:\\n$cleanText"
         speak(cleanText)
     }
-
     private fun speak(text: String) {
         textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "JARVIS_REPLY")
     }
