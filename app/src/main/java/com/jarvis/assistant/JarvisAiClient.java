@@ -3,6 +3,7 @@ package com.jarvis.assistant;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.content.SharedPreferences;
 
 import org.json.JSONObject;
 
@@ -26,7 +27,15 @@ public final class JarvisAiClient {
     private JarvisAiClient() {}
 
     public static void ask(Context context, String message, Callback callback) {
+        Context appContext = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
+        SharedPreferences memory = appContext.getSharedPreferences("jarvis_ai_memory", Context.MODE_PRIVATE);
+        String originalMessage = message == null ? "" : message.trim();
+        String prior = memory.getString("conversation", "");
+        String requestMessage = prior.isEmpty()
+                ? originalMessage
+                : "Recent conversation for context (use only when relevant):\n" + prior
+                    + "\nCurrent user message: " + originalMessage;
         Thread worker = new Thread(() -> {
             String answer;
             HttpURLConnection connection = null;
@@ -40,7 +49,7 @@ public final class JarvisAiClient {
                 connection.setRequestProperty("Accept", "application/json");
 
                 JSONObject body = new JSONObject();
-                body.put("message", message == null ? "" : message);
+                body.put("message", requestMessage);
                 byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8);
                 connection.setFixedLengthStreamingMode(bytes.length);
                 try (OutputStream output = connection.getOutputStream()) {
@@ -73,6 +82,20 @@ public final class JarvisAiClient {
             }
 
             final String result = answer;
+            if (!result.startsWith("JARVIS AI server mein error") &&
+                    !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
+                String old = memory.getString("conversation", "");
+                String updated = (old.isEmpty() ? "" : old + "\\n")
+                        + "Boss: " + originalMessage + "\\nJARVIS: " + result;
+                String[] lines = updated.split("\\n");
+                int start = Math.max(0, lines.length - 12);
+                StringBuilder compact = new StringBuilder();
+                for (int i = start; i < lines.length; i++) {
+                    if (compact.length() > 0) compact.append('\\n');
+                    compact.append(lines[i]);
+                }
+                memory.edit().putString("conversation", compact.toString()).apply();
+            }
             main.post(() -> {
                 if (callback != null) callback.onReply(result);
             });
