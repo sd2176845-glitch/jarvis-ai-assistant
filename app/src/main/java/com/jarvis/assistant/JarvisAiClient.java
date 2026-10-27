@@ -85,9 +85,9 @@ public final class JarvisAiClient {
             if (!result.startsWith("JARVIS AI server mein error") &&
                     !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
                 String old = memory.getString("conversation", "");
-                String updated = (old.isEmpty() ? "" : old + "\\n")
-                        + "Boss: " + originalMessage + "\\nJARVIS: " + result;
-                String[] lines = updated.split("\\n");
+                String updated = (old.isEmpty() ? "" : old + "\n")
+                        + "Boss: " + originalMessage + "\nJARVIS: " + result;
+                String[] lines = updated.split("\n");
                 int start = Math.max(0, lines.length - 12);
                 StringBuilder compact = new StringBuilder();
                 for (int i = start; i < lines.length; i++) {
