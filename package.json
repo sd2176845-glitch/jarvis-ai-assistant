@@ -1,0 +1,13 @@
+{
+  "name": "jarvis-ai-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure server-side API bridge for the JARVIS Android assistant",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
