@@ -38,6 +38,9 @@ public class WakeWordService extends Service {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean stopping = false;
     private boolean waitingForAi = false;
+    private boolean speaking = false;
+    private int utteranceCounter = 0;
+    private String activeUtteranceId = null;
     private PowerManager.WakeLock screenOffWakeLock;
     // After the wake phrase, accept the next utterance as the command.
     private boolean awaitingCommand = false;
@@ -55,22 +58,16 @@ public class WakeWordService extends Service {
                 tts.setLanguage(new Locale("en", "IN"));
                 tts.setSpeechRate(0.92f);
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override public void onStart(String utteranceId) {}
+                    @Override public void onStart(String utteranceId) {
+                        handler.post(() -> {
+                            if (utteranceId.equals(activeUtteranceId)) speaking = true;
+                        });
+                    }
                     @Override public void onDone(String utteranceId) {
-                        if ("jarvis_ai_reply".equals(utteranceId)) {
-                            handler.post(() -> {
-                                waitingForAi = false;
-                                scheduleRestart(350);
-                            });
-                        }
+                        finishUtterance(utteranceId);
                     }
                     @Override public void onError(String utteranceId) {
-                        if ("jarvis_ai_reply".equals(utteranceId)) {
-                            handler.post(() -> {
-                                waitingForAi = false;
-                                scheduleRestart(350);
-                            });
-                        }
+                        finishUtterance(utteranceId);
                     }
                 });
             }
@@ -146,7 +143,7 @@ public class WakeWordService extends Service {
     }
 
     private void beginRecognition() {
-        if (stopping || waitingForAi) return;
+        if (stopping || waitingForAi || speaking) return;
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             handler.postDelayed(this::beginRecognition, 5000);
             return;
@@ -167,7 +164,7 @@ public class WakeWordService extends Service {
                 @Override public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) handleRecognized(matches.get(0));
-                    if (!waitingForAi) scheduleRestart(400);
+                    if (!waitingForAi && !speaking) scheduleRestart(400);
                 }
                 @Override public void onPartialResults(Bundle partialResults) {}
                 @Override public void onEvent(int eventType, Bundle params) {}
@@ -338,7 +335,7 @@ public class WakeWordService extends Service {
                     say(answer);
                     scheduleRestart(350);
                 } else {
-                    tts.speak(answer, TextToSpeech.QUEUE_FLUSH, null, "jarvis_ai_reply");
+                    speakAiReply(answer);
                 }
             });
         }
@@ -439,7 +436,49 @@ public class WakeWordService extends Service {
     }
 
     private void say(String text) {
-        if (tts != null) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_background_reply");
+        if (tts == null) {
+            speaking = false;
+            activeUtteranceId = null;
+            scheduleRestart(350);
+            return;
+        }
+        String utteranceId = "jarvis_background_reply_" + (++utteranceCounter);
+        activeUtteranceId = utteranceId;
+        speaking = true;
+        int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+        if (result == TextToSpeech.ERROR && utteranceId.equals(activeUtteranceId)) {
+            activeUtteranceId = null;
+            speaking = false;
+            scheduleRestart(350);
+        }
+    }
+
+    private void speakAiReply(String text) {
+        if (tts == null) {
+            waitingForAi = false;
+            say(text);
+            return;
+        }
+        String utteranceId = "jarvis_ai_reply_" + (++utteranceCounter);
+        activeUtteranceId = utteranceId;
+        speaking = true;
+        int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+        if (result == TextToSpeech.ERROR && utteranceId.equals(activeUtteranceId)) {
+            activeUtteranceId = null;
+            speaking = false;
+            waitingForAi = false;
+            say(text);
+        }
+    }
+
+    private void finishUtterance(String utteranceId) {
+        handler.post(() -> {
+            if (!utteranceId.equals(activeUtteranceId)) return;
+            activeUtteranceId = null;
+            speaking = false;
+            if (utteranceId.startsWith("jarvis_ai_reply_")) waitingForAi = false;
+            scheduleRestart(350);
+        });
     }
 
     private void scheduleRestart(long delay) {
