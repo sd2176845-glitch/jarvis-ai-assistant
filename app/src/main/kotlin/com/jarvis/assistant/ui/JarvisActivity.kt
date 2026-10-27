@@ -195,7 +195,7 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
 
     private fun processAiResponse(raw: String) {
         var cleanText = raw
-        val actionMatch = Regex("\\\\[ACTION:(CALL|WHATSAPP|OPEN_APP|SEARCH|TORCH|BATTERY)\\\\s*\\\\|([^]]*)]", RegexOption.IGNORE_CASE).find(raw)
+        val actionMatch = Regex("\\[ACTION:(CALL|WHATSAPP|OPEN_APP|SEARCH|TORCH|BATTERY)\\s*\\|([^]]*)]", RegexOption.IGNORE_CASE).find(raw)
         if (actionMatch != null) {
             val actionName = actionMatch.groupValues[1].uppercase(Locale.ROOT)
             val parts = actionMatch.groupValues[2].split('|').map { it.trim() }
