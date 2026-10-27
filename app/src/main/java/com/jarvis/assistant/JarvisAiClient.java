@@ -91,7 +91,7 @@ public final class JarvisAiClient {
                 int start = Math.max(0, lines.length - 12);
                 StringBuilder compact = new StringBuilder();
                 for (int i = start; i < lines.length; i++) {
-                    if (compact.length() > 0) compact.append('\\n');
+                    if (compact.length() > 0) compact.append('\n');
                     compact.append(lines[i]);
                 }
                 memory.edit().putString("conversation", compact.toString()).apply();
