@@ -687,9 +687,19 @@ public class MainActivity extends Activity {
         } else if (intent.contains("listen") || intent.contains("suno") || intent.contains("meri baat sun")) {
             reply = "Haan, sun raha hoon. Bolo, kya baat hai?";
         } else {
-            reply = "Maine suna: " + original + ". Is baat ko abhi poori tarah samajh nahi paaya, lekin tum doosre tareeke se bolo, main try karta hoon.";
+            requestAiReply(original);
+            return;
         }
         replyAndShow(original, reply);
+    }
+
+    private void requestAiReply(String original) {
+        status.setText("CONNECTING TO JARVIS AI…");
+        transcript.setText("YOU: " + original + "\\n\\nJARVIS: Thinking…");
+        JarvisAiClient.ask(this, original, reply -> {
+            status.setText("SYSTEM ONLINE • STANDBY");
+            replyAndShow(original, reply);
+        });
     }
 
     private String findContactNumber(String requestedName) {
