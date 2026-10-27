@@ -235,8 +235,14 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        speechRecognizer.destroy()
+        // Cancel in-flight network work before the Activity is discarded.
+        activityScope.coroutineContext[Job]?.cancel()
+        if (::speechRecognizer.isInitialized) {
+            speechRecognizer.cancel()
+            speechRecognizer.destroy()
+        }
+        textToSpeech?.stop()
         textToSpeech?.shutdown()
+        textToSpeech = null
     }
 }
