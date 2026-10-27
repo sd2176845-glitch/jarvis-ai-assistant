@@ -23,6 +23,8 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <application
         android:theme="@android:style/Theme.Material.NoActionBar"
+        android:icon="@drawable/jarvis_launcher"
+        android:roundIcon="@drawable/jarvis_launcher"
         android:label="JARVIS"
         android:allowBackup="false"
         android:supportsRtl="true">
