@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -37,9 +36,8 @@ class JarvisVoiceService : Service(), TextToSpeech.OnInitListener {
         super.onCreate()
         actionController = SystemActionController(this)
 
-        val prefs = getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE)
-        val apiKey = prefs.getString("gemini_api_key", "").orEmpty()
-        geminiClient = GeminiApiClient(apiKey)
+        // Gemini API credentials are held by the server, not in Android preferences.
+        geminiClient = GeminiApiClient()
 
         textToSpeech = TextToSpeech(this, this)
         startForegroundServiceNotification()
