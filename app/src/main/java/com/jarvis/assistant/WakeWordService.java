@@ -397,7 +397,7 @@ public class WakeWordService extends Service {
                 .replace("call karo", "").replace("call", "")
                 .replace("phone lagao", "").replace("ko phone karo", "")
                 .replace("phone karo", "").replace("dial", "")
-                .replace("lagao", "").replaceAll("\s+ko$", "").trim();
+                .replace("lagao", "").replaceAll("\\s+ko$", "").trim();
         return target.replaceAll("\\s+", " ").trim();
     }
 
