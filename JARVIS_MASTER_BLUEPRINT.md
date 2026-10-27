@@ -27,23 +27,25 @@ JARVIS is separate from the Even project.
 - [x] Initial dialer/contact/alarm and emergency-contact/SOS options (code present — permissions and behaviour need testing).
 - [x] Initial call/SMS event and accessibility integration (code present — user setup and platform restrictions apply).
 - [x] Basic safety/permission checks (code present — review and test).
-- [x] Backend caring/personality system prompt (initial version committed; full emotion engine not complete).
+- [x] Backend caring/personality system prompt (initial version; full mood inference remains limited).
+- [x] Explicit assistant-mode selector: Normal, Caring, Funny, Serious, Study, Gaming, Travel and Night (code present — build/device verification pending).
+- [x] Mode-aware AI prompt guidance and mode-specific orb pulse speed (code present — visual/voice behavior needs device testing).
 
 ## Remaining feature backlog
 
 ### Priority 1 — Personality and emotion engine
-- [ ] Emotion modes: happy, caring, serious, funny and thinking.
+- [ ] Full emotion engine: happy and thinking states, plus automatic mood-aware adaptation (manual Caring/Funny/Serious modes now have initial code).
 - [ ] Mood-aware response style, without overconfident mood assumptions.
 - [ ] Consistent butler-inspired personality: composed, discreet, respectful, helpful and occasionally witty.
-- [ ] Voice delivery and orb animation that reflect the current mode.
-- [ ] Explicit mode selector and safe default mode.
+- [ ] Fine-grained voice delivery and orb animation for all emotion states (mode-specific pulse speed now has initial code).
+- [x] Explicit mode selector and safe default mode (code present — build/device verification pending).
 
 ### Priority 2 — Memory and personal secretary
 - [ ] User-approved long-term preferences with review/edit/delete controls.
 - [ ] Notes and to-do lists.
 - [ ] Persistent reminders and scheduled notifications.
 - [ ] Morning briefing and daily schedule.
-- [ ] Study, Gaming, Travel and Night modes.
+- [x] Study, Gaming, Travel and Night modes (initial selector, voice commands and AI guidance are in code; reminders/workflows are not included yet).
 
 ### Priority 3 — Online intelligence and offline fallback
 - [ ] Actual live web search integration with source-aware summaries.
