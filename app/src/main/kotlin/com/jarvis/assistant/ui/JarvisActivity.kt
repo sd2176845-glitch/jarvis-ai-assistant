@@ -105,9 +105,9 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
 
         // Live Transcript Container
         val scroll = ScrollView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
+            setLayoutParams(LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1.0f
-            )
+            ))
             background = GradientDrawable().apply {
                 setColor(cardBgColor)
                 cornerRadius = 24f
