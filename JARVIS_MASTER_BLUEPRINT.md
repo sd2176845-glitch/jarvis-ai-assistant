@@ -30,6 +30,13 @@ JARVIS is separate from the Even project.
 - [x] Backend caring/personality system prompt (initial version; full mood inference remains limited).
 - [x] Explicit assistant-mode selector: Normal, Caring, Funny, Serious, Study, Gaming, Travel and Night (code present — build/device verification pending).
 - [x] Mode-aware AI prompt guidance and mode-specific orb pulse speed (code present — visual/voice behavior needs device testing).
+- [x] Command Center menu linking notes, alarm/reminder handoff, web search, weather search, daily briefing and privacy settings (code present — build/device verification pending).
+- [x] Local notes: save, view, and clear notes in app-private SharedPreferences (code present — device test needed).
+- [x] Daily briefing: local date/time, battery percentage when available, assistant mode and saved-note count (code present — device test needed).
+- [x] Orb scale animation reacts to speech recognition states (code present — visual behavior needs device testing).
+- [x] Live web/weather shortcuts open browser search pages; these are not a native live-data API or source-grounded AI search yet.
+- [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
+
 
 ## Remaining feature backlog
 
@@ -42,20 +49,20 @@ JARVIS is separate from the Even project.
 
 ### Priority 2 — Memory and personal secretary
 - [ ] User-approved long-term preferences with review/edit/delete controls.
-- [ ] Notes and to-do lists.
-- [ ] Persistent reminders and scheduled notifications.
-- [ ] Morning briefing and daily schedule.
+- [ ] Structured notes/to-do lists with editing and deletion per item (current implementation stores and clears a simple local notes text list).
+- [ ] True scheduled reminders with JARVIS notification delivery (current reminder control only opens Android's alarm UI; it does not schedule JARVIS reminders).
+- [ ] Calendar-connected morning briefing and daily schedule (current briefing is local date/time, battery, mode and notes count).
 - [x] Study, Gaming, Travel and Night modes (initial selector, voice commands and AI guidance are in code; reminders/workflows are not included yet).
 
 ### Priority 3 — Online intelligence and offline fallback
-- [ ] Actual live web search integration with source-aware summaries.
-- [ ] Weather, news and sports integrations.
+- [ ] Actual in-app live web search integration with source-aware summaries (current shortcut launches a browser search page).
+- [ ] Native weather, news and sports data integrations (current weather shortcut launches a browser search page).
 - [ ] Hindi/Bengali/English translation workflow.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
 - [ ] Offline basic commands and saved notes; clearly report when online AI is unavailable.
 
 ### Priority 4 — Advanced integrations
-- [ ] Camera vision for user-selected images and text.
+- [ ] Camera vision / OCR for user-selected images and text.
 - [ ] Notification reader with explicit user-granted access and privacy controls.
 - [ ] Smart-home integration for compatible devices.
 - [ ] Digital wellbeing / screen-time overview where Android provides the data.
