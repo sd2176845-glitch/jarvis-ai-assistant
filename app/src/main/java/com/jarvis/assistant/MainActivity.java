@@ -63,16 +63,17 @@ public class MainActivity extends Activity {
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(this);
             recognizer.setRecognitionListener(new RecognitionListener() {
-                public void onReadyForSpeech(Bundle params) { status.setText("LISTENING…"); }
-                public void onBeginningOfSpeech() { status.setText("HEARING YOU"); }
+                public void onReadyForSpeech(Bundle params) { status.setText("LISTENING…"); animateOrb(1.07f, 550L); }
+                public void onBeginningOfSpeech() { status.setText("HEARING YOU"); animateOrb(1.10f, 350L); }
                 public void onRmsChanged(float rmsdB) {}
                 public void onBufferReceived(byte[] buffer) {}
-                public void onEndOfSpeech() { status.setText("ANALYZING"); }
-                public void onError(int error) { status.setText("STANDBY • TAP TO SPEAK"); }
+                public void onEndOfSpeech() { status.setText("ANALYZING"); animateOrb(1.035f, 700L); }
+                public void onError(int error) { status.setText("STANDBY • TAP TO SPEAK"); animateOrb(1.0f, 800L); }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) handleCommand(matches.get(0));
                     status.setText("STANDBY • TAP TO SPEAK");
+                    animateOrb(1.0f, 800L);
                 }
                 public void onPartialResults(Bundle partialResults) {}
                 public void onEvent(int eventType, Bundle params) {}
@@ -279,6 +280,32 @@ public class MainActivity extends Activity {
         modeButton.setOnClickListener(v -> showModeSelector());
         root.addView(modeButton, new LinearLayout.LayoutParams(-1, 46));
 
+        Button commandCenter = new Button(this);
+        commandCenter.setText("JARVIS COMMAND CENTER");
+        commandCenter.setAllCaps(false);
+        commandCenter.setTextColor(cyan);
+        commandCenter.setOnClickListener(v -> showCommandCenter());
+        root.addView(commandCenter, new LinearLayout.LayoutParams(-1, 48));
+
+        Button notes = new Button(this);
+        notes.setText("SMART NOTES • LOCAL");
+        notes.setAllCaps(false);
+        notes.setOnClickListener(v -> showNotesDialog());
+        root.addView(notes, new LinearLayout.LayoutParams(-1, 46));
+
+        Button briefing = new Button(this);
+        briefing.setText("DAILY BRIEFING");
+        briefing.setAllCaps(false);
+        briefing.setOnClickListener(v -> showDailyBriefing());
+        root.addView(briefing, new LinearLayout.LayoutParams(-1, 46));
+
+        Button liveInfo = new Button(this);
+        liveInfo.setText("LIVE WEB • WEATHER");
+        liveInfo.setAllCaps(false);
+        liveInfo.setOnClickListener(v -> showLiveInfoOptions());
+        root.addView(liveInfo, new LinearLayout.LayoutParams(-1, 46));
+
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
         footer.setTextColor(Color.rgb(90, 130, 150));
@@ -309,6 +336,133 @@ public class MainActivity extends Activity {
         }
 
         setContentView(scroll);
+    }
+
+
+    private void animateOrb(float scale, long duration) {
+        if (avatar == null) return;
+        avatar.animate().scaleX(scale).scaleY(scale).setDuration(duration).start();
+    }
+
+    private void showCommandCenter() {
+        String[] items = {"Smart notes", "Set reminder / alarm", "Live web search", "Weather search", "Daily briefing", "Privacy & permissions"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Command Center")
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) showNotesDialog();
+                    else if (which == 1) {
+                        try { startActivity(new Intent(AlarmClock.ACTION_SET_ALARM)); }
+                        catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
+                    } else if (which == 2) promptWebSearch();
+                    else if (which == 3) openWeatherSearch();
+                    else if (which == 4) showDailyBriefing();
+                    else showPrivacyOptions();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showNotesDialog() {
+        EditText input = new EditText(this);
+        input.setHint("Write a note or task");
+        input.setMinLines(2);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        String existing = preferences.getString("jarvis_notes", "");
+        TextView saved = new TextView(this);
+        saved.setText(existing.isEmpty() ? "No saved notes yet." : "SAVED NOTES\n" + existing);
+        saved.setTextColor(Color.rgb(190, 215, 230));
+        saved.setPadding(8, 8, 8, 12);
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(12, 4, 12, 0);
+        panel.addView(saved);
+        panel.addView(input);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Local notes")
+                .setMessage("Notes stay in this app's private storage on this phone.")
+                .setView(panel)
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Clear notes", (d, w) -> {
+                    preferences.edit().remove("jarvis_notes").apply();
+                    status.setText("LOCAL NOTES CLEARED");
+                })
+                .setPositiveButton("Save note", (d, w) -> {
+                    String note = input.getText().toString().trim();
+                    if (note.isEmpty()) { status.setText("EMPTY NOTE NOT SAVED"); return; }
+                    String old = preferences.getString("jarvis_notes", "");
+                    String combined = old.isEmpty() ? note : old + "\n• " + note;
+                    preferences.edit().putString("jarvis_notes", combined).apply();
+                    transcript.setText("JARVIS • SAVED NOTES\n\n" + combined);
+                    status.setText("NOTE SAVED ON DEVICE");
+                }).show();
+    }
+
+    private void showDailyBriefing() {
+        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy • h:mm a", Locale.getDefault());
+        String date = format.format(new java.util.Date());
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent battery = registerReceiver(null, filter);
+        String batteryText = "Battery: unavailable";
+        if (battery != null) {
+            int level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level >= 0 && scale > 0) batteryText = "Battery: " + (level * 100 / scale) + "%";
+        }
+        String notes = preferences.getString("jarvis_notes", "");
+        String report = "JARVIS • DAILY BRIEFING\n\n" + date + "\n" + batteryText
+                + "\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
+                + "\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
+                + "\n\nLive weather and current news require an internet search.";
+        transcript.setText(report);
+        status.setText("DAILY BRIEFING READY");
+        new AlertDialog.Builder(this).setTitle("Daily briefing").setMessage(report)
+                .setPositiveButton("Weather", (d, w) -> openWeatherSearch())
+                .setNeutralButton("Notes", (d, w) -> showNotesDialog())
+                .setNegativeButton("Close", null).show();
+    }
+
+    private void showLiveInfoOptions() {
+        new AlertDialog.Builder(this).setTitle("JARVIS • Live information")
+                .setItems(new String[]{"Search the web", "Weather search"}, (d, which) -> {
+                    if (which == 0) promptWebSearch(); else openWeatherSearch();
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void promptWebSearch() {
+        EditText input = new EditText(this);
+        input.setHint("What should I search?");
+        new AlertDialog.Builder(this).setTitle("Live web search").setView(input)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Search", (d, w) -> {
+                    String query = input.getText().toString().trim();
+                    if (!query.isEmpty()) {
+                        try { startActivity(new Intent(Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode(query)))); }
+                        catch (Exception e) { status.setText("BROWSER NOT AVAILABLE"); }
+                    }
+                }).show();
+    }
+
+    private void openWeatherSearch() {
+        try { startActivity(new Intent(Intent.ACTION_VIEW,
+                android.net.Uri.parse("https://www.google.com/search?q=" + android.net.Uri.encode("weather today")))); }
+        catch (Exception e) { status.setText("BROWSER NOT AVAILABLE"); }
+    }
+
+    private void showPrivacyOptions() {
+        String mic = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
+        String contacts = checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
+        String notes = preferences.getString("jarvis_notes", "");
+        String report = "PRIVACY & PERMISSIONS\n\nMicrophone: " + mic
+                + "\nContacts: " + contacts
+                + "\nLocal notes: " + (notes.isEmpty() ? "empty" : "saved")
+                + "\n\nBackground listening is controlled separately. Use STOP BACKGROUND LISTENING to stop it. Notes and recent AI conversation are stored locally; clearing AI memory does not clear notes.";
+        new AlertDialog.Builder(this).setTitle("Privacy controls").setMessage(report)
+                .setPositiveButton("App settings", (d, w) -> {
+                    try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            android.net.Uri.parse("package:" + getPackageName()))); }
+                    catch (Exception e) { status.setText("OPEN ANDROID APP SETTINGS"); }
+                })
+                .setNeutralButton("Clear notes", (d, w) -> {
+                    preferences.edit().remove("jarvis_notes").apply();
+                    status.setText("LOCAL NOTES CLEARED");
+                }).setNegativeButton("Close", null).show();
     }
 
     private void showModeSelector() {
