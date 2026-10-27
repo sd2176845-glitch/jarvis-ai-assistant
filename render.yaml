@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: jarvis-gemini-proxy
+    runtime: docker
+    rootDir: server
+    plan: free
+    healthCheckPath: /api/jarvis/status
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
