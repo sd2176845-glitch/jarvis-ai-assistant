@@ -20,6 +20,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      # Keep the generated debug signing key between builds so users can install
+      # future APKs as updates instead of getting a signature/package conflict.
+      - name: Restore stable debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: jarvis-debug-signing-key-v1
       - name: Build debug APK
         run: gradle assembleDebug
       - name: Upload APK
