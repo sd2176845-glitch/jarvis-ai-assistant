@@ -273,7 +273,7 @@ public class MainActivity extends Activity {
         root.addView(clearMemory, new LinearLayout.LayoutParams(-1, 46));
 
         Button modeButton = new Button(this);
-        modeButton.setText("ASSISTANT MODES  •  NORMAL");
+        modeButton.setText("ASSISTANT MODES  •  SELECT");
         modeButton.setAllCaps(false);
         modeButton.setTextColor(cyan);
         modeButton.setOnClickListener(v -> showModeSelector());
@@ -320,6 +320,7 @@ public class MainActivity extends Activity {
                 .setTitle("JARVIS • Assistant mode")
                 .setSingleChoiceItems(modes, checked, (dialog, which) -> {
                     applyAssistantMode(modes[which]);
+                    speak(modes[which] + " mode on.");
                     dialog.dismiss();
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> {})
@@ -342,7 +343,6 @@ public class MainActivity extends Activity {
             avatar.startAnimation(pulse);
         }
         status.setText("MODE ACTIVE • " + mode.toUpperCase(Locale.ROOT));
-        speak(mode + " mode on.");
     }
 
     private void enableBackgroundAppOpening() {
@@ -898,24 +898,3 @@ public class MainActivity extends Activity {
             } else {
                 startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)));
             }
-        } catch (Exception e) {
-            transcript.append("\nUnable to open " + appName + " right now.");
-        }
-    }
-
-    private void speak(String text) {
-        if (tts != null) {
-            String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (recognizer != null) recognizer.destroy();
-        if (tts != null) tts.shutdown();
-        super.onDestroy();
-    }
-}
