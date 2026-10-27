@@ -120,7 +120,7 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
             text = "Say 'Hey Jarvis' or tap Voice Command below..."
             setTextColor(Color.WHITE)
             textSize = 15f
-            lineSpacingExtra = 8f
+            setLineSpacing(8f, 1.0f)
         }
         scroll.addView(transcriptView)
         root.addView(scroll)
