@@ -62,22 +62,27 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
+    // Gemini 3.8 Flash is supported through the Interactions API.
     const upstream = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY
+        },
         body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 700 }
+          model: GEMINI_MODEL,
+          input: prompt,
+          store: false
         }),
-        signal: AbortSignal.timeout(25_000)
+        signal: AbortSignal.timeout(60_000)
       }
     );
 
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
-      const providerMessage = String(data?.error?.message || "No provider details returned").slice(0, 500);
+      const providerMessage = String(data?.error?.message || data?.message || "No provider details returned").slice(0, 500);
       const providerStatus = String(data?.error?.status || "");
       console.error("Gemini request failed:", upstream.status, providerStatus, providerMessage);
       res.writeHead(502);
@@ -89,12 +94,18 @@ const server = http.createServer(async (req, res) => {
       }));
     }
 
-    const reply = (data.candidates?.[0]?.content?.parts || [])
-      .map(part => part.text || "")
-      .join("")
-      .trim();
+    let reply = String(data.output_text || "").trim();
+    if (!reply && Array.isArray(data.steps)) {
+      reply = data.steps
+        .filter(step => step.type === "model_output")
+        .flatMap(step => Array.isArray(step.content) ? step.content : [])
+        .map(part => part.text || "")
+        .join("")
+        .trim();
+    }
 
     if (!reply) {
+      console.error("Gemini returned no output text. Response keys:", Object.keys(data || {}).join(","));
       res.writeHead(502);
       return res.end(JSON.stringify({ error: "AI provider returned an empty response" }));
     }
@@ -102,7 +113,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200);
     return res.end(JSON.stringify({ reply, text: reply }));
   } catch (error) {
-    console.error("AI request error:", error?.name || "unknown");
+    console.error("AI request error:", error?.name || "unknown", error?.message || "");
     res.writeHead(504);
     return res.end(JSON.stringify({ error: "AI provider request timed out or could not be reached" }));
   }
