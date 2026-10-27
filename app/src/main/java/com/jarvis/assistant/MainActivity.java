@@ -376,9 +376,9 @@ public class MainActivity extends Activity {
 
     private void showTaskAndReminderHub() {
         String notes = preferences.getString("jarvis_notes", "");
-        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\\n\\n" + notes;
+        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\\n\\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
+                .setMessage(summary + "\n\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
                 .setPositiveButton("Add task", (d, w) -> showNotesDialog())
                 .setNeutralButton("Set alarm", (d, w) -> {
                     try {
