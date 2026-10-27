@@ -77,9 +77,16 @@ const server = http.createServer(async (req, res) => {
 
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
-      console.error("Gemini request failed with status", upstream.status);
+      const providerMessage = String(data?.error?.message || "No provider details returned").slice(0, 500);
+      const providerStatus = String(data?.error?.status || "");
+      console.error("Gemini request failed:", upstream.status, providerStatus, providerMessage);
       res.writeHead(502);
-      return res.end(JSON.stringify({ error: "AI provider request failed", status: upstream.status }));
+      return res.end(JSON.stringify({
+        error: "AI provider request failed",
+        status: upstream.status,
+        details: providerMessage,
+        providerStatus: providerStatus || undefined
+      }));
     }
 
     const reply = (data.candidates?.[0]?.content?.parts || [])
