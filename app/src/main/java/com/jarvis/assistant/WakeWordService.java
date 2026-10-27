@@ -19,6 +19,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -35,6 +36,7 @@ public class WakeWordService extends Service {
     private TextToSpeech tts;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean stopping = false;
+    private boolean waitingForAi = false;
     // After the wake phrase, accept the next utterance as the command.
     private boolean awaitingCommand = false;
     private String pendingCallNumber = null;
@@ -50,6 +52,25 @@ public class WakeWordService extends Service {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
                 tts.setSpeechRate(0.92f);
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override public void onStart(String utteranceId) {}
+                    @Override public void onDone(String utteranceId) {
+                        if ("jarvis_ai_reply".equals(utteranceId)) {
+                            handler.post(() -> {
+                                waitingForAi = false;
+                                scheduleRestart(350);
+                            });
+                        }
+                    }
+                    @Override public void onError(String utteranceId) {
+                        if ("jarvis_ai_reply".equals(utteranceId)) {
+                            handler.post(() -> {
+                                waitingForAi = false;
+                                scheduleRestart(350);
+                            });
+                        }
+                    }
+                });
             }
         });
     }
@@ -101,7 +122,7 @@ public class WakeWordService extends Service {
     }
 
     private void beginRecognition() {
-        if (stopping) return;
+        if (stopping || waitingForAi) return;
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
             handler.postDelayed(this::beginRecognition, 5000);
             return;
@@ -122,7 +143,7 @@ public class WakeWordService extends Service {
                 @Override public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     if (matches != null && !matches.isEmpty()) handleRecognized(matches.get(0));
-                    scheduleRestart(400);
+                    if (!waitingForAi) scheduleRestart(400);
                 }
                 @Override public void onPartialResults(Bundle partialResults) {}
                 @Override public void onEvent(int eventType, Bundle params) {}
@@ -282,7 +303,20 @@ public class WakeWordService extends Service {
         } else if (command.contains("phone lock") || command.contains("lock phone") || command.contains("phone lock karo") || command.contains("screen lock karo")) {
             say("Phone lock karne ke liye Android mein Device Admin ya Accessibility permission setup chahiye. Abhi ye command enabled nahi hai.");
         } else {
-            say("Ye command abhi add nahi hai. Try karo: YouTube, WhatsApp, Instagram, Facebook, Chrome, camera, maps, calculator, settings, time, date, battery, alarm, search, ya call.");
+            waitingForAi = true;
+            JarvisAiClient.ask(this, command, answer -> {
+                if (stopping) {
+                    waitingForAi = false;
+                    return;
+                }
+                if (tts == null) {
+                    waitingForAi = false;
+                    say(answer);
+                    scheduleRestart(350);
+                } else {
+                    tts.speak(answer, TextToSpeech.QUEUE_FLUSH, null, "jarvis_ai_reply");
+                }
+            });
         }
     }
 
