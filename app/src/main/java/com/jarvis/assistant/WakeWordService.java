@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -37,6 +38,7 @@ public class WakeWordService extends Service {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean stopping = false;
     private boolean waitingForAi = false;
+    private PowerManager.WakeLock screenOffWakeLock;
     // After the wake phrase, accept the next utterance as the command.
     private boolean awaitingCommand = false;
     private String pendingCallNumber = null;
@@ -88,8 +90,30 @@ public class WakeWordService extends Service {
         }
         stopping = false;
         startForeground(NOTIFICATION_ID, buildNotification());
+        acquireScreenOffWakeLock();
         beginRecognition();
         return START_STICKY;
+    }
+
+    private void acquireScreenOffWakeLock() {
+        try {
+            PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
+            if (power != null && (screenOffWakeLock == null || !screenOffWakeLock.isHeld())) {
+                screenOffWakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "JARVIS:VoiceListening");
+                screenOffWakeLock.setReferenceCounted(false);
+                screenOffWakeLock.acquire();
+            }
+        } catch (Exception ignored) {
+            // Android may restrict background operation; the persistent notification remains visible.
+        }
+    }
+
+    private void releaseScreenOffWakeLock() {
+        try {
+            if (screenOffWakeLock != null && screenOffWakeLock.isHeld()) screenOffWakeLock.release();
+        } catch (Exception ignored) {
+        }
+        screenOffWakeLock = null;
     }
 
     private void createChannel() {
@@ -430,6 +454,7 @@ public class WakeWordService extends Service {
             recognizer = null;
         }
         stopForeground(true);
+        releaseScreenOffWakeLock();
         stopSelf();
     }
 
@@ -439,6 +464,7 @@ public class WakeWordService extends Service {
         handler.removeCallbacksAndMessages(null);
         if (recognizer != null) recognizer.destroy();
         if (tts != null) tts.shutdown();
+        releaseScreenOffWakeLock();
         super.onDestroy();
     }
 
