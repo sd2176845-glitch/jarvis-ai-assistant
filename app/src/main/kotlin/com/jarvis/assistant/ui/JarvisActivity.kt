@@ -229,7 +229,8 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            textToSpeech?.language = Locale.ENGLISH
+            val hindiLocale = Locale("hi", "IN")
+            textToSpeech?.language = if (textToSpeech?.isLanguageAvailable(hindiLocale) == TextToSpeech.LANG_AVAILABLE || textToSpeech?.isLanguageAvailable(hindiLocale) == TextToSpeech.LANG_COUNTRY_AVAILABLE) hindiLocale else Locale("en", "IN")
         }
     }
 
