@@ -209,9 +209,9 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
                 else -> null
             }
             cleanText = raw.replace(actionMatch.value, "").trim()
-            if (result != null) cleanText = listOf(cleanText, result.userFeedback).filter { it.isNotBlank() }.joinToString("\\n")
+            if (result != null) cleanText = listOf(cleanText, result.userFeedback).filter { it.isNotBlank() }.joinToString("\n")
         }
-        transcriptView.text = "JARVIS:\\n$cleanText"
+        transcriptView.text = "JARVIS:\n$cleanText"
         speak(cleanText)
     }
     private fun speak(text: String) {
