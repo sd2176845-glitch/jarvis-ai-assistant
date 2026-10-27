@@ -32,10 +32,19 @@ public final class JarvisAiClient {
         SharedPreferences memory = appContext.getSharedPreferences("jarvis_ai_memory", Context.MODE_PRIVATE);
         String originalMessage = message == null ? "" : message.trim();
         String prior = memory.getString("conversation", "");
-        String requestMessage = prior.isEmpty()
-                ? originalMessage
-                : "Recent conversation for context (use only when relevant):\n" + prior
-                    + "\nCurrent user message: " + originalMessage;
+        SharedPreferences appPreferences = appContext.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+        String mode = appPreferences.getString("assistant_mode", "Normal");
+        String modeGuidance;
+        if ("Study".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: STUDY. Teach step-by-step, encourage understanding, and do not simply do a student's work without explanation.\n";
+        else if ("Gaming".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: GAMING. Keep replies quick, concise, and focused on game settings or strategy.\n";
+        else if ("Travel".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: TRAVEL. Help organize routes and plans; never pretend to know live traffic/weather unless verified.\n";
+        else if ("Night".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: NIGHT. Use a calm, low-key tone and concise replies.\n";
+        else if ("Caring".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: CARING. Be patient and supportive without claiming human feelings or assuming the user's mood.\n";
+        else if ("Funny".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: FUNNY. Use gentle, situational humor when appropriate, not during serious topics.\n";
+        else if ("Serious".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: SERIOUS. Be direct, focused, and factual.\n";
+        else modeGuidance = "Assistant mode: NORMAL. Be helpful, respectful, and natural.\n";
+        String conversationContext = prior.isEmpty() ? "" : "Recent conversation for context (use only when relevant):\n" + prior + "\n";
+        String requestMessage = modeGuidance + conversationContext + "Current user message: " + originalMessage;
         Thread worker = new Thread(() -> {
             String answer;
             HttpURLConnection connection = null;
