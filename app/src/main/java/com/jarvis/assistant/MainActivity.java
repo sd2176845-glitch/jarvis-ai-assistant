@@ -256,6 +256,21 @@ public class MainActivity extends Activity {
         sos.setOnClickListener(v -> showSosOptions());
         root.addView(sos, new LinearLayout.LayoutParams(-1, 46));
 
+        Button clearMemory = new Button(this);
+        clearMemory.setText("CLEAR JARVIS AI MEMORY");
+        clearMemory.setAllCaps(false);
+        clearMemory.setTextColor(cyan);
+        clearMemory.setOnClickListener(v -> new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Clear JARVIS memory?")
+                .setMessage("This deletes the recent conversation memory stored on this phone.")
+                .setNegativeButton("Cancel", (dialog, which) -> {})
+                .setPositiveButton("Clear", (dialog, which) -> {
+                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().clear().apply();
+                    status.setText("AI MEMORY CLEARED");
+                    transcript.setText("JARVIS memory cleared on this device.");
+                }).show());
+        root.addView(clearMemory, new LinearLayout.LayoutParams(-1, 46));
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
         footer.setTextColor(Color.rgb(90, 130, 150));
