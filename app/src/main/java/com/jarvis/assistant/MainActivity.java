@@ -306,6 +306,25 @@ public class MainActivity extends Activity {
         root.addView(liveInfo, new LinearLayout.LayoutParams(-1, 46));
 
 
+
+        Button vision = new Button(this);
+        vision.setText("VISION • CAMERA / GOOGLE LENS");
+        vision.setAllCaps(false);
+        vision.setOnClickListener(v -> openVisionTools());
+        root.addView(vision, new LinearLayout.LayoutParams(-1, 46));
+
+        Button tasks = new Button(this);
+        tasks.setText("TASKS • REMINDERS • ALARMS");
+        tasks.setAllCaps(false);
+        tasks.setOnClickListener(v -> showTaskAndReminderHub());
+        root.addView(tasks, new LinearLayout.LayoutParams(-1, 46));
+
+        Button systems = new Button(this);
+        systems.setText("CONNECTED SYSTEMS • QUICK CONTROLS");
+        systems.setAllCaps(false);
+        systems.setOnClickListener(v -> showConnectedSystems());
+        root.addView(systems, new LinearLayout.LayoutParams(-1, 46));
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
         footer.setTextColor(Color.rgb(90, 130, 150));
@@ -338,6 +357,57 @@ public class MainActivity extends Activity {
         setContentView(scroll);
     }
 
+
+
+    private void openVisionTools() {
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Vision tools")
+                .setMessage("Open the camera to capture a photo, or open Google Lens in your browser to identify objects and read text from an image. Lens requires internet and may ask you to upload/select a photo.")
+                .setPositiveButton("Open Camera", (d, w) -> {
+                    try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
+                    catch (Exception e) { status.setText("CAMERA NOT AVAILABLE"); }
+                })
+                .setNeutralButton("Open Google Lens", (d, w) -> {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://lens.google.com/"))); }
+                    catch (Exception e) { status.setText("BROWSER NOT AVAILABLE"); }
+                })
+                .setNegativeButton("Close", null).show();
+    }
+
+    private void showTaskAndReminderHub() {
+        String notes = preferences.getString("jarvis_notes", "");
+        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\\n\\n" + notes;
+        new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
+                .setMessage(summary + "\\n\\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
+                .setPositiveButton("Add task", (d, w) -> showNotesDialog())
+                .setNeutralButton("Set alarm", (d, w) -> {
+                    try {
+                        Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
+                        alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
+                        startActivity(alarm);
+                    } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
+                })
+                .setNegativeButton("Calendar", (d, w) -> {
+                    try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)); }
+                    catch (Exception e) { status.setText("CALENDAR APP NOT AVAILABLE"); }
+                }).show();
+    }
+
+    private void showConnectedSystems() {
+        String[] items = {"Wi-Fi settings", "Bluetooth settings", "Location settings", "Open Maps", "Open Calendar", "Open Phone dialer"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Connected systems")
+                .setItems(items, (d, which) -> {
+                    Intent intent;
+                    if (which == 0) intent = new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS);
+                    else if (which == 1) intent = new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
+                    else if (which == 2) intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    else if (which == 3) intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:0,0?q="));
+                    else if (which == 4) intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR);
+                    else intent = new Intent(Intent.ACTION_DIAL);
+                    try { startActivity(intent); }
+                    catch (Exception e) { status.setText("THIS CONTROL IS NOT AVAILABLE ON THIS PHONE"); }
+                }).setNegativeButton("Close", null).show();
+    }
 
     private void animateOrb(float scale, long duration) {
         if (avatar == null) return;
@@ -824,6 +894,15 @@ public class MainActivity extends Activity {
                 int percent = (level >= 0 && scale > 0) ? (level * 100 / scale) : -1;
                 reply = percent >= 0 ? "Battery " + percent + " percent hai." : "Battery level read nahi ho paya.";
             } else reply = "Battery level read nahi ho paya.";
+        } else if (intent.contains("open vision") || intent.contains("vision kholo") || intent.contains("google lens") || intent.contains("scan image")) {
+            openVisionTools();
+            return;
+        } else if (intent.contains("show tasks") || intent.contains("task list") || intent.contains("reminders") || intent.contains("reminder kholo")) {
+            showTaskAndReminderHub();
+            return;
+        } else if (intent.contains("connected systems") || intent.contains("quick controls") || intent.contains("system controls")) {
+            showConnectedSystems();
+            return;
         } else if (intent.contains("open camera") || intent.contains("camera kholo") || intent.equals("camera")) {
             speak("Camera khol raha hoon.");
             try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
