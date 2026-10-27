@@ -32,6 +32,9 @@ android {
 }
 
 dependencies {
+    // AndroidX compatibility helpers (ActivityCompat and NotificationCompat).
+    implementation "androidx.core:core-ktx:1.15.0"
+
     // Kotlin Standard & Coroutines
     implementation "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
