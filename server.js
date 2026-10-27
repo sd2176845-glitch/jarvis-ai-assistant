@@ -62,33 +62,59 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // Gemini 3.8 Flash is supported through the Interactions API.
-    const upstream = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/interactions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": GEMINI_API_KEY
-        },
-        body: JSON.stringify({
-          model: GEMINI_MODEL,
-          input: prompt,
-          store: false
-        }),
-        signal: AbortSignal.timeout(60_000)
-      }
-    );
+    // Retry transient Gemini capacity errors and fall back to a supported Flash model.
+    const models = [...new Set([GEMINI_MODEL, "gemini-3.6-flash"])];
+    let upstream;
+    let data = {};
+    let lastStatus = 0;
 
-    const data = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) {
+    for (const model of models) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        upstream = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/interactions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": GEMINI_API_KEY
+            },
+            body: JSON.stringify({
+              model,
+              input: prompt,
+              store: false,
+              generation_config: { thinking_level: "low" }
+            }),
+            signal: AbortSignal.timeout(120_000)
+          }
+        );
+
+        data = await upstream.json().catch(() => ({}));
+        if (upstream.ok) break;
+        lastStatus = upstream.status;
+
+        const transient = upstream.status === 429 || upstream.status === 500 ||
+          upstream.status === 502 || upstream.status === 503 || upstream.status === 504;
+        if (!transient) break;
+
+        console.error("Gemini transient failure:", model, upstream.status,
+          String(data?.error?.message || data?.message || "").slice(0, 300));
+
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (2 ** attempt)));
+        }
+      }
+      if (upstream?.ok) break;
+      if (![429, 500, 502, 503, 504].includes(lastStatus)) break;
+    }
+
+    if (!upstream?.ok) {
       const providerMessage = String(data?.error?.message || data?.message || "No provider details returned").slice(0, 500);
       const providerStatus = String(data?.error?.status || "");
-      console.error("Gemini request failed:", upstream.status, providerStatus, providerMessage);
+      console.error("Gemini request failed:", lastStatus, providerStatus, providerMessage);
       res.writeHead(502);
       return res.end(JSON.stringify({
-        error: "AI provider request failed",
-        status: upstream.status,
+        error: "AI provider request failed after retries",
+        status: lastStatus,
         details: providerMessage,
         providerStatus: providerStatus || undefined
       }));
