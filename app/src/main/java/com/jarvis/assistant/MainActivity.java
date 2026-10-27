@@ -16,6 +16,7 @@ import android.speech.RecognitionListener;
 import android.speech.tts.TextToSpeech;
 import android.view.Gravity;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -27,6 +28,10 @@ import android.widget.TextView;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.animation.ValueAnimator;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
@@ -126,6 +131,14 @@ public class MainActivity extends Activity {
                 (int) (258 * getResources().getDisplayMetrics().density));
         avatarFrameParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
         root.addView(avatarFrame, avatarFrameParams);
+
+        // Living AI Interface: animated orbital rings and a reactive-style sound-wave display.
+        // This is a visual animation only; it does not claim to measure live microphone audio.
+        LivingInterfaceView livingInterface = new LivingInterfaceView(this);
+        FrameLayout.LayoutParams livingParams = new FrameLayout.LayoutParams(
+                (int) (258 * getResources().getDisplayMetrics().density),
+                (int) (258 * getResources().getDisplayMetrics().density), Gravity.CENTER);
+        avatarFrame.addView(livingInterface, livingParams);
 
         avatar = new ImageView(this);
         avatar.setImageResource(com.jarvis.assistant.R.drawable.jarvis_orb);
@@ -358,6 +371,85 @@ public class MainActivity extends Activity {
     }
 
 
+
+    /**
+     * Lightweight movie-style HUD around the existing orb: rotating cyan arcs,
+     * a subtle pulse and mirrored sound-wave bars. The animation is decorative;
+     * microphone activity is still reported by the status label.
+     */
+    private class LivingInterfaceView extends View {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final float density = getResources().getDisplayMetrics().density;
+        private final ValueAnimator animator;
+        private float phase = 0f;
+
+        LivingInterfaceView(android.content.Context context) {
+            super(context);
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            animator = ValueAnimator.ofFloat(0f, 360f);
+            animator.setDuration(9000L);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.setInterpolator(new LinearInterpolator());
+            animator.addUpdateListener(value -> {
+                phase = (Float) value.getAnimatedValue();
+                invalidate();
+            });
+            animator.start();
+        }
+
+        @Override protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            float cx = getWidth() / 2f;
+            float cy = getHeight() / 2f;
+            float unit = Math.min(getWidth(), getHeight()) / 2f;
+            canvas.save();
+            canvas.rotate(phase, cx, cy);
+
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1.2f * density);
+            paint.setColor(Color.argb(115, 35, 190, 255));
+            canvas.drawCircle(cx, cy, unit * 0.94f, paint);
+            paint.setColor(Color.argb(165, 50, 225, 255));
+            canvas.drawCircle(cx, cy, unit * 0.82f, paint);
+            paint.setColor(Color.argb(95, 25, 125, 225));
+            canvas.drawCircle(cx, cy, unit * 0.70f, paint);
+
+            RectF arc = new RectF(cx - unit * 0.88f, cy - unit * 0.88f,
+                    cx + unit * 0.88f, cy + unit * 0.88f);
+            paint.setStrokeWidth(2.1f * density);
+            paint.setColor(Color.argb(220, 60, 225, 255));
+            canvas.drawArc(arc, 20f, 64f, false, paint);
+            canvas.drawArc(arc, 195f, 82f, false, paint);
+            arc.inset(12f * density, 12f * density);
+            paint.setColor(Color.argb(160, 25, 145, 235));
+            canvas.drawArc(arc, 110f, 44f, false, paint);
+            canvas.drawArc(arc, 285f, 40f, false, paint);
+            canvas.restore();
+
+            // Mirrored waveform visible on either side of the central orb.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeWidth(1.7f * density);
+            for (int i = 0; i < 13; i++) {
+                float xOffset = (25f + i * 5.5f) * density;
+                float wave = (float) Math.abs(Math.sin(Math.toRadians(phase * 2.0f + i * 29f)));
+                float h = (5f + wave * (7f + (i % 4) * 2.5f)) * density;
+                int alpha = 95 + (int) (100 * wave);
+                paint.setColor(Color.argb(alpha, 55, 220, 255));
+                float leftX = cx - xOffset;
+                float rightX = cx + xOffset;
+                canvas.drawLine(leftX, cy - h, leftX, cy + h, paint);
+                canvas.drawLine(rightX, cy - h, rightX, cy + h, paint);
+            }
+            paint.setStrokeCap(Paint.Cap.BUTT);
+            paint.setStyle(Paint.Style.FILL);
+        }
+
+        @Override protected void onDetachedFromWindow() {
+            animator.cancel();
+            super.onDetachedFromWindow();
+        }
+    }
 
     private void openVisionTools() {
         new AlertDialog.Builder(this)
