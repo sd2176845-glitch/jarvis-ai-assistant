@@ -29,12 +29,12 @@ class SystemActionController(private val context: Context) {
         if (target.isNullOrBlank()) return ActionResult(false, "Who should I call, sir?")
         val phoneNumber = resolveContactOrNumber(target)
         return try {
-            val intent = Intent(Intent.ACTION_CALL).apply {
+            val intent = Intent(Intent.ACTION_DIAL).apply {
                 data = Uri.parse("tel:$phoneNumber")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            ActionResult(true, "Dialing $target now, sir.")
+            ActionResult(true, "Opening the dialer for $target. Confirm the call on your phone.")
         } catch (e: Exception) {
             ActionResult(false, "Unable to initiate call: ${e.message}")
         }
@@ -108,7 +108,11 @@ class SystemActionController(private val context: Context) {
             val cameraId = cameraManager.cameraIdList.firstOrNull()
                 ?: return ActionResult(false, "No camera flash detected.")
 
-            val turnOn = if (mode?.equals("off", ignoreCase = true) == true) false else !isTorchEnabled
+            val turnOn = when {
+                mode.equals("off", ignoreCase = true) -> false
+                mode.equals("on", ignoreCase = true) -> true
+                else -> !isTorchEnabled
+            }
             cameraManager.setTorchMode(cameraId, turnOn)
             isTorchEnabled = turnOn
             val status = if (turnOn) "engaged" else "disengaged"
