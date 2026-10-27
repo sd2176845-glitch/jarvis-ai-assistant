@@ -72,21 +72,16 @@
             android:exported="false"
             android:foregroundServiceType="microphone" />
 
-        <!-- Existing Java Main Activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        <!-- Existing Java Main Activity remains available but is not the launcher. -->
+        <activity android:name=".MainActivity" android:exported="true" />
+
+        <!-- Modern Kotlin Jarvis HUD is the app launcher. -->
+        <activity android:name=".ui.JarvisActivity" android:exported="true" android:label="JARVIS">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- NEW: Modern Kotlin Jarvis HUD Activity -->
-        <activity
-            android:name=".ui.JarvisActivity"
-            android:exported="true"
-            android:label="JARVIS Kotlin HUD" />
 
     </application>
 </manifest>
