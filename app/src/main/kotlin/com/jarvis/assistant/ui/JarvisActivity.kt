@@ -91,7 +91,7 @@ class JarvisActivity : Activity(), TextToSpeech.OnInitListener {
         // Arc Reactor Orb
         arcReactorOrb = FrameLayout(this).apply {
             val size = 320
-            layoutParams = LinearLayout.LayoutParams(size, size).apply {
+            this.layoutParams = LinearLayout.LayoutParams(size, size).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
                 setMargins(0, 20, 0, 40)
             }
