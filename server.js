@@ -1,8 +1,16 @@
 const http = require("node:http");
 
 const PORT = Number(process.env.PORT || 3000);
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+const SYSTEM_PROMPT = [
+  "You are JARVIS, a helpful, calm, capable personal AI assistant.",
+  "Speak naturally and clearly. If the user writes in Hindi or Hinglish, respond in the same language.",
+  "Be concise unless the user asks for detail. Never claim you performed an action unless you actually did.",
+  "If you do not know something, say so honestly."
+].join(" ");
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -22,7 +30,9 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({
       ok: true,
       service: "jarvis-ai-backend",
-      aiConfigured: Boolean(GEMINI_API_KEY)
+      provider: "groq",
+      model: GROQ_MODEL,
+      aiConfigured: Boolean(GROQ_API_KEY)
     }));
   }
 
@@ -31,20 +41,25 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ error: "Not found" }));
   }
 
-  if (!GEMINI_API_KEY) {
+  if (!GROQ_API_KEY) {
     res.writeHead(503);
     return res.end(JSON.stringify({
-      error: "AI backend is deployed but not configured yet. Add GEMINI_API_KEY in the Render environment settings."
+      error: "Groq is not configured. Add GROQ_API_KEY in the Render environment settings."
     }));
   }
 
   let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-    if (raw.length > 100_000) {
-      res.writeHead(413);
-      return res.end(JSON.stringify({ error: "Request too large" }));
+  try {
+    for await (const chunk of req) {
+      raw += chunk;
+      if (raw.length > 100_000) {
+        res.writeHead(413);
+        return res.end(JSON.stringify({ error: "Request too large" }));
+      }
     }
+  } catch {
+    res.writeHead(400);
+    return res.end(JSON.stringify({ error: "Could not read request body" }));
   }
 
   let body;
@@ -62,86 +77,65 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // Retry transient Gemini capacity errors and fall back to a supported Flash model.
-    const models = [...new Set([GEMINI_MODEL, "gemini-3.6-flash"])];
     let upstream;
     let data = {};
-    let lastStatus = 0;
+    const retryable = new Set([408, 429, 500, 502, 503, 504]);
 
-    for (const model of models) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        upstream = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/interactions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": GEMINI_API_KEY
-            },
-            body: JSON.stringify({
-              model,
-              input: prompt,
-              store: false,
-              generation_config: { thinking_level: "low" }
-            }),
-            signal: AbortSignal.timeout(120_000)
-          }
-        );
+    for (let attempt = 0; attempt < 3; attempt++) {
+      upstream = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 700
+        }),
+        signal: AbortSignal.timeout(45_000)
+      });
 
-        data = await upstream.json().catch(() => ({}));
-        if (upstream.ok) break;
-        lastStatus = upstream.status;
+      data = await upstream.json().catch(() => ({}));
+      if (upstream.ok) break;
 
-        const transient = upstream.status === 429 || upstream.status === 500 ||
-          upstream.status === 502 || upstream.status === 503 || upstream.status === 504;
-        if (!transient) break;
+      const transient = retryable.has(upstream.status);
+      console.error("Groq request failed:", upstream.status,
+        String(data?.error?.message || "").slice(0, 250));
 
-        console.error("Gemini transient failure:", model, upstream.status,
-          String(data?.error?.message || data?.message || "").slice(0, 300));
-
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (2 ** attempt)));
-        }
-      }
-      if (upstream?.ok) break;
-      if (![429, 500, 502, 503, 504].includes(lastStatus)) break;
+      if (!transient || attempt === 2) break;
+      await new Promise(resolve => setTimeout(resolve, 800 * (2 ** attempt)));
     }
 
     if (!upstream?.ok) {
-      const providerMessage = String(data?.error?.message || data?.message || "No provider details returned").slice(0, 500);
-      const providerStatus = String(data?.error?.status || "");
-      console.error("Gemini request failed:", lastStatus, providerStatus, providerMessage);
-      res.writeHead(502);
+      const status = upstream?.status || 502;
+      const providerMessage = String(data?.error?.message || "AI provider request failed").slice(0, 400);
+      res.writeHead(status === 401 || status === 403 ? 502 : status === 429 ? 503 : 502);
       return res.end(JSON.stringify({
-        error: "AI provider request failed after retries",
-        status: lastStatus,
-        details: providerMessage,
-        providerStatus: providerStatus || undefined
+        error: "AI provider request failed",
+        status,
+        details: providerMessage
       }));
     }
 
-    let reply = String(data.output_text || "").trim();
-    if (!reply && Array.isArray(data.steps)) {
-      reply = data.steps
-        .filter(step => step.type === "model_output")
-        .flatMap(step => Array.isArray(step.content) ? step.content : [])
-        .map(part => part.text || "")
-        .join("")
-        .trim();
-    }
-
+    const reply = String(data?.choices?.[0]?.message?.content || "").trim();
     if (!reply) {
-      console.error("Gemini returned no output text. Response keys:", Object.keys(data || {}).join(","));
       res.writeHead(502);
       return res.end(JSON.stringify({ error: "AI provider returned an empty response" }));
     }
 
     res.writeHead(200);
-    return res.end(JSON.stringify({ reply, text: reply }));
+    return res.end(JSON.stringify({ reply, text: reply, provider: "groq", model: data.model || GROQ_MODEL }));
   } catch (error) {
     console.error("AI request error:", error?.name || "unknown", error?.message || "");
-    res.writeHead(504);
-    return res.end(JSON.stringify({ error: "AI provider request timed out or could not be reached" }));
+    res.writeHead(error?.name === "TimeoutError" ? 504 : 502);
+    return res.end(JSON.stringify({
+      error: error?.name === "TimeoutError" ? "AI provider request timed out" : "AI provider could not be reached"
+    }));
   }
 });
 
