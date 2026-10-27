@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
+    private ImageView avatar;
 
     private int cyan = Color.rgb(70, 220, 255);
     private int bg = Color.rgb(3, 10, 22);
@@ -125,7 +126,7 @@ public class MainActivity extends Activity {
         avatarFrameParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
         root.addView(avatarFrame, avatarFrameParams);
 
-        ImageView avatar = new ImageView(this);
+        avatar = new ImageView(this);
         avatar.setImageResource(com.jarvis.assistant.R.drawable.jarvis_orb);
         avatar.setScaleType(ImageView.ScaleType.FIT_CENTER);
         avatar.setAdjustViewBounds(true);
@@ -271,6 +272,13 @@ public class MainActivity extends Activity {
                 }).show());
         root.addView(clearMemory, new LinearLayout.LayoutParams(-1, 46));
 
+        Button modeButton = new Button(this);
+        modeButton.setText("ASSISTANT MODES  •  NORMAL");
+        modeButton.setAllCaps(false);
+        modeButton.setTextColor(cyan);
+        modeButton.setOnClickListener(v -> showModeSelector());
+        root.addView(modeButton, new LinearLayout.LayoutParams(-1, 46));
+
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
         footer.setTextColor(Color.rgb(90, 130, 150));
@@ -301,6 +309,40 @@ public class MainActivity extends Activity {
         }
 
         setContentView(scroll);
+    }
+
+    private void showModeSelector() {
+        final String[] modes = {"Normal", "Caring", "Funny", "Serious", "Study", "Gaming", "Travel", "Night"};
+        String current = preferences.getString("assistant_mode", "Normal");
+        int checked = 0;
+        for (int i = 0; i < modes.length; i++) if (modes[i].equalsIgnoreCase(current)) checked = i;
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Assistant mode")
+                .setSingleChoiceItems(modes, checked, (dialog, which) -> {
+                    applyAssistantMode(modes[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {})
+                .show();
+    }
+
+    private void applyAssistantMode(String mode) {
+        preferences.edit().putString("assistant_mode", mode).apply();
+        if (avatar != null) {
+            long duration = "Gaming".equals(mode) ? 900L
+                    : ("Night".equals(mode) ? 2800L : ("Study".equals(mode) ? 1700L : 2000L));
+            avatar.clearAnimation();
+            android.view.animation.ScaleAnimation pulse = new android.view.animation.ScaleAnimation(
+                    0.985f, 1.015f, 0.985f, 1.015f,
+                    android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+                    android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
+            pulse.setDuration(duration);
+            pulse.setRepeatMode(android.view.animation.Animation.REVERSE);
+            pulse.setRepeatCount(android.view.animation.Animation.INFINITE);
+            avatar.startAnimation(pulse);
+        }
+        status.setText("MODE ACTIVE • " + mode.toUpperCase(Locale.ROOT));
+        speak(mode + " mode on.");
     }
 
     private void enableBackgroundAppOpening() {
@@ -486,6 +528,46 @@ public class MainActivity extends Activity {
                         preferences.edit().remove("notes").apply();
                         replyAndShow(original, "Saved notes clear kar diye.");
                     }).show();
+            return;
+        }
+        if (intent.contains("study mode") || intent.contains("padhai mode")) {
+            applyAssistantMode("Study");
+            replyAndShow(original, "Study mode on. Main focused, clear aur step-by-step help dunga.");
+            return;
+        }
+        if (intent.contains("gaming mode") || intent.contains("game mode")) {
+            applyAssistantMode("Gaming");
+            replyAndShow(original, "Gaming mode on. Main short aur quick responses dunga.");
+            return;
+        }
+        if (intent.contains("travel mode") || intent.contains("safar mode")) {
+            applyAssistantMode("Travel");
+            replyAndShow(original, "Travel mode on. Main directions aur travel planning mein help karunga; live details ke liye internet zaroori hai.");
+            return;
+        }
+        if (intent.contains("night mode") || intent.contains("raat mode")) {
+            applyAssistantMode("Night");
+            replyAndShow(original, "Night mode on. Main shaant aur concise rahunga.");
+            return;
+        }
+        if (intent.contains("caring mode")) {
+            applyAssistantMode("Caring");
+            replyAndShow(original, "Caring mode on. Main dhyan se aur supportively jawab dunga.");
+            return;
+        }
+        if (intent.contains("funny mode")) {
+            applyAssistantMode("Funny");
+            replyAndShow(original, "Funny mode on. Mauka mila toh halka-phulka humour bhi hoga.");
+            return;
+        }
+        if (intent.contains("serious mode")) {
+            applyAssistantMode("Serious");
+            replyAndShow(original, "Serious mode on. Main seedhe aur focused jawab dunga.");
+            return;
+        }
+        if (intent.contains("normal assistant mode") || intent.contains("normal mode")) {
+            applyAssistantMode("Normal");
+            replyAndShow(original, "Normal mode on.");
             return;
         }
         if (intent.contains("calm mode") || intent.contains("shaant mode")) {
