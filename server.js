@@ -83,8 +83,9 @@ const server = http.createServer(async (req, res) => {
     let upstream;
     let data = {};
     const retryable = new Set([408, 429, 500, 502, 503, 504]);
+    // Keep two provider attempts within the Android client's 45-second read timeout.
 
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       upstream = await fetch(GROQ_URL, {
         method: "POST",
         headers: {
@@ -100,7 +101,7 @@ const server = http.createServer(async (req, res) => {
           temperature: 0.7,
           max_tokens: 700
         }),
-        signal: AbortSignal.timeout(45_000)
+        signal: AbortSignal.timeout(18_000)
       });
 
       data = await upstream.json().catch(() => ({}));
