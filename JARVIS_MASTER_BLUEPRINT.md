@@ -42,7 +42,7 @@ JARVIS is separate from the Even project.
 Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
 
 Adopt these ideas selectively; do not copy an unknown project's code blindly:
-- [ ] Visual refresh: offer a restrained red/black Stark-style HUD theme inspired by the second demo, while retaining readable text, accessible contrast, and the existing orb. Treat this as a UI direction, not a working feature until implemented and device-tested.
+- [~] Visual refresh: red/black Stark-style colors have been started in the Android UI, but the theme is only partially applied. Finish remaining screens/components, check readable contrast, and device-test; do not recreate the existing color change.
 - [ ] Clear voice-session feedback: show listening, thinking, speaking, offline and standby states consistently; keep a visible stop control.
 - [ ] Connected-app actions: prioritize useful Calendar and messaging workflows from the first reference, but require explicit account connection and permission, show what will happen, and confirm before sending messages or changing events.
 - [ ] Provider setup discipline: document setup/configuration steps, keep provider secrets on the backend, never put API keys in the APK, screenshots, or Git history.
@@ -50,6 +50,12 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Do not reproduce desktop-only controls or claim integrations based solely on a visual demo; adapt only what Android 13+ and the target device can support.
 
 ## Remaining feature backlog
+
+### Priority 0 — Owner authentication and account setup
+- [ ] Implement secure owner sign-in with Firebase Authentication, supporting Google sign-in and phone-number OTP after Firebase project configuration; neither sign-in method is implemented yet.
+- [ ] Add an owner profile/session state, sign-out, and safe handling of expired sessions; do not store passwords or OTPs locally.
+- [ ] Restrict owner-only settings and sensitive assistant actions to an authenticated owner; keep emergency access and permission behavior explicit.
+- [ ] Document Firebase Console setup, Android SHA fingerprints, authorized domains, and required configuration without committing service-account files, API secrets, or private credentials.
 
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.
