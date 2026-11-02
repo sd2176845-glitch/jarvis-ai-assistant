@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+      - name: Check backend JavaScript syntax
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate backend syntax
+        run: node --check server.js
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
