@@ -49,8 +49,8 @@ public class MainActivity extends Activity {
     private SharedPreferences preferences;
     private ImageView avatar;
 
-    private int cyan = Color.rgb(70, 220, 255);
-    private int bg = Color.rgb(3, 10, 22);
+    private int cyan = Color.rgb(255,  70, 82);
+    private int bg = Color.rgb(8, 5, 9);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
                 public void onError(int error) { status.setText("STANDBY • TAP TO SPEAK"); animateOrb(1.0f, 800L); }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (matches != null && !matches.isEmpty()) handleCommand(matches.get(0));
+                    if (matches != null && !matches.isEmpty()) understandVoiceCommand(matches.get(0));
                     status.setText("STANDBY • TAP TO SPEAK");
                     animateOrb(1.0f, 800L);
                 }
@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
 
         TextView subtitle = new TextView(this);
         subtitle.setText("PERSONAL VOICE ASSISTANT");
-        subtitle.setTextColor(Color.rgb(105, 155, 180));
+        subtitle.setTextColor(Color.rgb(190, 125, 135));
         subtitle.setTextSize(10);
         subtitle.setLetterSpacing(0.20f);
         subtitle.setGravity(Gravity.CENTER);
@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
         // Futuristic divider directly under the avatar: cyan core with a dim outer track.
         FrameLayout dividerTrack = new FrameLayout(this);
         GradientDrawable track = new GradientDrawable();
-        track.setColor(Color.rgb(14, 43, 63));
+        track.setColor(Color.rgb(58, 18, 25));
         track.setCornerRadius(4 * getResources().getDisplayMetrics().density);
         dividerTrack.setBackground(track);
         LinearLayout.LayoutParams trackParams = new LinearLayout.LayoutParams(
@@ -340,7 +340,7 @@ public class MainActivity extends Activity {
 
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
-        footer.setTextColor(Color.rgb(90, 130, 150));
+        footer.setTextColor(Color.rgb(130, 85, 95));
         footer.setTextSize(9);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(0, 12, 0, 4);
@@ -352,10 +352,10 @@ public class MainActivity extends Activity {
             if (child instanceof Button) {
                 Button button = (Button) child;
                 GradientDrawable buttonBg = new GradientDrawable();
-                buttonBg.setColor(Color.rgb(8, 25, 43));
+                buttonBg.setColor(Color.rgb(28, 10, 15));
                 buttonBg.setCornerRadius(12 * getResources().getDisplayMetrics().density);
                 buttonBg.setStroke((int) (1.2f * getResources().getDisplayMetrics().density),
-                        Color.rgb(35, 150, 190));
+                        Color.rgb(155, 45, 58));
                 button.setBackground(buttonBg);
                 button.setTextColor(cyan);
                 button.setTextSize(12);
@@ -407,21 +407,21 @@ public class MainActivity extends Activity {
 
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1.2f * density);
-            paint.setColor(Color.argb(115, 35, 190, 255));
+            paint.setColor(Color.argb(115, 190, 45, 65));
             canvas.drawCircle(cx, cy, unit * 0.94f, paint);
-            paint.setColor(Color.argb(165, 50, 225, 255));
+            paint.setColor(Color.argb(165, 255, 75, 90));
             canvas.drawCircle(cx, cy, unit * 0.82f, paint);
-            paint.setColor(Color.argb(95, 25, 125, 225));
+            paint.setColor(Color.argb(95, 150, 25, 55));
             canvas.drawCircle(cx, cy, unit * 0.70f, paint);
 
             RectF arc = new RectF(cx - unit * 0.88f, cy - unit * 0.88f,
                     cx + unit * 0.88f, cy + unit * 0.88f);
             paint.setStrokeWidth(2.1f * density);
-            paint.setColor(Color.argb(220, 60, 225, 255));
+            paint.setColor(Color.argb(220, 255, 65, 80));
             canvas.drawArc(arc, 20f, 64f, false, paint);
             canvas.drawArc(arc, 195f, 82f, false, paint);
             arc.inset(12f * density, 12f * density);
-            paint.setColor(Color.argb(160, 25, 145, 235));
+            paint.setColor(Color.argb(160, 200, 35, 65));
             canvas.drawArc(arc, 110f, 44f, false, paint);
             canvas.drawArc(arc, 285f, 40f, false, paint);
             canvas.restore();
@@ -435,7 +435,7 @@ public class MainActivity extends Activity {
                 float wave = (float) Math.abs(Math.sin(Math.toRadians(phase * 2.0f + i * 29f)));
                 float h = (5f + wave * (7f + (i % 4) * 2.5f)) * density;
                 int alpha = 95 + (int) (100 * wave);
-                paint.setColor(Color.argb(alpha, 55, 220, 255));
+                paint.setColor(Color.argb(alpha, 255, 75, 90));
                 float leftX = cx - xOffset;
                 float rightX = cx + xOffset;
                 canvas.drawLine(leftX, cy - h, leftX, cy + h, paint);
@@ -467,7 +467,7 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
-        String notes = preferences.getString("jarvis_notes", "");
+        String notes = getSavedNotes();
         String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
                 .setMessage(summary + "\n\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
@@ -521,12 +521,20 @@ public class MainActivity extends Activity {
                 }).setNegativeButton("Close", null).show();
     }
 
+    private String getSavedNotes() {
+        String voiceNotes = preferences.getString("notes", "");
+        String panelNotes = preferences.getString("jarvis_notes", "");
+        if (voiceNotes.isEmpty()) return panelNotes;
+        if (panelNotes.isEmpty() || panelNotes.equals(voiceNotes)) return voiceNotes;
+        return voiceNotes + "\n" + panelNotes;
+    }
+
     private void showNotesDialog() {
         EditText input = new EditText(this);
         input.setHint("Write a note or task");
         input.setMinLines(2);
         input.setGravity(Gravity.TOP | Gravity.START);
-        String existing = preferences.getString("jarvis_notes", "");
+        String existing = getSavedNotes();
         TextView saved = new TextView(this);
         saved.setText(existing.isEmpty() ? "No saved notes yet." : "SAVED NOTES\n" + existing);
         saved.setTextColor(Color.rgb(190, 215, 230));
@@ -541,15 +549,15 @@ public class MainActivity extends Activity {
                 .setView(panel)
                 .setNegativeButton("Close", null)
                 .setNeutralButton("Clear notes", (d, w) -> {
-                    preferences.edit().remove("jarvis_notes").apply();
+                    preferences.edit().remove("jarvis_notes").remove("notes").apply();
                     status.setText("LOCAL NOTES CLEARED");
                 })
                 .setPositiveButton("Save note", (d, w) -> {
                     String note = input.getText().toString().trim();
                     if (note.isEmpty()) { status.setText("EMPTY NOTE NOT SAVED"); return; }
-                    String old = preferences.getString("jarvis_notes", "");
+                    String old = getSavedNotes();
                     String combined = old.isEmpty() ? note : old + "\n• " + note;
-                    preferences.edit().putString("jarvis_notes", combined).apply();
+                    preferences.edit().putString("jarvis_notes", combined).putString("notes", combined).apply();
                     transcript.setText("JARVIS • SAVED NOTES\n\n" + combined);
                     status.setText("NOTE SAVED ON DEVICE");
                 }).show();
@@ -715,16 +723,7 @@ public class MainActivity extends Activity {
             status.setText("MICROPHONE PERMISSION NEEDED");
             return;
         }
-        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
-            status.setText("ALLOW CONTACTS TO ENABLE VOICE CALL COMMANDS");
-            return;
-        }
-        if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PERMISSION_REQUEST);
-            status.setText("ALLOW CALLS FOR VOICE-CONFIRMED CALLING (OPTIONAL)");
-            return;
-        }
+        // Background listening needs microphone permission only. Contacts and calling permissions are requested only when those features are used.
         try {
             Intent service = new Intent(this, WakeWordService.class);
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
@@ -791,14 +790,28 @@ public class MainActivity extends Activity {
         }
     }
 
+    // AI-assisted transcription cleanup only: local command routing still decides what can execute.
+    private void understandVoiceCommand(String rawTranscript) {
+        final String raw = rawTranscript == null ? "" : rawTranscript.trim();
+        if (raw.isEmpty()) return;
+        status.setText("UNDERSTANDING YOUR VOICE…");
+        transcript.setText("YOU: " + raw + "\n\nJARVIS: Understanding…");
+        JarvisAiClient.understandCommand(this, raw, understood -> {
+            status.setText("SYSTEM ONLINE • STANDBY");
+            String safeText = understood == null || understood.trim().isEmpty()
+                    ? raw : understood.trim();
+            handleCommand(safeText);
+        });
+    }
+
     private void handleCommand(String command) {
         transcript.setText("YOU: " + command);
         String original = command == null ? "" : command.trim();
-        String lower = original.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+        String lower = original.toLowerCase(Locale.ROOT).replaceAll("[^\\p{L}\\p{N}\\s]", " ").replaceAll("\\s+", " ").trim();
 
         // Recognize common ways the user may pronounce or address JARVIS.
         String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
-        cleaned = cleaned.replaceFirst("^(jarvis|jarvesh|jarvish|jarvish|jarvis ji|j a r v i s)(\\s+)", "");
+        cleaned = cleaned.replaceFirst("^(jarvis ji|jarvis|jarvesh|jarvish|j a r v i s)(\\s+)", "");
         String intent = cleaned.trim();
         if (intent.isEmpty() || intent.matches("^(jarvis|jarvesh|jarvish|jarvish ji|j a r v i s)$")) {
             String[] greetings = {
@@ -841,7 +854,7 @@ public class MainActivity extends Activity {
                     .setMessage("Saved notes on this phone will be deleted. Emergency contact and voice style settings will stay.")
                     .setNegativeButton("Cancel", (d, w) -> {})
                     .setPositiveButton("Clear notes", (d, w) -> {
-                        preferences.edit().remove("notes").apply();
+                        preferences.edit().remove("notes").remove("jarvis_notes").apply();
                         replyAndShow(original, "Saved notes clear kar diye.");
                     }).show();
             return;
@@ -896,7 +909,7 @@ public class MainActivity extends Activity {
             replyAndShow(original, "Energetic mode on. Main thoda zyada energetic bolunga.");
             return;
         }
-        if (intent.contains("normal voice") || intent.contains("normal mode")) {
+        if (intent.contains("normal voice")) {
             preferences.edit().putString("voice_style", "normal").apply();
             replyAndShow(original, "Normal voice mode on.");
             return;

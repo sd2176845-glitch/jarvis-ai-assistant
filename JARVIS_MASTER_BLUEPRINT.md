@@ -38,7 +38,26 @@ JARVIS is separate from the Even project.
 - [x] Live web/weather shortcuts open browser search pages; these are not native live-data API integrations or source-grounded AI search.
 - [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
 
+## Reference-video review (2026-11-02)
+Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
+
+Adopt these ideas selectively; do not copy an unknown project's code blindly:
+- [~] Visual refresh: red/black Stark-style colors have been started in the Android UI, but the theme is only partially applied. Finish remaining screens/components, check readable contrast, and device-test; do not recreate the existing color change.
+- [ ] Clear voice-session feedback: show listening, thinking, speaking, offline and standby states consistently; keep a visible stop control.
+- [ ] Connected-app actions: prioritize useful Calendar and messaging workflows from the first reference, but require explicit account connection and permission, show what will happen, and confirm before sending messages or changing events.
+- [ ] Provider setup discipline: document setup/configuration steps, keep provider secrets on the backend, never put API keys in the APK, screenshots, or Git history.
+- [ ] Modular feature organization: keep integrations separated behind small service interfaces so one provider failure does not break voice commands or local notes.
+- [ ] Do not reproduce desktop-only controls or claim integrations based solely on a visual demo; adapt only what Android 13+ and the target device can support.
+
 ## Remaining feature backlog
+
+### Priority 0 — Owner authentication and account setup
+- [ ] Implement secure owner sign-in with Firebase Authentication, supporting Google sign-in and phone-number OTP after Firebase project configuration; neither sign-in method is implemented yet.
+- [ ] Add an owner profile/session state, sign-out, and safe handling of expired sessions; do not store passwords or OTPs locally.
+- [ ] Restrict owner-only settings and sensitive assistant actions to an authenticated owner; keep emergency access and permission behavior explicit.
+- [ ] Document Firebase Console setup, Android SHA fingerprints, authorized domains, and required configuration without committing service-account files, API secrets, or private credentials.
+- [ ] Add a privacy lock for sensitive screens/actions, with owner re-authentication where appropriate; do not rely on a cosmetic PIN or lock screen as real authentication.
+- [ ] Add a guest mode that hides owner-specific notes, memory, account details and private briefing data; make the transition into and out of guest mode obvious and test that private data cannot leak through voice responses or notifications.
 
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.
@@ -47,6 +66,8 @@ JARVIS is separate from the Even project.
 - [ ] Test MIUI battery restrictions and document the exact settings needed.
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
+- [ ] Add user-configurable wake-word/listening preferences only where the selected recognition engine supports them; explain battery and privacy trade-offs and retain a clear manual stop/pause control.
+- [ ] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data.
 
 ### Priority 2 — Online intelligence and API integrations
 - [ ] Native weather integration using Open-Meteo; show location, units, timestamp and API errors clearly.
@@ -77,6 +98,8 @@ JARVIS is separate from the Even project.
 - [ ] True scheduled reminders with JARVIS notification delivery (current reminder control only opens Android's alarm UI; it does not schedule JARVIS reminders).
 - [ ] Calendar-connected morning briefing and daily schedule.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
+- [ ] Expand multi-step command handling into a safe command-chain planner: parse the requested steps, show the proposed actions, execute reversible low-risk steps, and ask separately before calls, messages, purchases, sharing data or changing calendar events.
+- [ ] Add a user-controlled smart-memory manager that lets the owner inspect, correct, export and delete saved preferences; memory must be opt-in and must not silently retain sensitive information.
 
 ### Priority 5 — Vision and advanced integrations
 - [ ] Camera vision / OCR for user-selected images and text.
@@ -85,12 +108,16 @@ JARVIS is separate from the Even project.
 - [ ] Digital wellbeing / screen-time overview where Android provides the data.
 - [ ] Coding helper and daily learning tips.
 - [ ] Headphone/Bluetooth interaction and selected context-aware events.
+- [ ] Add an optional screen-context explainer using Android's supported screen-capture/accessibility APIs only after explicit user action; show a clear capture indicator, process only the selected content, and never silently monitor other apps.
+- [ ] Add WhatsApp/message assistance as a permission- and platform-compliant workflow: draft text first, let the owner review it, and require explicit confirmation before any send action. Do not promise silent/background sending or bypass app protections.
 
 ### Priority 6 — Personality, UI and quality
 - [ ] Full emotion engine: happy and thinking states, plus cautious mood-aware adaptation (manual Caring/Funny/Serious modes have initial code).
 - [ ] Consistent butler-inspired personality: composed, discreet, respectful, helpful and occasionally witty.
 - [ ] Fine-grained voice delivery and orb animation for all supported states.
 - [ ] Build and regression-test after each feature batch; keep the app installable.
+- [ ] Complete the red/black theme consistently across dashboard, dialogs, settings and status states while preserving accessibility contrast.
+- [ ] Add a modular integration registry so optional features can be enabled/disabled independently and failures do not break core voice, notes or offline commands.
 
 ## Integration rules for public APIs
 1. The API catalog is a directory, not a guarantee that every listed service is reliable, free forever, or suitable for production.
@@ -109,7 +136,7 @@ JARVIS is separate from the Even project.
 2. Implement one small, coherent feature batch at a time, starting with core reliability.
 3. Add API integrations behind a reusable, validated data-service layer; avoid duplicating HTTP logic in every screen or command.
 4. Connect voice intents to those services and present concise spoken answers plus readable details.
-5. Build the APK and run available automated checks after each batch.
+5. Build the APK and run available automated checks after each feature batch.
 6. Device-test permissions, network failures, voice commands, background behavior and sensitive-action confirmations before calling the batch complete.
 
 ## Security and privacy
@@ -118,3 +145,15 @@ JARVIS is separate from the Even project.
 - Request permissions only when a feature needs them.
 - Keep the user in control of saved memory, microphone use, notification access and image uploads.
 - Do not claim an action, live lookup, reminder or setting change succeeded unless a connected service or device confirms it.
+
+
+### Priority 7 — Owner feedback, diagnostics and repair handoff
+- [ ] Add an owner-invoked "Report a problem" / "Self-Diagnostics" conversation flow. JARVIS asks what is not working (for example voice, wake word, memory, AI replies, app commands, reminders or integrations) and lets the owner describe the issue in their own words.
+- [ ] Run safe, read-only checks for relevant app version, permission state, network reachability, backend health, API response status, speech/TTS availability and recent non-sensitive error codes; do not claim a root cause without evidence.
+- [ ] Produce a shareable, structured diagnostic report with issue description, expected vs actual behavior, reproducible steps, timestamps, app/build version, device/Android details, relevant sanitized logs, checks performed and likely next steps.
+- [ ] Provide a preview before sharing. Redact API keys, auth tokens, phone numbers, contact names, message contents, precise location, personal notes and other private data by default. Include only data the owner explicitly approves.
+- [ ] Give the report a unique reference ID and export it as text/JSON that the owner can copy or share with the developer/ChatGPT; do not silently upload it.
+- [ ] Support a repair handoff: owner shares the report with the developer, who reviews the evidence, proposes a code fix, updates the JARVIS feature branch, runs available builds/tests and returns a testable APK or patch.
+- [ ] After a fix, provide a short verification checklist and let the owner report whether the original problem is resolved; keep unresolved issues open and attach new evidence rather than marking them fixed automatically.
+- [ ] Never let JARVIS rewrite its own installed APK, change source code, deploy backend changes or execute arbitrary repair commands autonomously. Code repairs require developer review, explicit authorization, build/test and owner installation.
+- [ ] Keep diagnostics opt-in, local-first and user-controlled; allow report preview, cancellation, deletion and selective sharing.

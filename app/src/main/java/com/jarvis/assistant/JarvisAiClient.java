@@ -24,6 +24,67 @@ public final class JarvisAiClient {
         void onReply(String reply);
     }
 
+    public interface UnderstandCallback {
+        void onUnderstood(String text);
+    }
+
+    /**
+     * Corrects likely speech-recognition omissions and spelling in Hindi/Hinglish/English.
+     * The backend returns text only; all device actions remain in MainActivity's local,
+     * confirmation-aware command router.
+     */
+    public static void understandCommand(Context context, String rawTranscript, UnderstandCallback callback) {
+        Context appContext = context.getApplicationContext();
+        Handler main = new Handler(Looper.getMainLooper());
+        Thread worker = new Thread(() -> {
+            HttpURLConnection connection = null;
+            String understood = rawTranscript == null ? "" : rawTranscript.trim();
+            try {
+                connection = (HttpURLConnection) new URL(
+                        "https://jarvis-ai-backend-bq4m.onrender.com/api/jarvis/understand").openConnection();
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(7000);
+                connection.setReadTimeout(12000);
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                connection.setRequestProperty("Accept", "application/json");
+                JSONObject body = new JSONObject();
+                body.put("transcript", understood);
+                byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8);
+                connection.setFixedLengthStreamingMode(bytes.length);
+                try (OutputStream output = connection.getOutputStream()) {
+                    output.write(bytes);
+                }
+                int status = connection.getResponseCode();
+                InputStream stream = status >= 200 && status < 300
+                        ? connection.getInputStream() : connection.getErrorStream();
+                StringBuilder response = new StringBuilder();
+                if (stream != null) {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) response.append(line);
+                    }
+                }
+                if (status >= 200 && status < 300) {
+                    JSONObject json = new JSONObject(response.toString());
+                    String candidate = json.optString("corrected_text", "").trim();
+                    if (json.optBoolean("understood", false) && !candidate.isEmpty()
+                            && candidate.length() <= 500) understood = candidate;
+                }
+            } catch (Exception ignored) {
+                // Offline/server failure: pass the original speech transcript to local routing.
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final String result = understood;
+            main.post(() -> {
+                if (callback != null) callback.onUnderstood(result);
+            });
+        }, "jarvis-command-understanding");
+        worker.start();
+    }
+
     private JarvisAiClient() {}
 
     public static void ask(Context context, String message, Callback callback) {
