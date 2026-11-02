@@ -56,6 +56,8 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Add an owner profile/session state, sign-out, and safe handling of expired sessions; do not store passwords or OTPs locally.
 - [ ] Restrict owner-only settings and sensitive assistant actions to an authenticated owner; keep emergency access and permission behavior explicit.
 - [ ] Document Firebase Console setup, Android SHA fingerprints, authorized domains, and required configuration without committing service-account files, API secrets, or private credentials.
+- [ ] Add a privacy lock for sensitive screens/actions, with owner re-authentication where appropriate; do not rely on a cosmetic PIN or lock screen as real authentication.
+- [ ] Add a guest mode that hides owner-specific notes, memory, account details and private briefing data; make the transition into and out of guest mode obvious and test that private data cannot leak through voice responses or notifications.
 
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.
@@ -64,6 +66,8 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Test MIUI battery restrictions and document the exact settings needed.
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
+- [ ] Add user-configurable wake-word/listening preferences only where the selected recognition engine supports them; explain battery and privacy trade-offs and retain a clear manual stop/pause control.
+- [ ] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data.
 
 ### Priority 2 — Online intelligence and API integrations
 - [ ] Native weather integration using Open-Meteo; show location, units, timestamp and API errors clearly.
@@ -94,6 +98,8 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] True scheduled reminders with JARVIS notification delivery (current reminder control only opens Android's alarm UI; it does not schedule JARVIS reminders).
 - [ ] Calendar-connected morning briefing and daily schedule.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
+- [ ] Expand multi-step command handling into a safe command-chain planner: parse the requested steps, show the proposed actions, execute reversible low-risk steps, and ask separately before calls, messages, purchases, sharing data or changing calendar events.
+- [ ] Add a user-controlled smart-memory manager that lets the owner inspect, correct, export and delete saved preferences; memory must be opt-in and must not silently retain sensitive information.
 
 ### Priority 5 — Vision and advanced integrations
 - [ ] Camera vision / OCR for user-selected images and text.
@@ -102,12 +108,16 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Digital wellbeing / screen-time overview where Android provides the data.
 - [ ] Coding helper and daily learning tips.
 - [ ] Headphone/Bluetooth interaction and selected context-aware events.
+- [ ] Add an optional screen-context explainer using Android's supported screen-capture/accessibility APIs only after explicit user action; show a clear capture indicator, process only the selected content, and never silently monitor other apps.
+- [ ] Add WhatsApp/message assistance as a permission- and platform-compliant workflow: draft text first, let the owner review it, and require explicit confirmation before any send action. Do not promise silent/background sending or bypass app protections.
 
 ### Priority 6 — Personality, UI and quality
 - [ ] Full emotion engine: happy and thinking states, plus cautious mood-aware adaptation (manual Caring/Funny/Serious modes have initial code).
 - [ ] Consistent butler-inspired personality: composed, discreet, respectful, helpful and occasionally witty.
 - [ ] Fine-grained voice delivery and orb animation for all supported states.
 - [ ] Build and regression-test after each feature batch; keep the app installable.
+- [ ] Complete the red/black theme consistently across dashboard, dialogs, settings and status states while preserving accessibility contrast.
+- [ ] Add a modular integration registry so optional features can be enabled/disabled independently and failures do not break core voice, notes or offline commands.
 
 ## Integration rules for public APIs
 1. The API catalog is a directory, not a guarantee that every listed service is reliable, free forever, or suitable for production.
