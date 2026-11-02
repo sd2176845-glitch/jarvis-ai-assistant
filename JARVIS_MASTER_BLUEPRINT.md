@@ -38,6 +38,17 @@ JARVIS is separate from the Even project.
 - [x] Live web/weather shortcuts open browser search pages; these are not native live-data API integrations or source-grounded AI search.
 - [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
 
+## Reference-video review (2026-11-02)
+Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
+
+Adopt these ideas selectively; do not copy an unknown project's code blindly:
+- [ ] Visual refresh: offer a restrained red/black Stark-style HUD theme inspired by the second demo, while retaining readable text, accessible contrast, and the existing orb. Treat this as a UI direction, not a working feature until implemented and device-tested.
+- [ ] Clear voice-session feedback: show listening, thinking, speaking, offline and standby states consistently; keep a visible stop control.
+- [ ] Connected-app actions: prioritize useful Calendar and messaging workflows from the first reference, but require explicit account connection and permission, show what will happen, and confirm before sending messages or changing events.
+- [ ] Provider setup discipline: document setup/configuration steps, keep provider secrets on the backend, never put API keys in the APK, screenshots, or Git history.
+- [ ] Modular feature organization: keep integrations separated behind small service interfaces so one provider failure does not break voice commands or local notes.
+- [ ] Do not reproduce desktop-only controls or claim integrations based solely on a visual demo; adapt only what Android 13+ and the target device can support.
+
 ## Remaining feature backlog
 
 ### Priority 1 — Reliability and core voice control
@@ -109,7 +120,7 @@ JARVIS is separate from the Even project.
 2. Implement one small, coherent feature batch at a time, starting with core reliability.
 3. Add API integrations behind a reusable, validated data-service layer; avoid duplicating HTTP logic in every screen or command.
 4. Connect voice intents to those services and present concise spoken answers plus readable details.
-5. Build the APK and run available automated checks after each batch.
+5. Build the APK and run available automated checks after each feature batch.
 6. Device-test permissions, network failures, voice commands, background behavior and sensitive-action confirmations before calling the batch complete.
 
 ## Security and privacy
