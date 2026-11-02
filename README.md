@@ -30,4 +30,8 @@ This is an early implementation, not a complete movie-style JARVIS. A feature be
 - Actual installation, calls, SMS announcements, accessibility controls, background listening, and the UI still need a device test on the target Poco phone.
 - Grant microphone/contact/call/phone-event permissions only when needed. The foreground notification provides a way to stop listening.
 
+## Owner login status
+
+Google sign-in, phone OTP login, and the owner profile are planned but are not implemented yet. Firebase project setup is required before secure authentication can be wired into the app. See [OWNER_AUTH_SETUP.md](OWNER_AUTH_SETUP.md) for the exact setup requirements, privacy rules, and release checks. Do not commit `google-services.json`, OTPs, passwords, or authentication tokens.
+
 See JARVIS_MASTER_BLUEPRINT.md for the implementation inventory and remaining backlog.
