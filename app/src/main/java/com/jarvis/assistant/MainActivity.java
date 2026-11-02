@@ -526,7 +526,7 @@ public class MainActivity extends Activity {
         String panelNotes = preferences.getString("jarvis_notes", "");
         if (voiceNotes.isEmpty()) return panelNotes;
         if (panelNotes.isEmpty() || panelNotes.equals(voiceNotes)) return voiceNotes;
-        return voiceNotes + "\\n" + panelNotes;
+        return voiceNotes + "\n" + panelNotes;
     }
 
     private void showNotesDialog() {
