@@ -23,8 +23,8 @@ function chooseProcessing(message, requestedMode) {
   const text = String(message || "").toLowerCase();
   const requested = String(requestedMode || "").toLowerCase();
   if (["ultra", "advanced", "light"].includes(requested)) return requested;
-  const ultraSignals = /\\b(research|analy[sz]e|architecture|debug|code|compare|strategy|multi.?step|deep dive|detailed plan|reasoning|complex|design a system)\\b/i;
-  const advancedSignals = /\\b(explain|why|how does|plan|summari[sz]e|recommend|calculate|help me decide)\\b/i;
+  const ultraSignals = /\b(research|analy[sz]e|architecture|debug|code|compare|strategy|multi.?step|deep dive|detailed plan|reasoning|complex|design a system)\b/i;
+  const advancedSignals = /\b(explain|why|how does|plan|summari[sz]e|recommend|calculate|help me decide)\b/i;
   if (ultraSignals.test(text) || text.length > 1200) return "ultra";
   if (advancedSignals.test(text) || text.length > 350) return "advanced";
   return "light";
@@ -101,7 +101,7 @@ async function runParallelUltra(prompt) {
     };
   }
 
-  const workerNotes = completed.map(item => `[${item.worker.toUpperCase()}]\\n${item.text}`).join("\\n\\n");
+  const workerNotes = completed.map(item => `[${item.worker.toUpperCase()}]\n${item.text}`).join("\n\n");
   try {
     const final = await groqCompletion({
       model: GROQ_ULTRA_MODEL,
@@ -112,7 +112,7 @@ async function runParallelUltra(prompt) {
         },
         {
           role: "user",
-          content: `Original request:\\n${prompt.slice(0, 6000)}\\n\\nWorker notes:\\n${workerNotes}`
+          content: `Original request:\n${prompt.slice(0, 6000)}\n\nWorker notes:\n${workerNotes}`
         }
       ],
       maxTokens: 1400,
@@ -128,7 +128,7 @@ async function runParallelUltra(prompt) {
   } catch (error) {
     console.error("Parallel synthesis failed:", error?.name || "unknown");
     return {
-      reply: completed.map(item => item.text).join("\\n\\n"),
+      reply: completed.map(item => item.text).join("\n\n"),
       model: GROQ_ADVANCED_MODEL,
       workersCompleted: completed.length,
       synthesisUsed: false
