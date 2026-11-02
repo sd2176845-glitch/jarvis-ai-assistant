@@ -145,3 +145,15 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - Request permissions only when a feature needs them.
 - Keep the user in control of saved memory, microphone use, notification access and image uploads.
 - Do not claim an action, live lookup, reminder or setting change succeeded unless a connected service or device confirms it.
+
+
+### Priority 7 — Owner feedback, diagnostics and repair handoff
+- [ ] Add an owner-invoked "Report a problem" / "Self-Diagnostics" conversation flow. JARVIS asks what is not working (for example voice, wake word, memory, AI replies, app commands, reminders or integrations) and lets the owner describe the issue in their own words.
+- [ ] Run safe, read-only checks for relevant app version, permission state, network reachability, backend health, API response status, speech/TTS availability and recent non-sensitive error codes; do not claim a root cause without evidence.
+- [ ] Produce a shareable, structured diagnostic report with issue description, expected vs actual behavior, reproducible steps, timestamps, app/build version, device/Android details, relevant sanitized logs, checks performed and likely next steps.
+- [ ] Provide a preview before sharing. Redact API keys, auth tokens, phone numbers, contact names, message contents, precise location, personal notes and other private data by default. Include only data the owner explicitly approves.
+- [ ] Give the report a unique reference ID and export it as text/JSON that the owner can copy or share with the developer/ChatGPT; do not silently upload it.
+- [ ] Support a repair handoff: owner shares the report with the developer, who reviews the evidence, proposes a code fix, updates the JARVIS feature branch, runs available builds/tests and returns a testable APK or patch.
+- [ ] After a fix, provide a short verification checklist and let the owner report whether the original problem is resolved; keep unresolved issues open and attach new evidence rather than marking them fixed automatically.
+- [ ] Never let JARVIS rewrite its own installed APK, change source code, deploy backend changes or execute arbitrary repair commands autonomously. Code repairs require developer review, explicit authorization, build/test and owner installation.
+- [ ] Keep diagnostics opt-in, local-first and user-controlled; allow report preview, cancellation, deletion and selective sharing.
