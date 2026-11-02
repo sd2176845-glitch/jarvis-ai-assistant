@@ -723,7 +723,8 @@ public class MainActivity extends Activity {
             status.setText("MICROPHONE PERMISSION NEEDED");
             return;
         }
-        // Background listening needs microphone permission only. Contacts and calling permissions are requested only when those features are used.\n        try {
+        // Background listening needs microphone permission only. Contacts and calling permissions are requested only when those features are used.
+        try {
             Intent service = new Intent(this, WakeWordService.class);
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
             status.setText("HEY JARVIS LISTENING • CHECK NOTIFICATION");
