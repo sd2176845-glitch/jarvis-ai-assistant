@@ -39,7 +39,7 @@ const server = http.createServer(async (req, res) => {
     }));
   }
 
-  if (req.method !== "POST" || url.pathname !== "/api/jarvis/chat") {
+  if (req.method !== "POST" || !["/api/jarvis/chat", "/api/jarvis/understand"].includes(url.pathname)) {
     res.writeHead(404);
     return res.end(JSON.stringify({ error: "Not found" }));
   }
@@ -71,6 +71,52 @@ const server = http.createServer(async (req, res) => {
   } catch {
     res.writeHead(400);
     return res.end(JSON.stringify({ error: "Invalid JSON body" }));
+  }
+
+  if (url.pathname === "/api/jarvis/understand") {
+    const transcript = String(body.transcript || "").trim();
+    if (!transcript || transcript.length > 500) {
+      res.writeHead(400);
+      return res.end(JSON.stringify({ understood: false, corrected_text: transcript.slice(0, 500), error: "transcript must be 1-500 characters" }));
+    }
+    if (!GROQ_API_KEY) {
+      res.writeHead(503);
+      return res.end(JSON.stringify({ understood: false, corrected_text: transcript }));
+    }
+    try {
+      const upstream = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [
+            {
+              role: "system",
+              content: "You are a conservative speech transcript correction engine for an Android voice assistant. Correct likely speech-to-text spelling errors and obvious missing connector words in Hindi, Hinglish, and English. Preserve the speaker's language and script. Do not answer the command, execute it, or add new intent. Never invent or alter names, phone numbers, dates, times, amounts, app names, destinations, or other critical details. If ambiguous, return the original transcript unchanged. Output only the corrected transcript, with no quotes or explanation."
+            },
+            { role: "user", content: transcript }
+          ],
+          temperature: 0,
+          max_tokens: 180
+        }),
+        signal: AbortSignal.timeout(9000)
+      });
+      const data = await upstream.json().catch(() => ({}));
+      const candidate = String(data?.choices?.[0]?.message?.content || "").trim();
+      if (!upstream.ok || !candidate || candidate.length > 500) {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ understood: false, corrected_text: transcript }));
+      }
+      res.writeHead(200);
+      return res.end(JSON.stringify({ understood: true, corrected_text: candidate }));
+    } catch (error) {
+      console.error("Command understanding error:", error?.name || "unknown");
+      res.writeHead(200);
+      return res.end(JSON.stringify({ understood: false, corrected_text: transcript }));
+    }
   }
 
   const prompt = String(body.message || body.prompt || "").trim();
