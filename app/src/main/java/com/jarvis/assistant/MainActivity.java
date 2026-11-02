@@ -49,8 +49,8 @@ public class MainActivity extends Activity {
     private SharedPreferences preferences;
     private ImageView avatar;
 
-    private int cyan = Color.rgb(70, 220, 255);
-    private int bg = Color.rgb(3, 10, 22);
+    private int cyan = Color.rgb(255,  70, 82);
+    private int bg = Color.rgb(8, 5, 9);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
 
         TextView subtitle = new TextView(this);
         subtitle.setText("PERSONAL VOICE ASSISTANT");
-        subtitle.setTextColor(Color.rgb(105, 155, 180));
+        subtitle.setTextColor(Color.rgb(190, 125, 135));
         subtitle.setTextSize(10);
         subtitle.setLetterSpacing(0.20f);
         subtitle.setGravity(Gravity.CENTER);
@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
         // Futuristic divider directly under the avatar: cyan core with a dim outer track.
         FrameLayout dividerTrack = new FrameLayout(this);
         GradientDrawable track = new GradientDrawable();
-        track.setColor(Color.rgb(14, 43, 63));
+        track.setColor(Color.rgb(58, 18, 25));
         track.setCornerRadius(4 * getResources().getDisplayMetrics().density);
         dividerTrack.setBackground(track);
         LinearLayout.LayoutParams trackParams = new LinearLayout.LayoutParams(
@@ -340,7 +340,7 @@ public class MainActivity extends Activity {
 
         TextView footer = new TextView(this);
         footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
-        footer.setTextColor(Color.rgb(90, 130, 150));
+        footer.setTextColor(Color.rgb(130, 85, 95));
         footer.setTextSize(9);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(0, 12, 0, 4);
@@ -352,10 +352,10 @@ public class MainActivity extends Activity {
             if (child instanceof Button) {
                 Button button = (Button) child;
                 GradientDrawable buttonBg = new GradientDrawable();
-                buttonBg.setColor(Color.rgb(8, 25, 43));
+                buttonBg.setColor(Color.rgb(28, 10, 15));
                 buttonBg.setCornerRadius(12 * getResources().getDisplayMetrics().density);
                 buttonBg.setStroke((int) (1.2f * getResources().getDisplayMetrics().density),
-                        Color.rgb(35, 150, 190));
+                        Color.rgb(155, 45, 58));
                 button.setBackground(buttonBg);
                 button.setTextColor(cyan);
                 button.setTextSize(12);
@@ -407,21 +407,21 @@ public class MainActivity extends Activity {
 
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1.2f * density);
-            paint.setColor(Color.argb(115, 35, 190, 255));
+            paint.setColor(Color.argb(115, 190, 45, 65));
             canvas.drawCircle(cx, cy, unit * 0.94f, paint);
-            paint.setColor(Color.argb(165, 50, 225, 255));
+            paint.setColor(Color.argb(165, 255, 75, 90));
             canvas.drawCircle(cx, cy, unit * 0.82f, paint);
-            paint.setColor(Color.argb(95, 25, 125, 225));
+            paint.setColor(Color.argb(95, 150, 25, 55));
             canvas.drawCircle(cx, cy, unit * 0.70f, paint);
 
             RectF arc = new RectF(cx - unit * 0.88f, cy - unit * 0.88f,
                     cx + unit * 0.88f, cy + unit * 0.88f);
             paint.setStrokeWidth(2.1f * density);
-            paint.setColor(Color.argb(220, 60, 225, 255));
+            paint.setColor(Color.argb(220, 255, 65, 80));
             canvas.drawArc(arc, 20f, 64f, false, paint);
             canvas.drawArc(arc, 195f, 82f, false, paint);
             arc.inset(12f * density, 12f * density);
-            paint.setColor(Color.argb(160, 25, 145, 235));
+            paint.setColor(Color.argb(160, 200, 35, 65));
             canvas.drawArc(arc, 110f, 44f, false, paint);
             canvas.drawArc(arc, 285f, 40f, false, paint);
             canvas.restore();
@@ -435,7 +435,7 @@ public class MainActivity extends Activity {
                 float wave = (float) Math.abs(Math.sin(Math.toRadians(phase * 2.0f + i * 29f)));
                 float h = (5f + wave * (7f + (i % 4) * 2.5f)) * density;
                 int alpha = 95 + (int) (100 * wave);
-                paint.setColor(Color.argb(alpha, 55, 220, 255));
+                paint.setColor(Color.argb(alpha, 255, 75, 90));
                 float leftX = cx - xOffset;
                 float rightX = cx + xOffset;
                 canvas.drawLine(leftX, cy - h, leftX, cy + h, paint);
