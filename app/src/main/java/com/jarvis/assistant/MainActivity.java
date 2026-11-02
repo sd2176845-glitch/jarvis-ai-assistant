@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
                 public void onError(int error) { status.setText("STANDBY • TAP TO SPEAK"); animateOrb(1.0f, 800L); }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (matches != null && !matches.isEmpty()) handleCommand(matches.get(0));
+                    if (matches != null && !matches.isEmpty()) understandVoiceCommand(matches.get(0));
                     status.setText("STANDBY • TAP TO SPEAK");
                     animateOrb(1.0f, 800L);
                 }
@@ -787,6 +787,20 @@ public class MainActivity extends Activity {
                 }
             }
         }
+    }
+
+    // AI-assisted transcription cleanup only: local command routing still decides what can execute.
+    private void understandVoiceCommand(String rawTranscript) {
+        final String raw = rawTranscript == null ? "" : rawTranscript.trim();
+        if (raw.isEmpty()) return;
+        status.setText("UNDERSTANDING YOUR VOICE…");
+        transcript.setText("YOU: " + raw + "\n\nJARVIS: Understanding…");
+        JarvisAiClient.understandCommand(this, raw, understood -> {
+            status.setText("SYSTEM ONLINE • STANDBY");
+            String safeText = understood == null || understood.trim().isEmpty()
+                    ? raw : understood.trim();
+            handleCommand(safeText);
+        });
     }
 
     private void handleCommand(String command) {
