@@ -9,9 +9,10 @@ A phone-first Android personal assistant project for the Poco M4 Pro 4G. This is
 - An initial foreground-service listener for “Hey JARVIS”, with a visible notification and stop control.
 - Online AI chat through the Render backend and Groq. The Groq key belongs in the backend environment, never in Android source or the APK.
 - Basic local commands for common apps, time/date/battery, contacts/call flow, alarm handoff, web search, and message drafts.
-- Contact calling in the background listener asks for a spoken confirmation before calling.
+- Contact calling in the background listener requires an exact spoken yes/cancel confirmation before calling (Poco/MIUI device test needed).
 - Local notes, recent conversation context with a clear-memory control, eight assistant modes, a daily briefing, privacy controls, SOS/dialer options, phone-event announcements, and accessibility-based in-call controls.
 - Camera and Google Lens shortcuts; task/reminder and connected-system hubs.
+- Read-only device-health summary and optional screen-time overview (requires the owner to enable Android Usage Access in Settings).
 
 ## Build an APK
 

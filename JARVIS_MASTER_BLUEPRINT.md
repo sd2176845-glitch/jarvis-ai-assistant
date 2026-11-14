@@ -37,6 +37,8 @@ JARVIS is separate from the Even project.
 - [x] Orb scale animation reacts to speech recognition states (code present — visual behavior needs device testing).
 - [x] Live web/weather shortcuts open browser search pages; these are not native live-data API integrations or source-grounded AI search.
 - [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
+- [x] Read-only device-health summary (Android/device, battery, free storage, network) and optional owner-granted screen-time overview in Command Center (code present — Poco/MIUI device test needed).
+- [x] Local preference backup excludes Android-Keystore-bound encrypted values and validates complete backup reads (code present — backup/restore flow still needs device testing).
 
 ## Reference-video review (2026-11-02)
 Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
@@ -62,7 +64,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.
 - [ ] Fix and device-test wake-word follow-up command execution while JARVIS is outside the foreground app.
-- [ ] Fix and test spoken yes/no confirmation flow for calls; never place a call without clear confirmation.
+- [x] Require exact, unambiguous spoken yes/cancel confirmation for background calls and prevent duplicate recognition-restart callbacks (code present — Poco/MIUI device test needed).
 - [ ] Test MIUI battery restrictions and document the exact settings needed.
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
