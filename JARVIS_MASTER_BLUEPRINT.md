@@ -40,8 +40,9 @@ JARVIS is separate from the Even project.
 - [~] Device health diagnostics panel in Command Center: reads Android version, device model, battery, available internal storage and active network transport; device test still required. A connected network is not proof of internet/backend reachability.
 - [~] Screen-time overview in Command Center: reads combined app foreground time since local midnight only after the owner grants Android Usage Access; no per-app breakdown or device test yet.
 - [~] Calendar event handoff in Command Center: lets the owner enter a title and choose a date/time, then opens the installed calendar app for review and saving; no automatic calendar sync.
+- [~] Background voice reliability: exact yes/no call-confirmation matching, deduplicated speech-recognition restart scheduling, and truthful background app-launch failure feedback are now in code; actual Poco/MIUI device testing remains required.
 - [~] FeatureKit encrypted private preferences and local JSON backup/restore helpers: backup is limited to the FeatureKit namespace, not notes/chat history. Keystore-encrypted values are device-bound and are skipped if the original key is unavailable on restore. The file-picker workflow is owner initiated.
-- [~] Offline command classifier and optional feature switches exist as helper methods only; they are not yet connected to the main voice command router or a live integration registry.
+- [~] Offline command classifier is extracted into a pure helper and has seven JVM unit-test cases; it is still not connected to the main voice command router. Optional feature switches are stored locally but are not yet wired to a live integration registry.
 
 
 ## Reference-video review (2026-11-02)
