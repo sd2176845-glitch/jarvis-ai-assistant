@@ -37,6 +37,12 @@ JARVIS is separate from the Even project.
 - [x] Orb scale animation reacts to speech recognition states (code present — visual behavior needs device testing).
 - [x] Live web/weather shortcuts open browser search pages; these are not native live-data API integrations or source-grounded AI search.
 - [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
+- [~] Device health diagnostics panel in Command Center: reads Android version, device model, battery, available internal storage and active network transport; device test still required. A connected network is not proof of internet/backend reachability.
+- [~] Screen-time overview in Command Center: reads combined app foreground time since local midnight only after the owner grants Android Usage Access; no per-app breakdown or device test yet.
+- [~] Calendar event handoff in Command Center: lets the owner enter a title and choose a date/time, then opens the installed calendar app for review and saving; no automatic calendar sync.
+- [~] FeatureKit encrypted private preferences and local JSON backup/restore helpers: backup is limited to the FeatureKit namespace, not notes/chat history. Keystore-encrypted values are device-bound and are skipped if the original key is unavailable on restore. The file-picker workflow is owner initiated.
+- [~] Offline command classifier and optional feature switches exist as helper methods only; they are not yet connected to the main voice command router or a live integration registry.
+
 
 ## Reference-video review (2026-11-02)
 Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
