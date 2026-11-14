@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.provider.AlarmClock;
 import android.speech.RecognizerIntent;
@@ -37,6 +38,11 @@ import android.animation.ValueAnimator;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Locale;
 import java.util.Calendar;
 
@@ -48,6 +54,8 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int BACKUP_EXPORT_REQUEST = 2001;
+    private static final int BACKUP_RESTORE_REQUEST = 2002;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
     private JarvisFeatureKit featureKit;
@@ -395,7 +403,8 @@ public class MainActivity extends Activity {
                 "Privacy & permissions",
                 "Device health diagnostics",
                 "Screen-time overview",
-                "Calendar event handoff"
+                "Calendar event handoff",
+                "Backup • Restore feature settings"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -432,6 +441,7 @@ public class MainActivity extends Activity {
                     else if (which == 17) showDeviceDiagnostics();
                     else if (which == 18) showScreenTimeOverview();
                     else if (which == 19) showCalendarEventHandoff();
+                    else if (which == 20) showFeatureBackupOptions();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -539,6 +549,100 @@ public class MainActivity extends Activity {
                     android.text.format.DateFormat.is24HourFormat(this)).show();
         }, suggested.get(Calendar.YEAR), suggested.get(Calendar.MONTH),
                 suggested.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+    private void showFeatureBackupOptions() {
+        new AlertDialog.Builder(this).setTitle("JARVIS • Feature settings backup")
+                .setMessage("This backup contains FeatureKit settings only. It does not include notes, AI chat history, contacts or phone data. Encrypted private values may be restored only when the original device key is available.")
+                .setItems(new String[]{"Export feature settings", "Restore feature settings"}, (dialog, which) -> {
+                    if (which == 0) launchFeatureBackupExport();
+                    else launchFeatureBackupRestore();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void launchFeatureBackupExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, "jarvis-feature-settings.json");
+        try { startActivityForResult(intent, BACKUP_EXPORT_REQUEST); }
+        catch (Exception e) { status.setText("FILE PICKER NOT AVAILABLE"); }
+    }
+
+    private void launchFeatureBackupRestore() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try { startActivityForResult(intent, BACKUP_RESTORE_REQUEST); }
+        catch (Exception e) { status.setText("FILE PICKER NOT AVAILABLE"); }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (requestCode == BACKUP_EXPORT_REQUEST) exportFeatureSettings(uri);
+        else if (requestCode == BACKUP_RESTORE_REQUEST) restoreFeatureSettings(uri);
+    }
+
+    private void exportFeatureSettings(Uri destination) {
+        File temporary = new File(getCacheDir(), "jarvis-feature-settings-export.json");
+        try {
+            featureKit.exportBackup(temporary);
+            try (InputStream input = new FileInputStream(temporary);
+                 OutputStream output = getContentResolver().openOutputStream(destination, "w")) {
+                if (output == null) throw new IllegalStateException("Could not open selected backup destination");
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+                output.flush();
+            }
+            status.setText("FEATURE SETTINGS BACKUP EXPORTED");
+            new AlertDialog.Builder(this).setTitle("Backup exported")
+                    .setMessage("Your FeatureKit settings backup was written to the selected location. Keep the file private.")
+                    .setPositiveButton("Close", null).show();
+        } catch (Exception e) {
+            status.setText("BACKUP EXPORT FAILED");
+            new AlertDialog.Builder(this).setTitle("Backup export failed")
+                    .setMessage("JARVIS could not write the selected backup file. No existing settings were changed.")
+                    .setPositiveButton("Close", null).show();
+        } finally {
+            temporary.delete();
+        }
+    }
+
+    private void restoreFeatureSettings(Uri source) {
+        File temporary = new File(getCacheDir(), "jarvis-feature-settings-restore.json");
+        try {
+            try (InputStream input = getContentResolver().openInputStream(source);
+                 OutputStream output = new FileOutputStream(temporary, false)) {
+                if (input == null) throw new IllegalStateException("Could not open selected backup file");
+                byte[] buffer = new byte[8192];
+                int count;
+                long total = 0L;
+                while ((count = input.read(buffer)) != -1) {
+                    total += count;
+                    if (total > 1024L * 1024L) throw new IllegalArgumentException("Backup exceeds 1 MB");
+                    output.write(buffer, 0, count);
+                }
+            }
+            JarvisFeatureKit.RestoreResult result = featureKit.restoreBackup(temporary);
+            String message = "Restored entries: " + result.restoredEntries
+                    + "\nPrivate entries skipped (device key unavailable): " + result.skippedDeviceBoundEntries
+                    + "\n\nExisting settings not present in the backup were left unchanged.";
+            new AlertDialog.Builder(this).setTitle("Feature settings restored")
+                    .setMessage(message).setPositiveButton("Close", null).show();
+            status.setText("FEATURE SETTINGS RESTORE FINISHED");
+        } catch (Exception e) {
+            status.setText("BACKUP RESTORE FAILED");
+            new AlertDialog.Builder(this).setTitle("Backup restore failed")
+                    .setMessage("The selected file could not be restored. Existing settings were not cleared.")
+                    .setPositiveButton("Close", null).show();
+        } finally {
+            temporary.delete();
+        }
     }
 
     private String getSavedNotes() {
