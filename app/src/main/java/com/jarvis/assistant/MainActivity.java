@@ -94,57 +94,54 @@ public class MainActivity extends Activity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER_HORIZONTAL);
-        root.setPadding(24, 24, 24, 22);
+        root.setPadding(24, 28, 24, 28);
         root.setBackgroundColor(bg);
-        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -1));
 
         TextView label = new TextView(this);
-        label.setText("STARK INDUSTRIES  •  PERSONAL AI");
+        label.setText("STARK INDUSTRIES");
         label.setTextColor(cyan);
         label.setTextSize(11);
-        label.setLetterSpacing(0.16f);
+        label.setLetterSpacing(0.20f);
         label.setGravity(Gravity.CENTER);
         root.addView(label, new LinearLayout.LayoutParams(-1, -2));
 
         TextView title = new TextView(this);
         title.setText("J.A.R.V.I.S.");
         title.setTextColor(Color.WHITE);
-        title.setTextSize(36);
-        title.setLetterSpacing(0.12f);
+        title.setTextSize(38);
+        title.setLetterSpacing(0.14f);
         title.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 14, 0, 4);
+        title.setPadding(0, 12, 0, 4);
         root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("PERSONAL VOICE ASSISTANT");
+        subtitle.setText("PERSONAL AI");
         subtitle.setTextColor(Color.rgb(190, 125, 135));
         subtitle.setTextSize(10);
-        subtitle.setLetterSpacing(0.20f);
+        subtitle.setLetterSpacing(0.24f);
         subtitle.setGravity(Gravity.CENTER);
-        subtitle.setPadding(0, 0, 0, 8);
+        subtitle.setPadding(0, 0, 0, 12);
         root.addView(subtitle, new LinearLayout.LayoutParams(-1, -2));
 
-        // Fixed avatar area prevents the orb and the UI beneath it from being pushed off-screen.
         FrameLayout avatarFrame = new FrameLayout(this);
-        LinearLayout.LayoutParams avatarFrameParams = new LinearLayout.LayoutParams(-1,
-                (int) (258 * getResources().getDisplayMetrics().density));
-        avatarFrameParams.topMargin = (int) (4 * getResources().getDisplayMetrics().density);
+        int orbArea = (int) (286 * getResources().getDisplayMetrics().density);
+        LinearLayout.LayoutParams avatarFrameParams = new LinearLayout.LayoutParams(-1, orbArea);
+        avatarFrameParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
         root.addView(avatarFrame, avatarFrameParams);
 
-        // Living AI Interface: animated orbital rings and a reactive-style sound-wave display.
-        // This is a visual animation only; it does not claim to measure live microphone audio.
         LivingInterfaceView livingInterface = new LivingInterfaceView(this);
         FrameLayout.LayoutParams livingParams = new FrameLayout.LayoutParams(
-                (int) (258 * getResources().getDisplayMetrics().density),
-                (int) (258 * getResources().getDisplayMetrics().density), Gravity.CENTER);
+                (int) (270 * getResources().getDisplayMetrics().density),
+                (int) (270 * getResources().getDisplayMetrics().density), Gravity.CENTER);
         avatarFrame.addView(livingInterface, livingParams);
 
         avatar = new ImageView(this);
         avatar.setImageResource(com.jarvis.assistant.R.drawable.jarvis_orb);
         avatar.setScaleType(ImageView.ScaleType.FIT_CENTER);
         avatar.setAdjustViewBounds(true);
-        int avatarSize = (int) (226 * getResources().getDisplayMetrics().density);
+        int avatarSize = (int) (232 * getResources().getDisplayMetrics().density);
         FrameLayout.LayoutParams avatarParams = new FrameLayout.LayoutParams(
                 avatarSize, avatarSize, Gravity.CENTER);
         avatarFrame.addView(avatar, avatarParams);
@@ -153,224 +150,90 @@ public class MainActivity extends Activity {
                 0.985f, 1.015f, 0.985f, 1.015f,
                 android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
                 android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-        pulse.setDuration(2000);
+        pulse.setDuration(2200);
         pulse.setRepeatMode(android.view.animation.Animation.REVERSE);
         pulse.setRepeatCount(android.view.animation.Animation.INFINITE);
         avatar.startAnimation(pulse);
 
-        // Futuristic divider directly under the avatar: cyan core with a dim outer track.
         FrameLayout dividerTrack = new FrameLayout(this);
         GradientDrawable track = new GradientDrawable();
         track.setColor(Color.rgb(58, 18, 25));
         track.setCornerRadius(4 * getResources().getDisplayMetrics().density);
         dividerTrack.setBackground(track);
         LinearLayout.LayoutParams trackParams = new LinearLayout.LayoutParams(
-                (int) (220 * getResources().getDisplayMetrics().density),
-                (int) (3 * getResources().getDisplayMetrics().density));
-        trackParams.topMargin = (int) (1 * getResources().getDisplayMetrics().density);
-        trackParams.bottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+                (int) (210 * getResources().getDisplayMetrics().density),
+                (int) (2 * getResources().getDisplayMetrics().density));
+        trackParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        trackParams.bottomMargin = (int) (18 * getResources().getDisplayMetrics().density);
         root.addView(dividerTrack, trackParams);
         View dividerGlow = new View(this);
         GradientDrawable glow = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{Color.TRANSPARENT, cyan, Color.TRANSPARENT});
         glow.setCornerRadius(4 * getResources().getDisplayMetrics().density);
         dividerGlow.setBackground(glow);
-        FrameLayout.LayoutParams glowParams = new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER);
-        dividerTrack.addView(dividerGlow, glowParams);
+        dividerTrack.addView(dividerGlow, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
 
         status = new TextView(this);
-        status.setText("SYSTEM ONLINE  •  STANDBY");
+        status.setText("ONLINE  •  STANDBY");
         status.setTextColor(cyan);
         status.setTextSize(12);
         status.setGravity(Gravity.CENTER);
-        status.setLetterSpacing(0.12f);
-        status.setPadding(0, 2, 0, 8);
+        status.setLetterSpacing(0.16f);
+        status.setPadding(0, 4, 0, 6);
         root.addView(status, new LinearLayout.LayoutParams(-1, -2));
 
         transcript = new TextView(this);
-        transcript.setText("Good evening, Boss.\nJARVIS interface initialized.");
+        transcript.setText("Good evening, Boss.");
         transcript.setTextColor(Color.rgb(190, 215, 230));
-        transcript.setTextSize(14);
+        transcript.setTextSize(15);
         transcript.setGravity(Gravity.CENTER);
-        transcript.setPadding(8, 8, 8, 14);
+        transcript.setPadding(8, 10, 8, 22);
         root.addView(transcript, new LinearLayout.LayoutParams(-1, -2));
 
         Button speak = new Button(this);
-        speak.setText("◉  ACTIVATE VOICE");
-        speak.setTextColor(bg);
+        speak.setText("◉   ACTIVATE VOICE");
+        speak.setTextColor(Color.WHITE);
         speak.setTextSize(14);
         speak.setAllCaps(false);
-        GradientDrawable shape = new GradientDrawable();
-        shape.setColor(cyan);
-        shape.setCornerRadius(48);
-        speak.setBackground(shape);
+        GradientDrawable voiceShape = new GradientDrawable();
+        voiceShape.setColor(Color.rgb(95, 24, 36));
+        voiceShape.setCornerRadius(48);
+        voiceShape.setStroke((int) (1.2f * getResources().getDisplayMetrics().density), cyan);
+        speak.setBackground(voiceShape);
         speak.setOnClickListener(v -> startListening());
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, 56);
-        bp.setMargins(8, 6, 8, 12);
-        root.addView(speak, bp);
-
-        Button wakeOn = new Button(this);
-        wakeOn.setText("ENABLE HEY JARVIS (BACKGROUND)");
-        wakeOn.setAllCaps(false);
-        wakeOn.setTextColor(Color.WHITE);
-        wakeOn.setOnClickListener(v -> startWakeWordListening());
-        root.addView(wakeOn, new LinearLayout.LayoutParams(-1, 50));
-
-        Button wakeOff = new Button(this);
-        wakeOff.setText("STOP BACKGROUND LISTENING");
-        wakeOff.setAllCaps(false);
-        wakeOff.setTextColor(Color.WHITE);
-        wakeOff.setOnClickListener(v -> {
-            stopService(new Intent(MainActivity.this, WakeWordService.class));
-            status.setText("BACKGROUND LISTENING STOPPED");
-        });
-        root.addView(wakeOff, new LinearLayout.LayoutParams(-1, 46));
-
-        Button phoneEvents = new Button(this);
-        phoneEvents.setText("ENABLE CALL & SMS ANNOUNCEMENTS");
-        phoneEvents.setAllCaps(false);
-        phoneEvents.setTextColor(cyan);
-        phoneEvents.setOnClickListener(v -> enablePhoneEventPermissions());
-        root.addView(phoneEvents, new LinearLayout.LayoutParams(-1, 46));
-
-        Button backgroundLaunch = new Button(this);
-        backgroundLaunch.setText("ENABLE BACKGROUND APP OPENING");
-        backgroundLaunch.setAllCaps(false);
-        backgroundLaunch.setTextColor(cyan);
-        backgroundLaunch.setOnClickListener(v -> enableBackgroundAppOpening());
-        root.addView(backgroundLaunch, new LinearLayout.LayoutParams(-1, 46));
-
-        Button callControls = new Button(this);
-        callControls.setText("SET UP VOICE CALL CONTROLS");
-        callControls.setAllCaps(false);
-        callControls.setTextColor(Color.WHITE);
-        callControls.setOnClickListener(v -> {
-            try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
-            catch (Exception e) { status.setText("OPEN SETTINGS > ACCESSIBILITY"); }
-        });
-        root.addView(callControls, new LinearLayout.LayoutParams(-1, 46));
-
-        Button health = new Button(this);
-        health.setText("RUN SYSTEM SAFETY CHECK");
-        health.setAllCaps(false);
-        health.setTextColor(cyan);
-        health.setOnClickListener(v -> runSafetyCheck());
-        root.addView(health, new LinearLayout.LayoutParams(-1, 46));
-
-        Button emergencyContact = new Button(this);
-        emergencyContact.setText("SET EMERGENCY CONTACT");
-        emergencyContact.setAllCaps(false);
-        emergencyContact.setTextColor(Color.WHITE);
-        emergencyContact.setOnClickListener(v -> showEmergencyContactDialog());
-        root.addView(emergencyContact, new LinearLayout.LayoutParams(-1, 46));
-
-        Button sos = new Button(this);
-        sos.setText("SOS  •  EMERGENCY OPTIONS");
-        sos.setAllCaps(false);
-        sos.setTextColor(Color.WHITE);
-        sos.setOnClickListener(v -> showSosOptions());
-        root.addView(sos, new LinearLayout.LayoutParams(-1, 46));
-
-        Button clearMemory = new Button(this);
-        clearMemory.setText("CLEAR JARVIS AI MEMORY");
-        clearMemory.setAllCaps(false);
-        clearMemory.setTextColor(cyan);
-        clearMemory.setOnClickListener(v -> new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Clear JARVIS memory?")
-                .setMessage("This deletes the recent conversation memory stored on this phone.")
-                .setNegativeButton("Cancel", (dialog, which) -> {})
-                .setPositiveButton("Clear", (dialog, which) -> {
-                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().clear().apply();
-                    status.setText("AI MEMORY CLEARED");
-                    transcript.setText("JARVIS memory cleared on this device.");
-                }).show());
-        root.addView(clearMemory, new LinearLayout.LayoutParams(-1, 46));
-
-        Button modeButton = new Button(this);
-        modeButton.setText("ASSISTANT MODES  •  SELECT");
-        modeButton.setAllCaps(false);
-        modeButton.setTextColor(cyan);
-        modeButton.setOnClickListener(v -> showModeSelector());
-        root.addView(modeButton, new LinearLayout.LayoutParams(-1, 46));
+        LinearLayout.LayoutParams voiceParams = new LinearLayout.LayoutParams(-1,
+                (int) (54 * getResources().getDisplayMetrics().density));
+        voiceParams.setMargins(8, 4, 8, 12);
+        root.addView(speak, voiceParams);
 
         Button commandCenter = new Button(this);
-        commandCenter.setText("JARVIS COMMAND CENTER");
-        commandCenter.setAllCaps(false);
+        commandCenter.setText("COMMAND CENTER   ⌄");
         commandCenter.setTextColor(cyan);
+        commandCenter.setTextSize(13);
+        commandCenter.setAllCaps(false);
+        GradientDrawable centerShape = new GradientDrawable();
+        centerShape.setColor(Color.rgb(24, 9, 14));
+        centerShape.setCornerRadius(48);
+        centerShape.setStroke((int) (1.2f * getResources().getDisplayMetrics().density),
+                Color.rgb(155, 45, 58));
+        commandCenter.setBackground(centerShape);
         commandCenter.setOnClickListener(v -> showCommandCenter());
-        root.addView(commandCenter, new LinearLayout.LayoutParams(-1, 48));
-
-        Button notes = new Button(this);
-        notes.setText("SMART NOTES • LOCAL");
-        notes.setAllCaps(false);
-        notes.setOnClickListener(v -> showNotesDialog());
-        root.addView(notes, new LinearLayout.LayoutParams(-1, 46));
-
-        Button briefing = new Button(this);
-        briefing.setText("DAILY BRIEFING");
-        briefing.setAllCaps(false);
-        briefing.setOnClickListener(v -> showDailyBriefing());
-        root.addView(briefing, new LinearLayout.LayoutParams(-1, 46));
-
-        Button liveInfo = new Button(this);
-        liveInfo.setText("LIVE WEB • WEATHER");
-        liveInfo.setAllCaps(false);
-        liveInfo.setOnClickListener(v -> showLiveInfoOptions());
-        root.addView(liveInfo, new LinearLayout.LayoutParams(-1, 46));
-
-
-
-        Button vision = new Button(this);
-        vision.setText("VISION • CAMERA / GOOGLE LENS");
-        vision.setAllCaps(false);
-        vision.setOnClickListener(v -> openVisionTools());
-        root.addView(vision, new LinearLayout.LayoutParams(-1, 46));
-
-        Button tasks = new Button(this);
-        tasks.setText("TASKS • REMINDERS • ALARMS");
-        tasks.setAllCaps(false);
-        tasks.setOnClickListener(v -> showTaskAndReminderHub());
-        root.addView(tasks, new LinearLayout.LayoutParams(-1, 46));
-
-        Button systems = new Button(this);
-        systems.setText("CONNECTED SYSTEMS • QUICK CONTROLS");
-        systems.setAllCaps(false);
-        systems.setOnClickListener(v -> showConnectedSystems());
-        root.addView(systems, new LinearLayout.LayoutParams(-1, 46));
+        LinearLayout.LayoutParams centerParams = new LinearLayout.LayoutParams(-1,
+                (int) (50 * getResources().getDisplayMetrics().density));
+        centerParams.setMargins(8, 0, 8, 10);
+        root.addView(commandCenter, centerParams);
 
         TextView footer = new TextView(this);
-        footer.setText("VOICE CONTROL  /  SAFE MODE  /  V1.2");
+        footer.setText("VOICE INTERFACE  •  SAFE MODE");
         footer.setTextColor(Color.rgb(130, 85, 95));
         footer.setTextSize(9);
+        footer.setLetterSpacing(0.12f);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(0, 12, 0, 4);
         root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
 
-        // Apply an explicit, readable style to every control; avoid theme-default grey bars.
-        for (int i = 0; i < root.getChildCount(); i++) {
-            View child = root.getChildAt(i);
-            if (child instanceof Button) {
-                Button button = (Button) child;
-                GradientDrawable buttonBg = new GradientDrawable();
-                buttonBg.setColor(Color.rgb(28, 10, 15));
-                buttonBg.setCornerRadius(12 * getResources().getDisplayMetrics().density);
-                buttonBg.setStroke((int) (1.2f * getResources().getDisplayMetrics().density),
-                        Color.rgb(155, 45, 58));
-                button.setBackground(buttonBg);
-                button.setTextColor(cyan);
-                button.setTextSize(12);
-                button.setAllCaps(false);
-                button.setGravity(Gravity.CENTER);
-                button.setPadding(12, 4, 12, 4);
-                button.setMinHeight((int) (46 * getResources().getDisplayMetrics().density));
-                button.setStateListAnimator(null);
-            }
-        }
-
         setContentView(scroll);
     }
-
-
 
     /**
      * Lightweight movie-style HUD around the existing orb: rotating cyan arcs,
