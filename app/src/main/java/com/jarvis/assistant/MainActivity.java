@@ -1200,8 +1200,6 @@ public class MainActivity extends Activity {
     }
 
     private void launchApp(String packageName, String appName, String fallbackUrl) {
-        String reply = "Opening " + appName + ".";
-        speak(reply);
         try {
             Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
             if (launch != null) {
@@ -1209,8 +1207,10 @@ public class MainActivity extends Activity {
             } else {
                 startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)));
             }
+            speak("Opening " + appName + ".");
         } catch (Exception e) {
             transcript.append("\nUnable to open " + appName + " right now.");
+            speak("Unable to open " + appName + " right now.");
         }
     }
 
