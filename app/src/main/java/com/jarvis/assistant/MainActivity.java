@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int NOTIFICATION_PERMISSION_REQUEST = 1005;
     private static final int BACKUP_EXPORT_REQUEST = 2001;
     private static final int BACKUP_RESTORE_REQUEST = 2002;
     private boolean startWakeAfterPermission = false;
@@ -855,13 +856,38 @@ public class MainActivity extends Activity {
             status.setText("MICROPHONE PERMISSION NEEDED");
             return;
         }
-        // Background listening needs microphone permission only. Contacts and calling permissions are requested only when those features are used.
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
+            status.setText("NOTIFICATION PERMISSION NEEDED FOR VISIBLE LISTENING CONTROLS");
+            return;
+        }
+        startWakeWordService();
+    }
+
+    private void startWakeWordService() {
         try {
             Intent service = new Intent(this, WakeWordService.class);
             if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
             status.setText("HEY JARVIS LISTENING • CHECK NOTIFICATION");
         } catch (Exception e) {
             status.setText("COULD NOT START BACKGROUND LISTENING");
+        }
+    }
+
+    private void openNotificationSettings() {
+        try {
+            Intent settings = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(settings);
+        } catch (Exception e) {
+            try {
+                Intent details = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(details);
+            } catch (Exception ignored) {
+                status.setText("OPEN ANDROID SETTINGS • APPS • JARVIS • NOTIFICATIONS");
+            }
         }
     }
 
@@ -895,6 +921,18 @@ public class MainActivity extends Activity {
                 if (startWakeAfterPermission) { startWakeAfterPermission = false; startWakeWordListening(); }
                 else startListening();
             } else status.setText("MICROPHONE PERMISSION DENIED");
+        } else if (requestCode == NOTIFICATION_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startWakeWordService();
+            } else {
+                status.setText("LISTENING NOT STARTED • NOTIFICATION PERMISSION DENIED");
+                new AlertDialog.Builder(this)
+                        .setTitle("Notification permission needed")
+                        .setMessage("JARVIS keeps a visible notification with a Stop control while the microphone is active. Enable notifications before starting background listening.")
+                        .setNegativeButton("Not now", null)
+                        .setPositiveButton("Open settings", (dialog, which) -> openNotificationSettings())
+                        .show();
+            }
         } else if (requestCode == CONTACT_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startWakeWordListening();
@@ -907,18 +945,8 @@ public class MainActivity extends Activity {
             status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");
             if (allGranted) speak("Call aur SMS announcements enabled.");
         } else if (requestCode == CALL_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startWakeWordListening();
-            } else {
-                // Other voice commands can still run without direct-call permission.
-                try {
-                    Intent service = new Intent(this, WakeWordService.class);
-                    if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
-                    status.setText("HEY JARVIS LISTENING • CALL PERMISSION NOT GRANTED");
-                } catch (Exception e) {
-                    status.setText("COULD NOT START BACKGROUND LISTENING");
-                }
-            }
+            // Listening remains available even when direct-call permission is denied.
+            startWakeWordListening();
         }
     }
 
