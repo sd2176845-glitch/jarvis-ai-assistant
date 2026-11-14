@@ -10,6 +10,7 @@
         <package android:name="com.instagram.android" />
         <package android:name="com.facebook.katana" />
     </queries>
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
