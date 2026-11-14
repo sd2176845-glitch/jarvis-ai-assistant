@@ -64,7 +64,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.
 - [ ] Fix and device-test wake-word follow-up command execution while JARVIS is outside the foreground app.
-- [ ] Fix and test spoken yes/no confirmation flow for calls; never place a call without clear confirmation.
+- [x] Require exact, unambiguous spoken yes/cancel confirmation for background calls and prevent duplicate recognition-restart callbacks (code present — Poco/MIUI device test needed).
 - [ ] Test MIUI battery restrictions and document the exact settings needed.
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
