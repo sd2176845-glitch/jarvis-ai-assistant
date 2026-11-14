@@ -584,7 +584,7 @@ public class MainActivity extends Activity {
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
         if (requestCode == BACKUP_EXPORT_REQUEST) exportFeatureSettings(uri);
-        else if (requestCode == BACKUP_RESTORE_REQUEST) restoreFeatureSettings(uri);
+        else if (requestCode == BACKUP_RESTORE_REQUEST) confirmFeatureSettingsRestore(uri);
     }
 
     private void exportFeatureSettings(Uri destination) {
@@ -611,6 +611,14 @@ public class MainActivity extends Activity {
         } finally {
             temporary.delete();
         }
+    }
+
+    private void confirmFeatureSettingsRestore(Uri source) {
+        new AlertDialog.Builder(this).setTitle("Restore FeatureKit settings?")
+                .setMessage("Matching FeatureKit settings in this backup will overwrite their current values. Other current settings will remain unchanged. Continue?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Restore", (dialog, which) -> restoreFeatureSettings(source))
+                .show();
     }
 
     private void restoreFeatureSettings(Uri source) {
