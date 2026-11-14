@@ -2,6 +2,8 @@ package com.jarvis.assistant;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Calendar;
 
 public class MainActivity extends Activity {
     private TextView status, transcript;
@@ -47,6 +50,7 @@ public class MainActivity extends Activity {
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
     private boolean startWakeAfterPermission = false;
     private SharedPreferences preferences;
+    private JarvisFeatureKit featureKit;
     private ImageView avatar;
 
     private int cyan = Color.rgb(255,  70, 82);
@@ -58,6 +62,7 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(bg);
         getWindow().setNavigationBarColor(bg);
         preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        featureKit = new JarvisFeatureKit(this);
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
@@ -387,7 +392,10 @@ public class MainActivity extends Activity {
                 "Vision tools",
                 "Tasks • Reminders • Alarms",
                 "Connected systems",
-                "Privacy & permissions"
+                "Privacy & permissions",
+                "Device health diagnostics",
+                "Screen-time overview",
+                "Calendar event handoff"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -420,8 +428,117 @@ public class MainActivity extends Activity {
                     else if (which == 13) openVisionTools();
                     else if (which == 14) showTaskAndReminderHub();
                     else if (which == 15) showConnectedSystems();
-                    else showPrivacyOptions();
+                    else if (which == 16) showPrivacyOptions();
+                    else if (which == 17) showDeviceDiagnostics();
+                    else if (which == 18) showScreenTimeOverview();
+                    else if (which == 19) showCalendarEventHandoff();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showDeviceDiagnostics() {
+        try {
+            org.json.JSONObject report = featureKit.diagnostics();
+            int battery = report.optInt("batteryPercent", -1);
+            long storage = report.optLong("storageAvailableBytes", -1L);
+            boolean transport = report.optBoolean("networkTransportConnected", false);
+            String batteryText = battery >= 0 && battery <= 100 ? battery + "%" : "Unavailable";
+            String storageText = storage >= 0
+                    ? String.format(Locale.ROOT, "%.2f GB", storage / (1024.0 * 1024.0 * 1024.0))
+                    : "Unavailable";
+            String message = "DEVICE HEALTH REPORT\n\n"
+                    + "Device: " + report.optString("manufacturer", "Unknown") + " "
+                    + report.optString("model", "Unknown")
+                    + "\nAndroid: " + report.optString("android", "Unknown")
+                    + " (SDK " + report.optInt("sdk", -1) + ")"
+                    + "\nBattery: " + batteryText
+                    + "\nAvailable internal storage: " + storageText
+                    + "\nNetwork transport: " + (transport ? "Connected" : "Not connected")
+                    + "\n\nNetwork transport status does not guarantee internet or JARVIS backend access.";
+            new AlertDialog.Builder(this).setTitle("JARVIS • Device diagnostics")
+                    .setMessage(message).setPositiveButton("Close", null).show();
+            status.setText("DEVICE DIAGNOSTICS READY");
+        } catch (Exception e) {
+            status.setText("DEVICE DIAGNOSTICS UNAVAILABLE");
+            new AlertDialog.Builder(this).setTitle("Diagnostics unavailable")
+                    .setMessage("JARVIS could not read the available device status. No settings were changed.")
+                    .setPositiveButton("Close", null).show();
+        }
+    }
+
+    private void showScreenTimeOverview() {
+        if (!featureKit.hasUsageAccess()) {
+            new AlertDialog.Builder(this).setTitle("Screen-time permission needed")
+                    .setMessage("Android requires you to grant Usage Access before JARVIS can show combined app foreground time. JARVIS will not read message contents.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Open Usage Access", (dialog, which) -> {
+                        try { startActivity(featureKit.usageAccessSettingsIntent()); }
+                        catch (Exception e) { status.setText("OPEN SETTINGS > SPECIAL APP ACCESS > USAGE ACCESS"); }
+                    }).show();
+            return;
+        }
+        long duration = featureKit.todayForegroundMillis();
+        if (duration < 0L) {
+            new AlertDialog.Builder(this).setTitle("Screen-time unavailable")
+                    .setMessage("Android did not provide app-usage data. Check Usage Access and try again.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        long minutes = duration / 60000L;
+        long hours = minutes / 60L;
+        long remainingMinutes = minutes % 60L;
+        String value = hours > 0 ? hours + " hr " + remainingMinutes + " min" : remainingMinutes + " min";
+        new AlertDialog.Builder(this).setTitle("JARVIS • Screen-time overview")
+                .setMessage("Combined app foreground time since local midnight:\n\n" + value
+                        + "\n\nThis is an Android UsageStats estimate, not a per-app breakdown or a wellbeing diagnosis.")
+                .setPositiveButton("Close", null).show();
+        status.setText("SCREEN-TIME OVERVIEW READY");
+    }
+
+    private void showCalendarEventHandoff() {
+        EditText titleInput = new EditText(this);
+        titleInput.setSingleLine(true);
+        titleInput.setHint("Event title");
+        new AlertDialog.Builder(this).setTitle("Create calendar event")
+                .setMessage("JARVIS will prepare an event in your calendar app. Review and save it there.")
+                .setView(titleInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Choose date & time", (dialog, which) -> {
+                    String title = titleInput.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("EVENT TITLE REQUIRED");
+                        return;
+                    }
+                    chooseCalendarEventTime(title);
+                }).show();
+    }
+
+    private void chooseCalendarEventTime(String title) {
+        Calendar suggested = Calendar.getInstance();
+        suggested.add(Calendar.HOUR_OF_DAY, 1);
+        new DatePickerDialog(this, (dateView, year, month, day) -> {
+            Calendar start = Calendar.getInstance();
+            start.set(year, month, day, suggested.get(Calendar.HOUR_OF_DAY), suggested.get(Calendar.MINUTE), 0);
+            start.set(Calendar.MILLISECOND, 0);
+            new TimePickerDialog(this, (timeView, hour, minute) -> {
+                start.set(Calendar.HOUR_OF_DAY, hour);
+                start.set(Calendar.MINUTE, minute);
+                long startMillis = start.getTimeInMillis();
+                long endMillis = startMillis + 60L * 60L * 1000L;
+                if (startMillis <= System.currentTimeMillis()) {
+                    status.setText("CHOOSE A FUTURE EVENT TIME");
+                    return;
+                }
+                try {
+                    Intent event = featureKit.createCalendarEventIntent(title, startMillis, endMillis);
+                    startActivity(event);
+                    status.setText("REVIEW EVENT IN CALENDAR");
+                } catch (Exception e) {
+                    status.setText("CALENDAR APP NOT AVAILABLE");
+                }
+            }, suggested.get(Calendar.HOUR_OF_DAY), suggested.get(Calendar.MINUTE),
+                    android.text.format.DateFormat.is24HourFormat(this)).show();
+        }, suggested.get(Calendar.YEAR), suggested.get(Calendar.MONTH),
+                suggested.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     private String getSavedNotes() {
