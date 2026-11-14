@@ -12,6 +12,7 @@ A phone-first Android personal assistant project for the Poco M4 Pro 4G. This is
 - Contact calling in the background listener asks for a spoken confirmation before calling.
 - Local notes, recent conversation context with a clear-memory control, eight assistant modes, a daily briefing, privacy controls, SOS/dialer options, phone-event announcements, and accessibility-based in-call controls.
 - Camera and Google Lens shortcuts; task/reminder and connected-system hubs.
+- Read-only device-health summary and optional screen-time overview (requires the owner to enable Android Usage Access in Settings).
 
 ## Build an APK
 
