@@ -4,7 +4,7 @@ A phone-first Android personal assistant project for the Poco M4 Pro 4G. This is
 
 ## Code currently present
 
-- Dark blue/cyan JARVIS dashboard with a layered vector AI orb, pulse animation, and cyan divider.
+- Red/black Stark-inspired JARVIS dashboard with a layered vector AI orb and pulse animation.
 - Tap-to-speak speech recognition and spoken replies.
 - An initial foreground-service listener for “Hey JARVIS”, with a visible notification and stop control.
 - Online AI chat through the Render backend and Groq. The Groq key belongs in the backend environment, never in Android source or the APK.
@@ -12,6 +12,7 @@ A phone-first Android personal assistant project for the Poco M4 Pro 4G. This is
 - Contact calling in the background listener asks for a spoken confirmation before calling.
 - Local notes, recent conversation context with a clear-memory control, eight assistant modes, a daily briefing, privacy controls, SOS/dialer options, phone-event announcements, and accessibility-based in-call controls.
 - Camera and Google Lens shortcuts; task/reminder and connected-system hubs.
+- Command Center device diagnostics, screen-time overview (after Usage Access), calendar event handoff, and owner-selected FeatureKit settings backup/restore.
 
 ## Build an APK
 
@@ -26,6 +27,9 @@ This is an early implementation, not a complete movie-style JARVIS. A feature be
 - Web and weather features currently open browser search pages; they are not native, source-aware live-data integrations.
 - The reminder hub opens Android Clock; it does not schedule JARVIS-owned reminder notifications.
 - The vision option opens the camera or Google Lens; there is no in-app image-understanding pipeline yet.
+- FeatureKit backup contains only its own settings, not notes or AI chat history. Encrypted private values are tied to the original Android Keystore key and are skipped if that key is unavailable on restore.
+- Device diagnostics reports network transport connectivity, not verified internet or backend availability. Screen-time is a combined UsageStats estimate since local midnight and requires the owner to grant Usage Access.
+- Calendar event handoff opens the installed calendar app for review; it does not silently save or synchronize events.
 - Notes and recent chat history are local. Long-term editable preferences, structured task management, and a full offline AI fallback are not complete.
 - Actual installation, calls, SMS announcements, accessibility controls, background listening, and the UI still need a device test on the target Poco phone.
 - Grant microphone/contact/call/phone-event permissions only when needed. The foreground notification provides a way to stop listening.
