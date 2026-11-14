@@ -443,11 +443,11 @@ public class MainActivity extends Activity {
                     ? String.format(Locale.getDefault(), "%.1f GB", freeBytes / (1024f * 1024f * 1024f))
                     : "Unavailable";
             String message = "Device: " + manufacturer + " " + model
-                    + "\\nAndroid: " + androidVersion + (sdk >= 0 ? " (SDK " + sdk + ")" : "")
-                    + "\\nBattery: " + batteryText
-                    + "\\nFree storage: " + storageText
-                    + "\\nNetwork: " + (online ? "Connected" : "Offline")
-                    + "\\n\\nThis is a read-only check. Screen-time access is optional.";
+                    + "\nAndroid: " + androidVersion + (sdk >= 0 ? " (SDK " + sdk + ")" : "")
+                    + "\nBattery: " + batteryText
+                    + "\nFree storage: " + storageText
+                    + "\nNetwork: " + (online ? "Connected" : "Offline")
+                    + "\n\nThis is a read-only check. Screen-time access is optional.";
             new AlertDialog.Builder(this)
                     .setTitle("JARVIS • Device health")
                     .setMessage(message)
@@ -489,7 +489,7 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Screen time")
                 .setMessage("App foreground usage in the last 24 hours: " + total
-                        + "\\n\\nAndroid may report approximate totals. You can turn Usage Access off any time in Settings.")
+                        + "\n\nAndroid may report approximate totals. You can turn Usage Access off any time in Settings.")
                 .setPositiveButton("Close", null)
                 .show();
     }
