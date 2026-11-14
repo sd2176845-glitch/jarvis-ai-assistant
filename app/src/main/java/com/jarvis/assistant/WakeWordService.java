@@ -381,7 +381,7 @@ public class WakeWordService extends Service {
                 startActivity(launch);
                 say(appName + " khol raha hoon.");
             } catch (Exception ignored) {
-                say(appName + " background se nahi khul paaya. Phone unlock karke dobara bolo.");
+                say("Android ne background app launch block kiya. JARVIS notification tap karo ya app kholo, phir dobara bolo.");
             }
         }, 150);
     }
@@ -393,7 +393,7 @@ public class WakeWordService extends Service {
                 startActivity(intent);
                 say(response);
             } catch (Exception ignored) {
-                say("Ye app ya screen background se nahi khul paayi. Phone unlock karke dobara bolo.");
+                say("Android ne background screen launch block kiya. JARVIS notification tap karo ya app kholo, phir dobara bolo.");
             }
         }, 150);
     }
