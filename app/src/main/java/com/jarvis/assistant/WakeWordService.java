@@ -182,7 +182,7 @@ public class WakeWordService extends Service {
 
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim()
-                .replaceAll("[^a-z0-9\\u0900-\\u097F\\s]", " ").replaceAll("\\s+", " ").trim();
+                .replaceAll("[^\\p{L}\\p{N}\\s]", " ").replaceAll("\\s+", " ").trim();
 
         // A pending call always requires a clear spoken yes/no confirmation.
         if (awaitingCallConfirmation) {
@@ -234,7 +234,7 @@ public class WakeWordService extends Service {
         String command;
         if (wake.contains("jarvis")) {
             command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
-                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+                    .replaceAll("[^\\p{L}\\p{N}\\s]", " ").replaceAll("\\s+", " ").trim();
             if (command.isEmpty()) {
                 awaitingCommand = true;
                 handler.removeCallbacks(commandTimeout);
