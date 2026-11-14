@@ -43,7 +43,29 @@ jobs:
         run: gradle testDebugUnitTest
 
       - name: Run Android lint
-        run: gradle lintDebug
+        shell: bash
+        run: |
+          set +e
+          gradle lintDebug
+          LINT_EXIT=$?
+          REPORT="app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt"
+          if [ -f "$REPORT" ]; then
+            echo "===== FULL ANDROID LINT REPORT ====="
+            cat "$REPORT"
+          else
+            echo "Lint text report was not generated at $REPORT"
+          fi
+          exit "$LINT_EXIT"
+
+      - name: Upload Android lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-android-lint-report
+          path: |
+            app/build/reports/lint-results-debug.html
+            app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt
+          if-no-files-found: warn
 
       - name: Build debug APK
         run: gradle assembleDebug
