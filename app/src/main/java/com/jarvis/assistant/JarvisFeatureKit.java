@@ -59,8 +59,7 @@ public final class JarvisFeatureKit {
 
     // Owner-approved local preferences, encrypted with an Android Keystore key.
     public void savePrivateValue(String key, String value) throws Exception {
-        byte[] iv = new byte[12];
-        javax.crypto.KeyGenerator.getInstance("AES");
+        byte[] iv;
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
         iv = cipher.getIV();
