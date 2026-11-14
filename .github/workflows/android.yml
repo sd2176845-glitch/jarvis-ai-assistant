@@ -42,6 +42,14 @@ jobs:
       - name: Run Android unit tests
         run: gradle testDebugUnitTest
 
+      - name: Upload Android unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-unit-test-results
+          path: app/build/test-results/testDebugUnitTest/*.xml
+          if-no-files-found: warn
+
       - name: Run Android lint
         shell: bash
         run: |
