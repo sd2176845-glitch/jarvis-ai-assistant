@@ -373,15 +373,15 @@ public class WakeWordService extends Service {
     }
 
     private void launchApp(String packageName, String appName, String fallbackUrl) {
-        say(appName + " khol raha hoon.");
         handler.postDelayed(() -> {
             try {
                 Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
                 if (launch != null) launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 else launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(launch);
+                say(appName + " khol raha hoon.");
             } catch (Exception ignored) {
-                say(appName + " abhi nahi khul paaya.");
+                say(appName + " background se nahi khul paaya. Phone unlock karke dobara bolo.");
             }
         }, 150);
     }
