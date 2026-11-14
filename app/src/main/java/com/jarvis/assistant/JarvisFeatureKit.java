@@ -104,10 +104,14 @@ public final class JarvisFeatureKit {
         root.put("createdAt", System.currentTimeMillis());
         JSONObject values = new JSONObject();
         for (String key : prefs.getAll().keySet()) {
+            // Android Keystore keys are device/install-bound. Never export ciphertext
+            // that a restored installation would be unable to decrypt.
+            if (key.startsWith("secure.")) continue;
             Object value = prefs.getAll().get(key);
             if (value instanceof String || value instanceof Boolean || value instanceof Integer
                     || value instanceof Long || value instanceof Float) values.put(key, value);
         }
+        root.put("secureValuesExcluded", true);
         root.put("preferences", values);
         try (FileOutputStream out = new FileOutputStream(destination)) {
             out.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
@@ -116,17 +120,33 @@ public final class JarvisFeatureKit {
     }
 
     public void restoreBackup(File source) throws Exception {
-        byte[] bytes = new byte[(int) Math.min(source.length(), 1024 * 1024)];
+        long fileLength = source.length();
+        if (fileLength <= 0L) throw new IllegalArgumentException("Backup is empty");
+        if (fileLength > 1024L * 1024L) {
+            throw new IllegalArgumentException("Backup is larger than the 1 MiB safety limit");
+        }
+
+        byte[] bytes = new byte[(int) fileLength];
         try (FileInputStream in = new FileInputStream(source)) {
-            int count = in.read(bytes);
-            if (count <= 0) throw new IllegalArgumentException("Backup is empty");
-            JSONObject root = new JSONObject(new String(bytes, 0, count, StandardCharsets.UTF_8));
+            int offset = 0;
+            while (offset < bytes.length) {
+                int count = in.read(bytes, offset, bytes.length - offset);
+                if (count < 0) break;
+                offset += count;
+            }
+            if (offset != bytes.length || in.read() != -1) {
+                throw new java.io.IOException("Backup file could not be read completely");
+            }
+
+            JSONObject root = new JSONObject(new String(bytes, StandardCharsets.UTF_8));
             if (root.optInt("schema", -1) != 1) throw new IllegalArgumentException("Unsupported backup version");
             JSONObject values = root.getJSONObject("preferences");
             SharedPreferences.Editor edit = prefs.edit();
             JSONArray names = values.names();
             if (names != null) for (int i = 0; i < names.length(); i++) {
                 String name = names.getString(i);
+                // Ignore legacy encrypted entries: the Android Keystore key is not portable.
+                if (name.startsWith("secure.")) continue;
                 Object value = values.get(name);
                 if (value instanceof String) edit.putString(name, (String) value);
                 else if (value instanceof Boolean) edit.putBoolean(name, (Boolean) value);
