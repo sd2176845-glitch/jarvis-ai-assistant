@@ -387,7 +387,8 @@ public class MainActivity extends Activity {
                 "Vision tools",
                 "Tasks • Reminders • Alarms",
                 "Connected systems",
-                "Privacy & permissions"
+                "Privacy & permissions",
+                "Device health • Screen time"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -420,8 +421,77 @@ public class MainActivity extends Activity {
                     else if (which == 13) openVisionTools();
                     else if (which == 14) showTaskAndReminderHub();
                     else if (which == 15) showConnectedSystems();
-                    else showPrivacyOptions();
+                    else if (which == 16) showPrivacyOptions();
+                    else showDeviceDiagnostics();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showDeviceDiagnostics() {
+        JarvisFeatureKit kit = new JarvisFeatureKit(this);
+        try {
+            org.json.JSONObject info = kit.diagnostics();
+            String manufacturer = info.optString("manufacturer", "Unknown");
+            String model = info.optString("model", "Unknown");
+            String androidVersion = info.optString("android", "Unknown");
+            int sdk = info.optInt("sdk", -1);
+            int battery = info.optInt("batteryPercent", -1);
+            long freeBytes = info.optLong("storageAvailableBytes", -1L);
+            boolean online = info.optBoolean("networkAvailable", false);
+
+            String batteryText = battery >= 0 && battery <= 100 ? battery + "%" : "Unavailable";
+            String storageText = freeBytes >= 0
+                    ? String.format(Locale.getDefault(), "%.1f GB", freeBytes / (1024f * 1024f * 1024f))
+                    : "Unavailable";
+            String message = "Device: " + manufacturer + " " + model
+                    + "\\nAndroid: " + androidVersion + (sdk >= 0 ? " (SDK " + sdk + ")" : "")
+                    + "\\nBattery: " + batteryText
+                    + "\\nFree storage: " + storageText
+                    + "\\nNetwork: " + (online ? "Connected" : "Offline")
+                    + "\\n\\nThis is a read-only check. Screen-time access is optional.";
+            new AlertDialog.Builder(this)
+                    .setTitle("JARVIS • Device health")
+                    .setMessage(message)
+                    .setNeutralButton("Screen time", (dialog, which) -> showScreenTime())
+                    .setPositiveButton("Close", null)
+                    .show();
+        } catch (Exception e) {
+            status.setText("DEVICE DIAGNOSTICS UNAVAILABLE");
+        }
+    }
+
+    private void showScreenTime() {
+        JarvisFeatureKit kit = new JarvisFeatureKit(this);
+        if (!kit.hasUsageAccess()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Optional screen-time access")
+                    .setMessage("Android requires you to grant Usage Access in Settings before JARVIS can show app-usage totals. JARVIS will not collect usage data until you enable it.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Open settings", (dialog, which) -> {
+                        try {
+                            startActivity(kit.usageAccessSettingsIntent());
+                        } catch (Exception e) {
+                            status.setText("PLEASE OPEN SETTINGS • SPECIAL APP ACCESS • USAGE ACCESS");
+                        }
+                    })
+                    .show();
+            return;
+        }
+
+        long foregroundMillis = kit.todayForegroundMillis();
+        if (foregroundMillis < 0L) {
+            status.setText("SCREEN-TIME DATA UNAVAILABLE");
+            return;
+        }
+        long totalMinutes = foregroundMillis / 60000L;
+        long hours = totalMinutes / 60L;
+        long minutes = totalMinutes % 60L;
+        String total = hours > 0L ? hours + "h " + minutes + "m" : minutes + "m";
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Screen time")
+                .setMessage("App foreground usage in the last 24 hours: " + total
+                        + "\\n\\nAndroid may report approximate totals. You can turn Usage Access off any time in Settings.")
+                .setPositiveButton("Close", null)
+                .show();
     }
 
     private String getSavedNotes() {
