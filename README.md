@@ -23,6 +23,7 @@ Open the Actions tab and choose a successful “Build JARVIS APK” run. Downloa
 This is an early implementation, not a complete movie-style JARVIS. A feature being present in code does not prove it works on every phone.
 
 - Background listening uses Android speech recognition in a foreground service; continuous listening, screen-off behavior, and language availability depend on Android, the speech provider, and Poco/MIUI battery settings.
+- Voice-triggered app/screen launches from a background service can be blocked by Android background-activity rules. JARVIS reports this and asks the owner to use its notification or reopen the app; it does not bypass Android protections.
 - AI chat needs internet and a healthy backend. The live backend was not verified by this repository build.
 - Web and weather features currently open browser search pages; they are not native, source-aware live-data integrations.
 - The reminder hub opens Android Clock; it does not schedule JARVIS-owned reminder notifications.
