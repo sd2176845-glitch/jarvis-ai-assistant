@@ -370,16 +370,56 @@ public class MainActivity extends Activity {
     }
 
     private void showCommandCenter() {
-        String[] items = {"Smart notes", "Set reminder / alarm", "Live web search", "Weather search", "Daily briefing", "Privacy & permissions"};
-        new AlertDialog.Builder(this).setTitle("JARVIS • Command Center")
+        String[] items = {
+                "Hey JARVIS • Background listening",
+                "Stop background listening",
+                "Call & SMS announcements",
+                "Background app opening",
+                "Voice call controls",
+                "System safety check",
+                "Set emergency contact",
+                "SOS • Emergency options",
+                "Clear AI memory",
+                "Assistant modes",
+                "Smart notes",
+                "Daily briefing",
+                "Live web • Weather",
+                "Vision tools",
+                "Tasks • Reminders • Alarms",
+                "Connected systems",
+                "Privacy & permissions"
+        };
+        new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
-                    if (which == 0) showNotesDialog();
+                    if (which == 0) startWakeWordListening();
                     else if (which == 1) {
-                        try { startActivity(new Intent(AlarmClock.ACTION_SET_ALARM)); }
-                        catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                    } else if (which == 2) promptWebSearch();
-                    else if (which == 3) openWeatherSearch();
-                    else if (which == 4) showDailyBriefing();
+                        stopService(new Intent(MainActivity.this, WakeWordService.class));
+                        status.setText("BACKGROUND LISTENING STOPPED");
+                    } else if (which == 2) enablePhoneEventPermissions();
+                    else if (which == 3) enableBackgroundAppOpening();
+                    else if (which == 4) {
+                        try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+                        catch (Exception e) { status.setText("OPEN SETTINGS > ACCESSIBILITY"); }
+                    } else if (which == 5) runSafetyCheck();
+                    else if (which == 6) showEmergencyContactDialog();
+                    else if (which == 7) showSosOptions();
+                    else if (which == 8) {
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Clear JARVIS AI memory?")
+                                .setMessage("This clears recent conversation memory stored on this phone. Your notes are kept.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Clear", (d, w) -> {
+                                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().clear().apply();
+                                    status.setText("AI MEMORY CLEARED");
+                                    transcript.setText("JARVIS memory cleared.");
+                                }).show();
+                    } else if (which == 9) showModeSelector();
+                    else if (which == 10) showNotesDialog();
+                    else if (which == 11) showDailyBriefing();
+                    else if (which == 12) showLiveInfoOptions();
+                    else if (which == 13) openVisionTools();
+                    else if (which == 14) showTaskAndReminderHub();
+                    else if (which == 15) showConnectedSystems();
                     else showPrivacyOptions();
                 }).setNegativeButton("Close", null).show();
     }
