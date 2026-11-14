@@ -26,6 +26,8 @@ import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.List;
+import java.util.Calendar;
+import java.io.ByteArrayOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -40,6 +42,16 @@ import android.util.Base64;
 public final class JarvisFeatureKit {
     private static final String PREFS = "jarvis_feature_kit";
     private static final String KEY_ALIAS = "jarvis_local_v1";
+    private static final int MAX_BACKUP_BYTES = 1024 * 1024;
+
+    public static final class RestoreResult {
+        public final int restoredEntries;
+        public final int skippedDeviceBoundEntries;
+        RestoreResult(int restoredEntries, int skippedDeviceBoundEntries) {
+            this.restoredEntries = restoredEntries;
+            this.skippedDeviceBoundEntries = skippedDeviceBoundEntries;
+        }
+    }
     private final Context context;
     private final SharedPreferences prefs;
 
@@ -59,19 +71,28 @@ public final class JarvisFeatureKit {
 
     // Owner-approved local preferences, encrypted with an Android Keystore key.
     public void savePrivateValue(String key, String value) throws Exception {
-        byte[] iv;
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
-        iv = cipher.getIV();
-        byte[] encrypted = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
-        String packed = Base64.encodeToString(iv, Base64.NO_WRAP) + ":"
-                + Base64.encodeToString(encrypted, Base64.NO_WRAP);
-        prefs.edit().putString("secure." + key, packed).apply();
+        if (key == null || key.trim().isEmpty() || value == null) {
+            throw new IllegalArgumentException("A non-empty key and value are required");
+        }
+        prefs.edit().putString("secure." + key, encryptPrivateValue(value)).apply();
     }
 
     public String readPrivateValue(String key) throws Exception {
+        if (key == null || key.trim().isEmpty()) throw new IllegalArgumentException("Key is required");
         String packed = prefs.getString("secure." + key, null);
-        if (packed == null) return null;
+        return packed == null ? null : decryptPrivateValue(packed);
+    }
+
+    private String encryptPrivateValue(String value) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
+        byte[] encrypted = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
+        return Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + ":"
+                + Base64.encodeToString(encrypted, Base64.NO_WRAP);
+    }
+
+    private String decryptPrivateValue(String packed) throws Exception {
+        if (packed == null) throw new IllegalArgumentException("Encrypted value is missing");
         String[] parts = packed.split(":", 2);
         if (parts.length != 2) throw new IllegalStateException("Encrypted value is invalid");
         byte[] iv = Base64.decode(parts[0], Base64.NO_WRAP);
@@ -96,12 +117,14 @@ public final class JarvisFeatureKit {
         return generator.generateKey();
     }
 
-    // Export/import only this feature-kit preference namespace. Caller must ask
-    // the owner where to save/restore the file; no silent cloud upload.
+    // Backup contains this namespace only. Android Keystore ciphertext is device-bound:
+    // it is re-encrypted on restore when the original key is available, otherwise skipped.
     public File exportBackup(File destination) throws Exception {
+        if (destination == null) throw new IllegalArgumentException("Backup destination is required");
         JSONObject root = new JSONObject();
         root.put("schema", 1);
         root.put("createdAt", System.currentTimeMillis());
+        root.put("secureValuesDeviceBound", true);
         JSONObject values = new JSONObject();
         for (String key : prefs.getAll().keySet()) {
             Object value = prefs.getAll().get(key);
@@ -109,33 +132,74 @@ public final class JarvisFeatureKit {
                     || value instanceof Long || value instanceof Float) values.put(key, value);
         }
         root.put("preferences", values);
-        try (FileOutputStream out = new FileOutputStream(destination)) {
-            out.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
+        byte[] bytes = root.toString(2).getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup exceeds 1 MB");
+        File parent = destination.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IllegalStateException("Could not create backup folder");
+        }
+        File temporary = new File(destination.getAbsolutePath() + ".tmp");
+        try (FileOutputStream out = new FileOutputStream(temporary)) {
+            out.write(bytes);
+            out.getFD().sync();
+        }
+        if (destination.exists() && !destination.delete()) {
+            temporary.delete();
+            throw new IllegalStateException("Could not replace existing backup");
+        }
+        if (!temporary.renameTo(destination)) {
+            temporary.delete();
+            throw new IllegalStateException("Could not finalize backup file");
         }
         return destination;
     }
 
-    public void restoreBackup(File source) throws Exception {
-        byte[] bytes = new byte[(int) Math.min(source.length(), 1024 * 1024)];
-        try (FileInputStream in = new FileInputStream(source)) {
-            int count = in.read(bytes);
-            if (count <= 0) throw new IllegalArgumentException("Backup is empty");
-            JSONObject root = new JSONObject(new String(bytes, 0, count, StandardCharsets.UTF_8));
-            if (root.optInt("schema", -1) != 1) throw new IllegalArgumentException("Unsupported backup version");
-            JSONObject values = root.getJSONObject("preferences");
-            SharedPreferences.Editor edit = prefs.edit();
-            JSONArray names = values.names();
-            if (names != null) for (int i = 0; i < names.length(); i++) {
-                String name = names.getString(i);
-                Object value = values.get(name);
-                if (value instanceof String) edit.putString(name, (String) value);
-                else if (value instanceof Boolean) edit.putBoolean(name, (Boolean) value);
-                else if (value instanceof Integer) edit.putInt(name, (Integer) value);
-                else if (value instanceof Long) edit.putLong(name, (Long) value);
-                else if (value instanceof Double) edit.putFloat(name, ((Double) value).floatValue());
+    public RestoreResult restoreBackup(File source) throws Exception {
+        if (source == null || !source.isFile()) throw new IllegalArgumentException("Backup file not found");
+        long size = source.length();
+        if (size <= 0 || size > MAX_BACKUP_BYTES) throw new IllegalArgumentException("Backup must be between 1 byte and 1 MB");
+        byte[] bytes;
+        try (FileInputStream in = new FileInputStream(source);
+             ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            byte[] chunk = new byte[8192];
+            int count;
+            while ((count = in.read(chunk)) != -1) {
+                if (buffer.size() + count > MAX_BACKUP_BYTES) {
+                    throw new IllegalArgumentException("Backup exceeds 1 MB");
+                }
+                buffer.write(chunk, 0, count);
             }
-            edit.apply();
+            bytes = buffer.toByteArray();
         }
+        JSONObject root = new JSONObject(new String(bytes, StandardCharsets.UTF_8));
+        if (root.optInt("schema", -1) != 1) throw new IllegalArgumentException("Unsupported backup version");
+        JSONObject values = root.getJSONObject("preferences");
+        SharedPreferences.Editor edit = prefs.edit();
+        JSONArray names = values.names();
+        int restored = 0;
+        int skippedDeviceBound = 0;
+        if (names != null) for (int i = 0; i < names.length(); i++) {
+            String name = names.getString(i);
+            Object value = values.get(name);
+            if (name.startsWith("secure.")) {
+                if (!(value instanceof String)) { skippedDeviceBound++; continue; }
+                try {
+                    String plain = decryptPrivateValue((String) value);
+                    edit.putString(name, encryptPrivateValue(plain));
+                    restored++;
+                } catch (Exception deviceKeyUnavailable) {
+                    // Keystore keys are not portable. Never restore unusable ciphertext.
+                    skippedDeviceBound++;
+                }
+            } else if (value instanceof String) { edit.putString(name, (String) value); restored++; }
+            else if (value instanceof Boolean) { edit.putBoolean(name, (Boolean) value); restored++; }
+            else if (value instanceof Integer) { edit.putInt(name, (Integer) value); restored++; }
+            else if (value instanceof Long) { edit.putLong(name, (Long) value); restored++; }
+            else if (value instanceof Double) { edit.putFloat(name, ((Double) value).floatValue()); restored++; }
+            else if (value instanceof Float) { edit.putFloat(name, (Float) value); restored++; }
+        }
+        edit.apply();
+        return new RestoreResult(restored, skippedDeviceBound);
     }
 
     // Offline, non-destructive command suggestions; sensitive actions are never executed here.
@@ -169,14 +233,14 @@ public final class JarvisFeatureKit {
         result.put("storageAvailableBytes", stat.getAvailableBytes());
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         boolean online = false;
-        if (cm != null && Build.VERSION.SDK_INT >= 23) {
+        if (cm != null) {
             android.net.Network network = cm.getActiveNetwork();
             NetworkCapabilities caps = network == null ? null : cm.getNetworkCapabilities(network);
             online = caps != null && (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
                     || caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
                     || caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
         }
-        result.put("networkAvailable", online);
+        result.put("networkTransportConnected", online);
         return result;
     }
 
@@ -198,8 +262,13 @@ public final class JarvisFeatureKit {
         UsageStatsManager manager = (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
         if (manager == null) return -1L;
         long now = System.currentTimeMillis();
+        Calendar start = Calendar.getInstance();
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
         List<UsageStats> stats = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,
-                now - 24L * 60L * 60L * 1000L, now);
+                start.getTimeInMillis(), now);
         long total = 0L;
         if (stats != null) for (UsageStats item : stats) total += item.getTotalTimeInForeground();
         return total;
@@ -207,6 +276,8 @@ public final class JarvisFeatureKit {
 
     // Calendar integration hands off to the user's calendar app for review.
     public Intent createCalendarEventIntent(String title, long startMillis, long endMillis) {
+        if (title == null || title.trim().isEmpty()) throw new IllegalArgumentException("Event title is required");
+        if (startMillis <= 0L || endMillis <= startMillis) throw new IllegalArgumentException("Event time range is invalid");
         Intent intent = new Intent(Intent.ACTION_INSERT);
         intent.setData(android.provider.CalendarContract.Events.CONTENT_URI);
         intent.putExtra(android.provider.CalendarContract.Events.TITLE, title);
