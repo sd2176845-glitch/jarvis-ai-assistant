@@ -11,33 +11,43 @@ jobs:
   validate-and-build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
+      - name: Checkout source and native inference submodules
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          submodules: recursive
 
-      - name: Validate backend JavaScript syntax
-        run: node --check server.js
+      - name: Install Vulkan shader compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glslc
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
+
+      - name: Set up Android SDK, NDK and CMake
+        uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android native toolchain
+        run: |
+          sdkmanager "ndk;27.2.12479018" "cmake;3.22.1"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK=$ANDROID_SDK_ROOT/ndk/27.2.12479018" >> "$GITHUB_ENV"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.9"
+          gradle-version: "9.8.2"
 
-      - name: Restore stable debug signing key
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: jarvis-debug-signing-key-v1
+      - name: Bootstrap pinned llama.cpp Android sources
+        run: |
+          git submodule update --init --recursive
+          bash libs/llama.kt/scripts/bootstrap.sh
+
+      - name: Validate backend JavaScript syntax
+        run: node --check server.js
 
       - name: Run Android unit tests
         run: gradle testDebugUnitTest
@@ -51,35 +61,20 @@ jobs:
           if-no-files-found: warn
 
       - name: Run Android lint
-        shell: bash
-        run: |
-          set +e
-          gradle lintDebug
-          LINT_EXIT=$?
-          REPORT="app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt"
-          if [ -f "$REPORT" ]; then
-            echo "===== FULL ANDROID LINT REPORT ====="
-            cat "$REPORT"
-          else
-            echo "Lint text report was not generated at $REPORT"
-          fi
-          exit "$LINT_EXIT"
+        run: gradle lintDebug
 
-      - name: Upload Android lint report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jarvis-android-lint-report
-          path: |
-            app/build/reports/lint-results-debug.html
-            app/build/intermediates/lint_intermediate_text_report/debug/lintReportDebug/lint-results-debug.txt
-          if-no-files-found: warn
-
-      - name: Build debug APK
+      - name: Build debug APK with bundled offline model
         run: gradle assembleDebug
 
-      - name: Verify APK exists and is non-empty
-        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Verify APK contains the bundled offline model
+        run: |
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          unzip -l "$APK" | grep -E 'assets/jarvis-offline-model\.gguf'
+          SIZE=$(stat -c%s "$APK")
+          echo "JARVIS debug APK bytes: $SIZE"
+          test "$SIZE" -gt 200000000
+          test "$SIZE" -lt 350000000
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
