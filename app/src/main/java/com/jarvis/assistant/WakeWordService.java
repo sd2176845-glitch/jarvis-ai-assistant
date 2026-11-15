@@ -44,10 +44,7 @@ public class WakeWordService extends Service {
     private PowerManager.WakeLock screenOffWakeLock;
     // After the wake phrase, accept the next utterance as the command.
     private boolean awaitingCommand = false;
-    private String pendingCallNumber = null;
-    private String pendingCallName = null;
-    private boolean awaitingCallConfirmation = false;
-    private final Runnable commandTimeout = () -> { awaitingCommand = false; awaitingCallConfirmation = false; pendingCallNumber = null; pendingCallName = null; };
+    private final Runnable commandTimeout = () -> { awaitingCommand = false; };
 
     @Override
     public void onCreate() {
@@ -183,48 +180,6 @@ public class WakeWordService extends Service {
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim()
                 .replaceAll("[^a-z0-9\\u0900-\\u097F\\s]", " ").replaceAll("\\s+", " ").trim();
-
-        // A pending call always requires a clear spoken yes/no confirmation.
-        if (awaitingCallConfirmation) {
-            if (matches(text, "yes", "haan", "han", "ha", "confirm", "yes please", "haan call karo", "haan kar do", "हाँ", "हां", "हाँ जी", "हां जी", "जी हाँ", "जी हां", "हाँ कॉल करो", "हां कॉल करो", "हाँ कर दो", "हां कर दो")) {
-                String number = pendingCallNumber;
-                String name = pendingCallName;
-                awaitingCallConfirmation = false;
-                awaitingCommand = false;
-                pendingCallNumber = null;
-                pendingCallName = null;
-                handler.removeCallbacks(commandTimeout);
-                if (number == null || number.trim().isEmpty()) {
-                    say("Number nahi mila. Dobara contact ka naam bolo.");
-                } else if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                    say("Direct call permission nahi mili. JARVIS app kholo aur permission allow karo.");
-                } else {
-                    say(name + " ko call laga raha hoon.");
-                    handler.postDelayed(() -> {
-                        try {
-                            Intent call = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
-                            call.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(call);
-                        } catch (SecurityException e) {
-                            say("Call permission nahi mili. Phone app se call kar lo.");
-                        } catch (Exception e) {
-                            say("Call nahi lag paayi. Phone app se try karo.");
-                        }
-                    }, 150);
-                }
-                return;
-            }
-            if (matches(text, "no", "nahi", "nahin", "cancel", "mat karo", "rehne do")) {
-                awaitingCallConfirmation = false;
-                pendingCallNumber = null;
-                pendingCallName = null;
-                handler.removeCallbacks(commandTimeout);
-                say("Theek hai, call cancel kar di.");
-                return;
-            }
-            say("Call confirm karne ke liye haan bolo, ya cancel karne ke liye nahi bolo.");
-            return;
-        }
 
         String wake = text.replace("hey jarvis ji", "jarvis")
                 .replace("hey jarvesh", "jarvis").replace("hey jarvish", "jarvis")
@@ -426,13 +381,25 @@ public class WakeWordService extends Service {
             say("Phone contacts mein " + requestedName + " nahi mila. Contact ka naam check karke dobara bolo.");
             return;
         }
-        pendingCallNumber = number;
-        pendingCallName = matchedName == null ? requestedName : matchedName;
-        awaitingCallConfirmation = true;
+        String displayName = matchedName == null ? requestedName : matchedName;
         awaitingCommand = false;
         handler.removeCallbacks(commandTimeout);
-        handler.postDelayed(commandTimeout, 10000);
-        say(pendingCallName + " ko call karun? Haan bolo, ya nahi bolkar cancel karo.");
+        if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            say("Direct call permission abhi allow nahi hai. JARVIS app settings mein Phone permission allow karke dobara command do.");
+            return;
+        }
+        say(displayName + " ko call laga raha hoon.");
+        handler.postDelayed(() -> {
+            try {
+                Intent call = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
+                call.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(call);
+            } catch (SecurityException e) {
+                say("Phone permission nahi mili. Android settings mein Phone permission allow karo.");
+            } catch (Exception e) {
+                say("Call nahi lag paayi. Phone app se try karo.");
+            }
+        }, 150);
     }
 
     private void say(String text) {
