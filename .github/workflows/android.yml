@@ -95,7 +95,7 @@ jobs:
         run: |
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
-          unzip -l "$APK" | grep -E 'assets/jarvis-offline-model\\.gguf'
+          unzip -l "$APK" | grep -F 'assets/jarvis-offline-model.gguf'
           SIZE=$(stat -c%s "$APK")
           echo "JARVIS debug APK bytes: $SIZE"
 
