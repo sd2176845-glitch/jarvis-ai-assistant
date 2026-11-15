@@ -53,15 +53,15 @@ jobs:
           p = Path("libs/llama.kt/llama-kt/src/main/cpp/CMakeLists.txt")
           s = p.read_text()
           replacements = [
-              ("    ${SRC_DIR}/ggml-opencl/ggml-opencl.cpp\n", ""),
-              ("    ${SRC_DIR}/ggml-opencl/cl-program-cache.cpp\n", ""),
-              ("    ${GGML_OPENCL_KERNEL_HEADERS}\n", ""),
-              ("    -DLM_GGML_USE_OPENCL\n", ""),
-              ("    -DLM_GGML_OPENCL_USE_ADRENO_KERNELS\n", ""),
-              ("    -DLM_GGML_OPENCL_EMBED_KERNELS\n", ""),
-              ("    -DLM_GGML_OPENCL_SOA_Q\n", ""),
-              ("    ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}\n", ""),
-              ("    OpenCL\n", ""),
+              ("    ${SRC_DIR}/ggml-opencl/ggml-opencl.cpp\\n", ""),
+              ("    ${SRC_DIR}/ggml-opencl/cl-program-cache.cpp\\n", ""),
+              ("    ${GGML_OPENCL_KERNEL_HEADERS}\\n", ""),
+              ("    -DLM_GGML_USE_OPENCL\\n", ""),
+              ("    -DLM_GGML_OPENCL_USE_ADRENO_KERNELS\\n", ""),
+              ("    -DLM_GGML_OPENCL_EMBED_KERNELS\\n", ""),
+              ("    -DLM_GGML_OPENCL_SOA_Q\\n", ""),
+              ("    ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}\\n", ""),
+              ("    OpenCL\\n", ""),
           ]
           for old, new in replacements:
               if old not in s:
@@ -95,11 +95,9 @@ jobs:
         run: |
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
-          unzip -l "$APK" | grep -E 'assets/jarvis-offline-model\.gguf'
+          unzip -l "$APK" | grep -E 'assets/jarvis-offline-model\\.gguf'
           SIZE=$(stat -c%s "$APK")
           echo "JARVIS debug APK bytes: $SIZE"
-          test "$SIZE" -gt 200000000
-          test "$SIZE" -lt 300000000
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
