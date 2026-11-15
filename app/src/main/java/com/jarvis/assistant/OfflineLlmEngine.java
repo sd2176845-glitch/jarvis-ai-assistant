@@ -55,8 +55,8 @@ public final class OfflineLlmEngine {
                     + "action. Keep answers short and clear.";
 
             List<ChatMessage> messages = Arrays.asList(
-                    new ChatMessage("system", systemPrompt),
-                    new ChatMessage("user", userPrompt.trim())
+                    new ChatMessage("system", systemPrompt, Collections.emptyList(), null, ""),
+                    new ChatMessage("user", userPrompt.trim(), Collections.emptyList(), null, "")
             );
 
             String formattedPrompt = engine.formatChat(messages, false);
