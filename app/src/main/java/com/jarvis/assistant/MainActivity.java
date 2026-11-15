@@ -954,6 +954,17 @@ public class MainActivity extends Activity {
     private void understandVoiceCommand(String rawTranscript) {
         final String raw = rawTranscript == null ? "" : rawTranscript.trim();
         if (raw.isEmpty()) return;
+
+        // Resolve known, deterministic intents locally first. Unknown speech can still
+        // use the online assistant; sensitive actions are handled by the existing
+        // owner-confirmation/dialer flow and never place a call automatically.
+        String offlineIntent = OfflineCommandClassifier.classify(raw);
+        if (!"UNKNOWN_OFFLINE_COMMAND".equals(offlineIntent)) {
+            status.setText("LOCAL COMMAND • OFFLINE");
+            handleCommand(raw);
+            return;
+        }
+
         status.setText("UNDERSTANDING YOUR VOICE…");
         transcript.setText("YOU: " + raw + "\n\nJARVIS: Understanding…");
         JarvisAiClient.understandCommand(this, raw, understood -> {
@@ -1145,13 +1156,17 @@ public class MainActivity extends Activity {
             reply = "Main tumhari help ke liye ready hoon. Batao, kya karna hai?";
         } else if (intent.contains("thank") || intent.contains("shukriya") || intent.contains("dhanyavad")) {
             reply = "You're welcome! Main yahin hoon, jab bhi help chahiye.";
-        } else if (intent.contains("time") || intent.contains("samay") || intent.contains("kitne baje")) {
+        } else if (intent.contains("time") || intent.contains("samay") || intent.contains("kitne baje")
+                || intent.contains("समय") || intent.contains("कितने बजे")) {
             java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
             reply = "Abhi time hai " + fmt.format(new java.util.Date());
-        } else if (intent.contains("date") || intent.contains("tarikh") || intent.contains("aaj ki date")) {
+        } else if (intent.contains("date") || intent.contains("tarikh") || intent.contains("tareekh")
+                || intent.contains("aaj ki date") || intent.contains("आज की तारीख")
+                || intent.contains("तारीख") || intent.contains("दिनांक")) {
             java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));
             reply = "Aaj " + dateFmt.format(new java.util.Date());
-        } else if (intent.contains("battery") || intent.contains("charge kitna")) {
+        } else if (intent.contains("battery") || intent.contains("charge kitna")
+                || intent.contains("बैटरी") || intent.contains("चार्ज")) {
             Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (batteryIntent != null) {
                 int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
