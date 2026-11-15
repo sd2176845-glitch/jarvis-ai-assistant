@@ -23,7 +23,7 @@ public final class OfflineCommandClassifier {
         if (startsWithAny(text, "time", "what time", "kitne baje", "samay", "समय", "कितने बजे")) {
             return "DEVICE_TIME";
         }
-        if (startsWithAny(text, "date", "aaj ki date", "tarikh", "तारीख", "दिनांक")) {
+        if (startsWithAny(text, "date", "aaj ki date", "aaj ki tarikh", "aaj ki tareekh", "aaj ka date", "आज की तारीख", "आज की तारीख बताओ", "tarikh", "tareekh", "तारीख", "दिनांक")) {
             return "DEVICE_DATE";
         }
 
