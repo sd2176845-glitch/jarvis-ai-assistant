@@ -74,7 +74,7 @@ jobs:
           SIZE=$(stat -c%s "$APK")
           echo "JARVIS debug APK bytes: $SIZE"
           test "$SIZE" -gt 200000000
-          test "$SIZE" -lt 350000000
+          test "$SIZE" -lt 300000000
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
