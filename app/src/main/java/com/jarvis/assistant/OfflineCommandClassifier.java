@@ -6,8 +6,8 @@ public final class OfflineCommandClassifier {
 
     public static String classify(String spokenText) {
         String text = spokenText == null ? "" : spokenText.trim().toLowerCase(java.util.Locale.ROOT)
-                .replaceAll("[^\\\\p{L}\\\\p{N}\\\\s]", " ")
-                .replaceAll("\\\\s+", " ").trim();
+                .replaceAll("[^\\p{L}\\p{N}\\s]", " ")
+                .replaceAll("\\s+", " ").trim();
         if (text.isEmpty()) return "UNKNOWN_OFFLINE_COMMAND";
 
         // Keep phone and message commands local so names and draft text do not need
