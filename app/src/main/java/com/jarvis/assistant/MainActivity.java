@@ -46,6 +46,8 @@ public class MainActivity extends Activity {
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
     private boolean startWakeAfterPermission = false;
+    private String pendingDirectCallNumber = null;
+    private String pendingDirectCallName = null;
     private SharedPreferences preferences;
     private ImageView avatar;
 
@@ -679,16 +681,16 @@ public class MainActivity extends Activity {
             if (allGranted) speak("Call aur SMS announcements enabled.");
         } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startWakeWordListening();
+                String number = pendingDirectCallNumber;
+                String name = pendingDirectCallName;
+                pendingDirectCallNumber = null;
+                pendingDirectCallName = null;
+                if (number != null) placeDirectCall(number, name);
             } else {
-                // Other voice commands can still run without direct-call permission.
-                try {
-                    Intent service = new Intent(this, WakeWordService.class);
-                    if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(service); else startService(service);
-                    status.setText("HEY JARVIS LISTENING • CALL PERMISSION NOT GRANTED");
-                } catch (Exception e) {
-                    status.setText("COULD NOT START BACKGROUND LISTENING");
-                }
+                pendingDirectCallNumber = null;
+                pendingDirectCallName = null;
+                status.setText("PHONE PERMISSION DENIED • CALL NOT PLACED");
+                speak("Phone permission nahi mili. Call nahi ki gayi.");
             }
         }
     }
@@ -956,17 +958,14 @@ public class MainActivity extends Activity {
                     .replace("ko call karo", "").replace("call karo", "").replace("call", "")
                     .replace("ko phone karo", "").replace("phone karo", "").replace("phone lagao", "").trim();
             if (target.replaceAll("[^0-9+]", "").length() >= 5) {
-                openDialer(target.replaceAll("[^0-9+]", ""));
+                requestOrPlaceCall(target.replaceAll("[^0-9+]", ""), target);
             } else if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
                 replyAndShow(original, "Contact permission allow karo, phir dobara bolo: " + target + " ko call karo.");
             } else {
                 String number = findContactNumber(target);
                 if (number == null) replyAndShow(original, "Contacts mein '" + target + "' nahi mila. Contact ka naam phonebook mein check karo.");
-                else {
-                    speak("Dialer mein " + target + " ka number khol raha hoon. Call confirm kar dena.");
-                    openDialer(number);
-                }
+                else requestOrPlaceCall(number, target);
             }
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
@@ -1114,6 +1113,32 @@ public class MainActivity extends Activity {
                     else if (options[which].equals("Set emergency contact") || options[which].equals("Change emergency contact")) showEmergencyContactDialog();
                     else openDialer(contact);
                 }).show();
+    }
+
+    private void requestOrPlaceCall(String number, String name) {
+        if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            pendingDirectCallNumber = number;
+            pendingDirectCallName = name;
+            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PERMISSION_REQUEST);
+            status.setText("PHONE PERMISSION NEEDED");
+            speak("Phone permission allow karo. Uske baad requested call start hogi.");
+            return;
+        }
+        placeDirectCall(number, name);
+    }
+
+    private void placeDirectCall(String number, String name) {
+        try {
+            speak((name == null || name.trim().isEmpty() ? "Contact" : name) + " ko call laga raha hoon.");
+            startActivity(new Intent(Intent.ACTION_CALL,
+                    android.net.Uri.parse("tel:" + android.net.Uri.encode(number))));
+        } catch (SecurityException e) {
+            status.setText("PHONE PERMISSION NOT AVAILABLE");
+            speak("Phone permission nahi mili. Call nahi lag paayi.");
+        } catch (Exception e) {
+            status.setText("CALL COULD NOT BE STARTED");
+            speak("Call nahi lag paayi. Phone app se try karo.");
+        }
     }
 
     private void openDialer(String number) {
