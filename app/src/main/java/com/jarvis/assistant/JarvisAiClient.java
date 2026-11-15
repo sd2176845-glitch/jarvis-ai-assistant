@@ -146,7 +146,14 @@ public final class JarvisAiClient {
                     answer = "JARVIS AI server mein error aaya (" + status + "). Thodi der baad try karo.";
                 }
             } catch (Exception e) {
-                answer = "JARVIS AI se connect nahi ho paaya. Internet check karke dobara try karo.";
+                try {
+                    String offlineReply = OfflineLlmEngine.generate(appContext, requestMessage);
+                    answer = offlineReply == null || offlineReply.trim().isEmpty()
+                            ? "JARVIS AI se connect nahi ho paaya. Internet check karke dobara try karo."
+                            : "[Offline JARVIS] " + offlineReply.trim();
+                } catch (Exception offlineError) {
+                    answer = "JARVIS AI se connect nahi ho paaya aur offline model bhi load nahi hua. Internet check karke dobara try karo.";
+                }
             } finally {
                 if (connection != null) connection.disconnect();
             }
