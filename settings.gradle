@@ -13,4 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "JarvisAI"
-include(":app")
+include(":app", ":llama-kt")
+project(":llama-kt").projectDir = file("libs/llama.kt/llama-kt")
