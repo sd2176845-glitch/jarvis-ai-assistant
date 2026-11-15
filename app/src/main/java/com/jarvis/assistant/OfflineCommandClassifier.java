@@ -6,7 +6,7 @@ public final class OfflineCommandClassifier {
 
     public static String classify(String spokenText) {
         String text = spokenText == null ? "" : spokenText.trim().toLowerCase(java.util.Locale.ROOT)
-                .replaceAll("[^\\p{L}\\p{N}\\s]", " ")
+                .replaceAll("[^a-zA-Z0-9\\s\\x{0900}-\\x{097F}]", " ")
                 .replaceAll("\\s+", " ").trim();
         if (text.isEmpty()) return "UNKNOWN_OFFLINE_COMMAND";
 
