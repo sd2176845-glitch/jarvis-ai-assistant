@@ -14,6 +14,7 @@ public class OfflineCommandClassifierTest {
 
     @Test public void classifiesHindiDateCommand() {
         assertEquals("DEVICE_DATE", OfflineCommandClassifier.classify("aaj ki tarikh"));
+        assertEquals("DEVICE_DATE", OfflineCommandClassifier.classify("आज की तारीख बताओ"));
     }
 
     @Test public void classifiesLocalNoteCommand() {
