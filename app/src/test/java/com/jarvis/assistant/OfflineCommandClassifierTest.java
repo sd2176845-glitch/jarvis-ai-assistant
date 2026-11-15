@@ -31,6 +31,16 @@ public class OfflineCommandClassifierTest {
                 OfflineCommandClassifier.classify("make a payment"));
     }
 
+    @Test public void normalizesPunctuationAndHindiScript() {
+        assertEquals("DEVICE_BATTERY", OfflineCommandClassifier.classify("बैटरी, कितनी है?"));
+        assertEquals("DEVICE_TIME", OfflineCommandClassifier.classify("समय बताओ!"));
+        assertEquals("DEVICE_DATE", OfflineCommandClassifier.classify("तारीख बताओ"));
+    }
+
+    @Test public void normalizesRepeatedWhitespace() {
+        assertEquals("DEVICE_BATTERY", OfflineCommandClassifier.classify("  battery   kitna   hai  "));
+    }
+
     @Test public void unknownAndNullCommandsStayUnknown() {
         assertEquals("UNKNOWN_OFFLINE_COMMAND", OfflineCommandClassifier.classify("play a song"));
         assertEquals("UNKNOWN_OFFLINE_COMMAND", OfflineCommandClassifier.classify(null));
