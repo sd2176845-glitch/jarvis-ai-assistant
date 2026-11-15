@@ -182,11 +182,11 @@ public class WakeWordService extends Service {
 
     private void handleRecognized(String heard) {
         String text = heard == null ? "" : heard.toLowerCase(Locale.ROOT).trim()
-                .replaceAll("[^a-z0-9\\u0900-\\u097F\\s]", " ").replaceAll("\\s+", " ").trim();
+                .replaceAll("[^\\p{L}\\p{N}\\s]", " ").replaceAll("\\s+", " ").trim();
 
         // A pending call always requires a clear spoken yes/no confirmation.
         if (awaitingCallConfirmation) {
-            if (matches(text, "yes", "haan", "han", "ha", "confirm", "yes please", "haan call karo", "haan kar do", "हाँ", "हां", "हाँ जी", "हां जी", "जी हाँ", "जी हां", "हाँ कॉल करो", "हां कॉल करो", "हाँ कर दो", "हां कर दो")) {
+            if (isAffirmativeConfirmation(text)) {
                 String number = pendingCallNumber;
                 String name = pendingCallName;
                 awaitingCallConfirmation = false;
@@ -214,7 +214,7 @@ public class WakeWordService extends Service {
                 }
                 return;
             }
-            if (matches(text, "no", "nahi", "nahin", "cancel", "mat karo", "rehne do")) {
+            if (isNegativeConfirmation(text)) {
                 awaitingCallConfirmation = false;
                 pendingCallNumber = null;
                 pendingCallName = null;
@@ -222,7 +222,7 @@ public class WakeWordService extends Service {
                 say("Theek hai, call cancel kar di.");
                 return;
             }
-            say("Call confirm karne ke liye haan bolo, ya cancel karne ke liye nahi bolo.");
+            say("Call confirm karne ke liye clearly haan bolo, ya cancel karne ke liye cancel bolo.");
             return;
         }
 
@@ -234,7 +234,7 @@ public class WakeWordService extends Service {
         String command;
         if (wake.contains("jarvis")) {
             command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
-                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+                    .replaceAll("[^\\p{L}\\p{N}\\s]", " ").replaceAll("\\s+", " ").trim();
             if (command.isEmpty()) {
                 awaitingCommand = true;
                 handler.removeCallbacks(commandTimeout);
@@ -348,6 +348,23 @@ public class WakeWordService extends Service {
         sendBroadcast(control);
     }
 
+    private boolean isAffirmativeConfirmation(String text) {
+        return matchesExact(text, "yes", "yes please", "haan", "han", "haan ji", "han ji",
+                "confirm", "haan call karo", "haan kar do", "जी हाँ", "जी हां",
+                "हाँ", "हां", "हाँ जी", "हां जी", "हाँ कॉल करो", "हां कॉल करो",
+                "हाँ कर दो", "हां कर दो");
+    }
+
+    private boolean isNegativeConfirmation(String text) {
+        return matchesExact(text, "no", "nahi", "nahin", "cancel", "cancel karo",
+                "mat karo", "rehne do", "नहीं", "नही", "रहने दो", "कैंसल");
+    }
+
+    private boolean matchesExact(String command, String... phrases) {
+        for (String phrase : phrases) if (command.equals(phrase)) return true;
+        return false;
+    }
+
     private boolean matches(String command, String... phrases) {
         for (String phrase : phrases) {
             if (command.equals(phrase) || command.contains(phrase)) return true;
@@ -356,27 +373,27 @@ public class WakeWordService extends Service {
     }
 
     private void launchApp(String packageName, String appName, String fallbackUrl) {
-        say(appName + " khol raha hoon.");
         handler.postDelayed(() -> {
             try {
                 Intent launch = getPackageManager().getLaunchIntentForPackage(packageName);
                 if (launch != null) launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 else launch = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fallbackUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(launch);
+                say(appName + " khol raha hoon.");
             } catch (Exception ignored) {
-                say(appName + " abhi nahi khul paaya.");
+                say("Android ne background app launch block kiya. JARVIS notification tap karo ya app kholo, phir dobara bolo.");
             }
         }, 150);
     }
 
     private void launchIntent(Intent intent, String response) {
-        say(response);
         handler.postDelayed(() -> {
             try {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                say(response);
             } catch (Exception ignored) {
-                say("Ye app ya screen is phone par nahi khul paayi.");
+                say("Android ne background screen launch block kiya. JARVIS notification tap karo ya app kholo, phir dobara bolo.");
             }
         }, 150);
     }
@@ -389,12 +406,12 @@ public class WakeWordService extends Service {
 
     private String extractContactTarget(String command) {
         String target = command.replace("please", "").replace("mere ", "")
-                .replace("meri ", "").replace("ko call lagao", "").replace("call lagao", "")
-                .replace("ko call karo", "")
-                .replace("call karo", "").replace("call", "")
-                .replace("phone lagao", "").replace("ko phone karo", "")
-                .replace("phone karo", "").replace("dial", "")
-                .replace("lagao", "").replaceAll("\\s+ko$", "").trim();
+                .replace("meri ", "").replace("ko phone lagao", "").replace("phone lagao", "")
+                .replace("ko phone karo", "").replace("phone karo", "")
+                .replace("ko call lagao", "").replace("call lagao", "")
+                .replace("ko call karo", "").replace("call karo", "")
+                .replace("call", "").replace("dial", "")
+                .replaceAll("\\s+ko$", "").trim();
         return target.replaceAll("\\s+", " ").trim();
     }
 
@@ -432,7 +449,7 @@ public class WakeWordService extends Service {
         awaitingCommand = false;
         handler.removeCallbacks(commandTimeout);
         handler.postDelayed(commandTimeout, 10000);
-        say(pendingCallName + " ko call karun? Haan bolo, ya nahi bolkar cancel karo.");
+        say(pendingCallName + " ko call karun? Clearly haan bolo, ya cancel bolo.");
     }
 
     private void say(String text) {
@@ -482,8 +499,12 @@ public class WakeWordService extends Service {
     }
 
     private void scheduleRestart(long delay) {
-        if (!stopping) handler.postDelayed(this::beginRecognition, delay);
+        if (stopping) return;
+        handler.removeCallbacks(restartRecognition);
+        handler.postDelayed(restartRecognition, delay);
     }
+
+    private final Runnable restartRecognition = this::beginRecognition;
 
     private void stopListening() {
         stopping = true;
