@@ -380,3 +380,14 @@ This register records known failures so they are not silently treated as success
 - A successful CI build does not prove target-device behavior; a failed historical run does not mean a later fixed main branch is still failing.
 - Keep all known failures and unresolved tests visible. Do not mark an item verified until the required test result is available.
 - Keep JARVIS separate from Even and do not modify Even during this audit.
+
+
+## Implementation update — 2026-11-19 (screen-time and calendar handoff)
+
+The following main-branch code additions have been committed. They are **code-present, not yet build- or device-verified**:
+
+- [x] **Screen-time overview UI:** added to Command Center. It requests Android Usage Access only when the owner opens the feature, explains that access is optional/revocable, reads foreground usage summaries locally for the last 24 hours, and labels the result as an estimate. No usage report is uploaded.
+- [x] **Calendar event draft handoff:** Tasks & Reminders now offers a New event flow. JARVIS collects a title and date/time, then opens the installed calendar app with a draft for the owner to review and save. JARVIS does not claim the event is saved.
+- [ ] **Build and device verification:** intentionally deferred until the owner asks to test. Verify compilation, Usage Access grant/revocation and empty-data handling, and Calendar app handoff on the Poco M4 Pro 4G.
+
+These changes do not modify the separate Even project.
