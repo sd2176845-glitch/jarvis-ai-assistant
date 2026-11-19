@@ -157,3 +157,56 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] After a fix, provide a short verification checklist and let the owner report whether the original problem is resolved; keep unresolved issues open and attach new evidence rather than marking them fixed automatically.
 - [ ] Never let JARVIS rewrite its own installed APK, change source code, deploy backend changes or execute arbitrary repair commands autonomously. Code repairs require developer review, explicit authorization, build/test and owner installation.
 - [ ] Keep diagnostics opt-in, local-first and user-controlled; allow report preview, cancellation, deletion and selective sharing.
+
+## Decision additions — 2026-11-19
+The following modules are approved product decisions and are **planned**, not implemented or verified merely by being listed here. Build them incrementally using the implementation sequence, security rules and platform limitations above.
+
+### Priority 8 — Human Intelligence 1.0
+- [ ] Emotion-signal interpretation: cautiously infer possible happiness, sadness, anger or stress from the owner's words and conversational context; communicate uncertainty and never present an inference as fact or diagnosis.
+- [ ] Behaviour-pattern analysis: identify patterns in observable conversation and interaction context without claiming to know a person's hidden thoughts or motives.
+- [ ] Communication intelligence: understand tone, wording, conversational context and the owner's preferred Hindi/Hinglish/English communication style.
+- [ ] Body-language understanding: interpret visible expressions and gestures only in a user-selected photo/video or explicitly initiated camera session; request permission and explain processing before use.
+- [ ] Empathy system: adapt responses to the situation with respectful, supportive language without pretending to literally feel human emotions.
+- [ ] Social intelligence: reason cautiously about observable signals related to friendship, trust, ego, jealousy and selfish behaviour; present possibilities, not certainty or labels.
+- [ ] Context memory: use relevant prior conversation context only with owner-controlled, reviewable memory and privacy controls.
+
+### Priority 9 — Universal App Intelligence Engine 1.0
+- [ ] Maintain a catalogue of installed apps using Android-supported package visibility; identify an app when installed and permitted by Android.
+- [ ] Research public information about existing and newly released apps, including their purpose, documented features, settings and updates; label information with source and freshness where available.
+- [ ] Explain where supported features and settings are located and how they work, using current app/version context where available.
+- [ ] Refresh app knowledge through online research rather than claiming automatic or guaranteed awareness of every new app or update.
+- [ ] Keep app knowledge separate from app-control permissions: knowing an app's features does not grant access to its private data or controls.
+
+### Priority 10 — Universal Application Control Engine
+- [ ] Open installed apps through supported Android intents and app launch APIs.
+- [ ] Operate supported app features and UI controls only through documented integrations, Android APIs or user-enabled Accessibility Service actions that comply with platform and app rules.
+- [ ] Understand changed app interfaces cautiously; detect when a screen or control is unknown and ask the owner rather than guessing or tapping unpredictably.
+- [ ] Support cross-app workflows where each step is supported, visible and authorized.
+- [ ] Provide an explicit permission and capability boundary for every integration. No promise of unrestricted access: banking, passwords, private data, protected screens and app-enforced restrictions remain protected.
+- [ ] Require owner confirmation for sensitive or consequential actions, including sending messages, placing calls, purchases, sharing data and changing important settings.
+
+### Priority 11 — Communication Intelligence Engine 1.0
+- [ ] Voice-to-message: convert the owner's spoken request into an editable message draft.
+- [ ] Message sending: prepare messages for supported channels such as WhatsApp or SMS using permitted APIs or user-visible app workflows; show recipient and exact message and obtain explicit confirmation before sending.
+- [ ] Voice calling: identify the requested contact and place calls only after clear confirmation.
+- [ ] Message reading: read messages only through explicitly granted, platform-supported notification or app integrations, with privacy controls and appropriate user context.
+- [ ] Smart reply: draft context-aware replies for owner review; do not silently send.
+- [ ] Language support: understand and generate Hindi, English and Hinglish; Bengali support remains subject to implementation and testing.
+- [ ] Contact recognition: resolve names against permitted contacts, disambiguate duplicates and confirm the intended recipient before communication.
+
+### Priority 12 — Autonomous Intelligence & Personality Engine
+- [ ] Independent analysis: assess the current request and available, authorized information before suggesting a useful next step.
+- [ ] Decision intelligence: compare options and explain recommendations, assumptions, risks and uncertainty; leave consequential decisions with the owner.
+- [ ] Learning ability: update app/API knowledge and owner-approved preferences through controlled, reviewable processes.
+- [ ] Self-improvement: identify errors from evidence, explain proposed improvements and request developer/owner approval for code or configuration changes.
+- [ ] Human understanding: use observable language and context to adapt responses while acknowledging uncertainty.
+- [ ] Personal identity: maintain a consistent, considerate JARVIS personality, voice and communication style without claiming human consciousness or feelings.
+- [ ] Initiative: offer timely, relevant suggestions within owner-configured permissions; no hidden monitoring or unsolicited sensitive actions.
+- [ ] Long-term memory: support opt-in, reviewable, editable and deletable owner-approved preferences and context; do not silently retain sensitive information.
+
+### Shared acceptance and safety requirements for these modules
+- [ ] Implement each capability as a small modular feature with explicit dependencies, permissions, failure handling and a user-visible status.
+- [ ] Distinguish **planned**, **code present — device test needed**, **platform-dependent** and **verified** using the status meanings above.
+- [ ] Do not claim mind-reading, certainty about emotions or motives, unrestricted access to other apps, or autonomous control beyond supported and authorized actions.
+- [ ] Use selected media and screen context only after clear owner action; never silently capture camera, screen, notifications or other app content.
+- [ ] Test each module on the target Poco M4 Pro 4G and run regression builds before marking any capability verified.
