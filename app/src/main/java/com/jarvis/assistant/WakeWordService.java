@@ -62,8 +62,7 @@ public class WakeWordService extends Service {
         createChannel();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applySavedTtsSettings();
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String utteranceId) {
                         handler.post(() -> {
@@ -455,6 +454,29 @@ public class WakeWordService extends Service {
         return prefs.getBoolean("silent_background_ack", true);
     }
 
+
+    /** Apply the same owner-selected TTS voice and tuning used by the foreground UI. */
+    private void applySavedTtsSettings() {
+        if (tts == null) return;
+        try {
+            SharedPreferences prefs = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+            tts.setLanguage(Locale.forLanguageTag(prefs.getString("tts_language", "en-IN")));
+            String selectedVoice = prefs.getString("tts_voice_name", "");
+            if (!selectedVoice.isEmpty() && tts.getVoices() != null) {
+                for (android.speech.tts.Voice voice : tts.getVoices()) {
+                    if (selectedVoice.equals(voice.getName())) {
+                        tts.setVoice(voice);
+                        break;
+                    }
+                }
+            }
+            tts.setSpeechRate(prefs.getFloat("tts_rate", 0.92f));
+            tts.setPitch(prefs.getFloat("tts_pitch", 1.0f));
+        } catch (Exception ignored) {
+            // Fall back to the engine's default voice if a saved voice is unavailable.
+        }
+    }
+
     private void say(String text) {
         if (tts == null) {
             speaking = false;
@@ -462,6 +484,7 @@ public class WakeWordService extends Service {
             scheduleRestart(350);
             return;
         }
+        applySavedTtsSettings();
         String utteranceId = "jarvis_background_reply_" + (++utteranceCounter);
         activeUtteranceId = utteranceId;
         speaking = true;
@@ -479,6 +502,7 @@ public class WakeWordService extends Service {
             say(text);
             return;
         }
+        applySavedTtsSettings();
         String utteranceId = "jarvis_ai_reply_" + (++utteranceCounter);
         activeUtteranceId = utteranceId;
         speaking = true;
