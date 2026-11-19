@@ -157,3 +157,45 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] After a fix, provide a short verification checklist and let the owner report whether the original problem is resolved; keep unresolved issues open and attach new evidence rather than marking them fixed automatically.
 - [ ] Never let JARVIS rewrite its own installed APK, change source code, deploy backend changes or execute arbitrary repair commands autonomously. Code repairs require developer review, explicit authorization, build/test and owner installation.
 - [ ] Keep diagnostics opt-in, local-first and user-controlled; allow report preview, cancellation, deletion and selective sharing.
+
+## 2026-11-19 — Expanded JARVIS vision and engineering rules
+
+These are planned capabilities, not claims that the features are already implemented. Keep JARVIS on its dedicated phone and repository; do not mix its code or configuration with the separate Even project.
+
+### Human and social intelligence
+- [ ] Add a human-behavior understanding layer for conversation context, tone, and observable emotional cues. It must describe uncertainty and never claim to read minds or diagnose people.
+- [ ] Add empathetic, respectful conversation and a consistent brotherly-butler personality: warm, composed, humorous when appropriate, honest, patient, discreet, and responsible. The assistant may express supportive language but must not claim literal human feelings.
+- [ ] Add user-controlled long-term memory with clear review, correction, export, and deletion controls. Sensitive data must not be silently retained.
+
+### Universal app knowledge and control
+- [ ] Build an app catalog that discovers installed apps and stores package identity, version, declared launch entry points, and user-approved capability notes.
+- [ ] Research Play Store apps in batches by category using public documentation and app-published information. Do not claim exhaustive knowledge of every Play Store app; record source, last-checked date, version, supported actions, and confidence for each entry.
+- [ ] Detect newly installed or updated apps and refresh their catalog entries when possible.
+- [ ] Provide app-specific help and feature explanations from verified documentation and user-visible UI context.
+- [ ] Add a permission-gated app action registry using Android intents, documented APIs, and user-enabled Accessibility Service only where appropriate. Respect Android sandboxing, app terms, authentication boundaries, and other apps' security controls.
+- [ ] Do not bypass app protections, scrape private app data, silently read other apps' content, or promise unrestricted control. Ask before sharing data or performing sensitive actions.
+
+### Communication intelligence
+- [ ] Support contact-aware call and message drafting through Android-supported flows.
+- [ ] Read back the intended recipient and message content before sending; require explicit user confirmation for sending messages, placing calls, sharing information, purchases, and other consequential actions.
+- [ ] Add speech-to-text, text-to-speech, Hindi/Hinglish/English language handling, message summarization, and context-aware draft replies.
+- [ ] Respect app-specific restrictions; use official APIs or Android intents where available, and provide a safe handoff when an app does not allow direct automation.
+
+### Autonomous research and creator tools
+- [ ] Add a scheduled, battery-conscious research service that can refresh public app/API documentation when the device is charging or on an allowed network. Show sources, timestamps, and changes; never imply work continues when the device/service is stopped.
+- [ ] Add a JARVIS development workspace that can inspect a user-authorized source repository, propose code changes, create isolated branches, run available tests/builds, and report results.
+- [ ] Add an Even-development capability as a later, explicitly separate project integration. JARVIS may help design, code, test, and package Even only when the user selects and authorizes the Even repository; do not merge the two apps or reuse secrets.
+- [ ] Add an Elvin/OpenAI connection through the official OpenAI API with server-side secret storage, usage controls, clear provider status, and no assumption that a ChatGPT app session is directly shared.
+- [ ] Keep a future sister-assistant project as a separate later project; do not begin it until JARVIS and then Even have reached their agreed milestones.
+
+### Self-debugging and release quality gates
+- [ ] For every code change, run formatting/static checks where available, backend syntax checks, Android compilation, unit tests, and relevant integration/regression tests.
+- [ ] When a test fails, capture the exact log, identify the root cause, patch on an isolated branch, rerun the failed test and the full relevant regression suite, and retain the failure report.
+- [ ] Preserve the last known-good branch/commit and never overwrite working code without a recoverable version-control history.
+- [ ] A feature is not "verified" until its relevant automated tests pass and, where hardware behavior is involved, it is tested on the target phone. Report untested device behavior honestly.
+- [ ] Do not promise zero defects. Release only when all required checks pass, no known blocking failures remain, and remaining limitations are documented.
+
+### Architecture and autonomy boundaries
+- [ ] Keep the Android app, backend, app catalog, integrations, memory, and development tools modular so one optional feature failure cannot break core voice commands.
+- [ ] Give JARVIS initiative for low-risk suggestions and research, but require user authorization for consequential device actions, external communications, account changes, code publication, deployments, and access to private data.
+- [ ] Provide pause/stop controls, visible microphone and screen-capture indicators, permission explanations, audit history for consequential actions, and battery/network limits.
