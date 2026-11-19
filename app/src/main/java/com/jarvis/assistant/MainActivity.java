@@ -395,7 +395,9 @@ public class MainActivity extends Activity {
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
-                "Voice & speech settings"
+                "Voice & speech settings",
+                "Personal Finance Organizer",
+                "Goals & Milestones"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -434,6 +436,8 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) showVoiceSettings();
+                    else if (which == 22) JarvisPersonalOrganizer.showFinance(MainActivity.this);
+                    else if (which == 23) JarvisPersonalOrganizer.showGoals(MainActivity.this);
                 }).setNegativeButton("Close", null).show();
     }
 
