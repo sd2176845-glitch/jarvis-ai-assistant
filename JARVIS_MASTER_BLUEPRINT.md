@@ -37,6 +37,7 @@ JARVIS is separate from the Even project.
 - [x] Orb scale animation reacts to speech recognition states (code present — visual behavior needs device testing).
 - [x] Live web/weather shortcuts open browser search pages; these are not native live-data API integrations or source-grounded AI search.
 - [x] Privacy panel reports microphone/contacts permission state, opens Android app settings, and offers local note clearing.
+- [x] Initial Cybersecurity Command Center: read-only local permission/build review with shortcuts to Android security and JARVIS app-permission settings (code present — device test needed; not a malware/network scanner).
 
 ## Reference-video review (2026-11-02)
 Two user-supplied references were reviewed: an Instagram Reel showing a JARVIS-style voice assistant and connected-app concepts, and a 38-second open-source JARVIS setup/demo showing repository structure, setup steps, a red HUD/orb interface and AI-provider key configuration.
@@ -644,6 +645,8 @@ All items remain planned until implemented and relevant automated/device tests p
 This owner-approved module is **planned only — not implemented or verified**. Its purpose is to make JARVIS a defensive cybersecurity learning, monitoring and authorized-testing assistant. It must never be designed as an unrestricted tool for breaking into other people's computers, accounts, networks or devices.
 
 ### Priority 30 — Cybersecurity Command Center
+
+- [x] First safe in-app foundation implemented: a local, read-only permission/build review, available from Command Center and voice command; broader cybersecurity capabilities remain planned and must stay authorization-bound. (Code present — device test needed.)
 
 - [ ] **Security dashboard:** provide a clear overview of the owner's JARVIS device and explicitly connected systems, including security status, recent alerts, scan history and unresolved findings.
 - [ ] **Owner-device security check:** inspect only Android-supported security posture signals and JARVIS app configuration, such as app permissions, outdated components where detectable, unsafe configuration indicators and available storage/network status. Explain platform limitations and do not claim access to hidden Android diagnostics.
