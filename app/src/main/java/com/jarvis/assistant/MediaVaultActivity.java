@@ -227,8 +227,8 @@ public class MediaVaultActivity extends Activity {
     private void beginRestore(File file) {
         pendingRestore = file;
         String name = file.getName();
-        int underscore = name.indexOf('_');
-        if (underscore >= 0 && name.length() > underscore + 1) name = name.substring(underscore + 1);
+        // Backup names start with yyyyMMdd_HHmmss_SSS_ (20 characters including the final separator).
+        if (name.length() > 20 && name.charAt(8) == '_' && name.charAt(15) == '_') name = name.substring(20);
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType(getMimeType(name));
