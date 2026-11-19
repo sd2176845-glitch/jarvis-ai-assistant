@@ -381,6 +381,7 @@ public class WakeWordService extends Service {
             say("Phone contacts mein " + requestedName + " nahi mila. Contact ka naam check karke dobara bolo.");
             return;
         }
+        final String phoneNumber = number;
         String displayName = matchedName == null ? requestedName : matchedName;
         awaitingCommand = false;
         handler.removeCallbacks(commandTimeout);
@@ -391,7 +392,7 @@ public class WakeWordService extends Service {
         say(displayName + " ko call laga raha hoon.");
         handler.postDelayed(() -> {
             try {
-                Intent call = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(number)));
+                Intent call = new Intent(Intent.ACTION_CALL, android.net.Uri.parse("tel:" + android.net.Uri.encode(phoneNumber)));
                 call.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(call);
             } catch (SecurityException e) {
