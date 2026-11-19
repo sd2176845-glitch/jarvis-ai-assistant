@@ -68,8 +68,7 @@ public class MainActivity extends Activity {
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applySavedTtsSettings();
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -395,7 +394,8 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "Voice & speech settings"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -433,7 +433,134 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) showVoiceSettings();
                 }).setNegativeButton("Close", null).show();
+    }
+
+
+    /**
+     * Lets the owner choose any voice installed in the Android TTS engine.
+     * Voice gender labels are intentionally not guessed: Android engines do not
+     * expose a consistent male/female metadata field across devices.
+     */
+    private void showVoiceSettings() {
+        if (tts == null) {
+            status.setText("VOICE ENGINE IS STILL INITIALIZING");
+            return;
+        }
+        java.util.ArrayList<android.speech.tts.Voice> voices =
+                new java.util.ArrayList<>();
+        try {
+            if (tts.getVoices() != null) voices.addAll(tts.getVoices());
+        } catch (Exception ignored) { }
+        java.util.Collections.sort(voices, (a, b) ->
+                (a.getLocale().toLanguageTag() + " " + a.getName())
+                        .compareToIgnoreCase(b.getLocale().toLanguageTag() + " " + b.getName()));
+
+        String savedName = preferences.getString("tts_voice_name", "");
+        String[] labels = new String[voices.size() + 1];
+        labels[0] = "System default";
+        int selected = 0;
+        for (int i = 0; i < voices.size(); i++) {
+            android.speech.tts.Voice voice = voices.get(i);
+            labels[i + 1] = voice.getName() + "  •  " + voice.getLocale().toLanguageTag();
+            if (voice.getName().equals(savedName)) selected = i + 1;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Voice settings")
+                .setMessage("Choose an installed speech voice. Male/female voice availability and naming depend on the speech engine installed on this phone.")
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> {
+                    if (which == 0) {
+                        preferences.edit().remove("tts_voice_name").apply();
+                    } else {
+                        preferences.edit().putString("tts_voice_name",
+                                voices.get(which - 1).getName()).apply();
+                    }
+                    applySavedTtsSettings();
+                    speak("Voice setting updated. This is a voice preview.");
+                    dialog.dismiss();
+                    status.setText("VOICE PREFERENCE UPDATED");
+                })
+                .setNeutralButton("Rate & pitch", (dialog, which) -> showVoiceTuningDialog())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showVoiceTuningDialog() {
+        float savedRate = preferences.getFloat("tts_rate", 0.92f);
+        float savedPitch = preferences.getFloat("tts_pitch", 1.0f);
+        android.widget.LinearLayout panel = new android.widget.LinearLayout(this);
+        panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+        panel.setPadding(32, 12, 32, 8);
+
+        TextView rateLabel = new TextView(this);
+        rateLabel.setText("Speaking speed: " + String.format(Locale.US, "%.2f", savedRate));
+        panel.addView(rateLabel);
+        android.widget.SeekBar rateBar = new android.widget.SeekBar(this);
+        rateBar.setMax(80);
+        rateBar.setProgress(Math.max(0, Math.min(80, Math.round((savedRate - 0.60f) * 100f))));
+        panel.addView(rateBar);
+
+        TextView pitchLabel = new TextView(this);
+        pitchLabel.setPadding(0, 18, 0, 0);
+        pitchLabel.setText("Voice pitch: " + String.format(Locale.US, "%.2f", savedPitch));
+        panel.addView(pitchLabel);
+        android.widget.SeekBar pitchBar = new android.widget.SeekBar(this);
+        pitchBar.setMax(60);
+        pitchBar.setProgress(Math.max(0, Math.min(60, Math.round((savedPitch - 0.70f) * 100f))));
+        panel.addView(pitchBar);
+
+        rateBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar bar, int value, boolean fromUser) {
+                rateLabel.setText("Speaking speed: " + String.format(Locale.US, "%.2f", 0.60f + value / 100f));
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar bar) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar bar) {}
+        });
+        pitchBar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(android.widget.SeekBar bar, int value, boolean fromUser) {
+                pitchLabel.setText("Voice pitch: " + String.format(Locale.US, "%.2f", 0.70f + value / 100f));
+            }
+            @Override public void onStartTrackingTouch(android.widget.SeekBar bar) {}
+            @Override public void onStopTrackingTouch(android.widget.SeekBar bar) {}
+        });
+
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Speech tuning")
+                .setView(panel)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    float rate = 0.60f + rateBar.getProgress() / 100f;
+                    float pitch = 0.70f + pitchBar.getProgress() / 100f;
+                    preferences.edit().putFloat("tts_rate", rate)
+                            .putFloat("tts_pitch", pitch).apply();
+                    applySavedTtsSettings();
+                    speak("Speech settings saved.");
+                    status.setText("SPEECH SETTINGS SAVED");
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void applySavedTtsSettings() {
+        if (tts == null || preferences == null) return;
+        try {
+            String language = preferences.getString("tts_language", "en-IN");
+            tts.setLanguage(Locale.forLanguageTag(language));
+            String selectedVoice = preferences.getString("tts_voice_name", "");
+            if (!selectedVoice.isEmpty() && tts.getVoices() != null) {
+                for (android.speech.tts.Voice voice : tts.getVoices()) {
+                    if (selectedVoice.equals(voice.getName())) {
+                        tts.setVoice(voice);
+                        break;
+                    }
+                }
+            }
+            tts.setSpeechRate(preferences.getFloat("tts_rate", 0.92f));
+            tts.setPitch(preferences.getFloat("tts_pitch", 1.0f));
+        } catch (Exception ignored) {
+            // Keep the engine's system default if a saved voice is no longer installed.
+        }
     }
 
     private void showBackgroundVoiceModeOptions() {
@@ -1493,9 +1620,11 @@ public class MainActivity extends Activity {
 
     private void speak(String text) {
         if (tts != null) {
+            applySavedTtsSettings();
             String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
+            float baseRate = preferences == null ? 0.92f : preferences.getFloat("tts_rate", 0.92f);
+            float multiplier = "calm".equals(style) ? 0.89f : ("energetic".equals(style) ? 1.14f : 1.0f);
+            tts.setSpeechRate(baseRate * multiplier);
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
         }
     }
