@@ -516,34 +516,34 @@ public class MainActivity extends Activity {
 
     private String inspectUntrustedText(String sample) {
         String lower = sample.toLowerCase(Locale.ROOT);
-        StringBuilder report = new StringBuilder("LOCAL STATIC TEXT REVIEW\\n\\n");
-        boolean looksLikeUrl = lower.matches("(?s).*(https?://|www\\\\.|[a-z0-9-]+\\\\.[a-z]{2,}).*")
-                && !sample.contains("\\n");
+        StringBuilder report = new StringBuilder("LOCAL STATIC TEXT REVIEW\n\n");
+        boolean looksLikeUrl = lower.matches("(?s).*(https?://|www\\.|[a-z0-9-]+\\.[a-z]{2,}).*")
+                && !sample.contains("\n");
         if (looksLikeUrl) {
             String candidate = sample.startsWith("http://") || sample.startsWith("https://")
-                    ? sample : "https://" + sample.replaceFirst("^www\\\\.", "");
+                    ? sample : "https://" + sample.replaceFirst("^www\\.", "");
             android.net.Uri uri = android.net.Uri.parse(candidate);
             String host = uri.getHost();
-            report.append("TYPE: Link / URL\\n");
+            report.append("TYPE: Link / URL\n");
             if (host == null || host.trim().isEmpty()) {
-                report.append("• URL format could not be reliably parsed.\\n");
+                report.append("• URL format could not be reliably parsed.\n");
             } else {
-                report.append("• Host: ").append(host).append("\\n");
-                if (!"https".equalsIgnoreCase(uri.getScheme())) report.append("• Warning: link does not use HTTPS.\\n");
-                if (host.matches("[0-9.]+") || host.contains(":")) report.append("• Warning: host looks like a raw IP address.\\n");
-                if (host.toLowerCase(Locale.ROOT).contains("xn--")) report.append("• Warning: internationalized/punycode hostname; check spelling carefully.\\n");
-                if (host.split("\\\\.").length >= 4) report.append("• Caution: unusually deep subdomain structure.\\n");
-                if (lower.contains("@")) report.append("• Warning: URL contains an @ symbol; inspect the real host carefully.\\n");
-                if (lower.matches(".*(bit\\\\.ly|tinyurl\\\\.com|t\\\\.co|is\\\\\\.gd|cutt\\\\\\.ly).*")) report.append("• Caution: URL may use a link-shortening service; destination is not checked.\\n");
-                if (lower.matches(".*(login|verify|wallet|bank|otp|password|urgent|free-prize|claim).*")) report.append("• Caution: wording commonly used in deceptive messages.\\n");
+                report.append("• Host: ").append(host).append("\n");
+                if (!"https".equalsIgnoreCase(uri.getScheme())) report.append("• Warning: link does not use HTTPS.\n");
+                if (host.matches("[0-9.]+") || host.contains(":")) report.append("• Warning: host looks like a raw IP address.\n");
+                if (host.toLowerCase(Locale.ROOT).contains("xn--")) report.append("• Warning: internationalized/punycode hostname; check spelling carefully.\n");
+                if (host.split("\\.").length >= 4) report.append("• Caution: unusually deep subdomain structure.\n");
+                if (lower.contains("@")) report.append("• Warning: URL contains an @ symbol; inspect the real host carefully.\n");
+                if (lower.matches(".*(bit\\.ly|tinyurl\\.com|t\\.co|is\\.gd|cutt\\.ly).*")) report.append("• Caution: URL may use a link-shortening service; destination is not checked.\n");
+                if (lower.matches(".*(login|verify|wallet|bank|otp|password|urgent|free-prize|claim).*")) report.append("• Caution: wording commonly used in deceptive messages.\n");
                 if ("https".equalsIgnoreCase(uri.getScheme()) && !lower.contains("@")
                         && !host.matches("[0-9.]+") && !host.toLowerCase(Locale.ROOT).contains("xn--")) {
-                    report.append("• No obvious URL red flags were detected by these basic checks.\\n");
+                    report.append("• No obvious URL red flags were detected by these basic checks.\n");
                 }
             }
-            report.append("\\n");
+            report.append("\n");
         } else {
-            report.append("TYPE: Code / text snippet\\n");
+            report.append("TYPE: Code / text snippet\n");
             String[] indicators = {
                 "runtime.getruntime", "processbuilder", "exec(", "eval(", "powershell",
                 "cmd.exe", "chmod ", "curl ", "wget ", "base64", "su -c",
@@ -552,14 +552,14 @@ public class MainActivity extends Activity {
             boolean found = false;
             for (String indicator : indicators) {
                 if (lower.contains(indicator)) {
-                    report.append("• Review manually: contains '").append(indicator).append("'.\\n");
+                    report.append("• Review manually: contains '").append(indicator).append("'.\n");
                     found = true;
                 }
             }
-            if (!found) report.append("• No configured high-risk text patterns were found.\\n");
-            report.append("• This is pattern matching only; context matters and benign code can contain these terms.\\n\\n");
+            if (!found) report.append("• No configured high-risk text patterns were found.\n");
+            report.append("• This is pattern matching only; context matters and benign code can contain these terms.\n\n");
         }
-        report.append("LIMITATIONS\\n");
+        report.append("LIMITATIONS\n");
         report.append("This is a basic offline text check, not a malware scan or proof that content is safe. Links are not opened and redirects/reputation are not checked. Files and APKs are not analysed in this first version. Never run unknown code or install an unexpected APK.");
         return report.toString();
     }
@@ -979,6 +979,12 @@ public class MainActivity extends Activity {
         String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
         cleaned = cleaned.replaceFirst("^(jarvis ji|jarvis|jarvesh|jarvish|j a r v i s)(\\s+)", "");
         String intent = cleaned.trim();
+        if (intent.contains("digital threat inspector") || intent.contains("inspect link")
+                || intent.contains("check this link") || intent.contains("check code")
+                || intent.contains("scan link") || intent.contains("link checker")) {
+            showDigitalThreatInspector();
+            return;
+        }
         if (intent.isEmpty() || intent.matches("^(jarvis|jarvesh|jarvish|jarvish ji|j a r v i s)$")) {
             String[] greetings = {
                 "Yes, I'm listening. Tell me, what do you need?",
