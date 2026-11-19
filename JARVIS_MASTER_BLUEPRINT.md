@@ -210,3 +210,87 @@ The following modules are approved product decisions and are **planned**, not im
 - [ ] Do not claim mind-reading, certainty about emotions or motives, unrestricted access to other apps, or autonomous control beyond supported and authorized actions.
 - [ ] Use selected media and screen context only after clear owner action; never silently capture camera, screen, notifications or other app content.
 - [ ] Test each module on the target Poco M4 Pro 4G and run regression builds before marking any capability verified.
+
+
+## Decision additions — 2026-11-19 (JARVIS development and creator architecture)
+
+These decisions extend the existing Universal App Intelligence, Application Control, Communication, Autonomous Intelligence and security sections above. They are **approved blueprint requirements only**: adding them here does not mean the features have been implemented, built or verified. Keep JARVIS completely separate from Even; JARVIS may assist with Even development only through an explicitly authorized development workflow. Do not modify Even as part of JARVIS implementation.
+
+### Priority 13 — JARVIS AI Development Engine
+
+- [ ] Create a developer-assistance engine through which the owner can ask JARVIS to help plan, inspect, explain, update and test software projects, including the separate Even assistant and other AI assistants.
+- [ ] Support project-aware workflows: identify the selected repository/project, read its documented architecture and build instructions, inspect relevant source files, and explain the proposed change before editing.
+- [ ] Provide feature planning, technical design, code drafting, dependency/documentation research, build orchestration and test-result summaries.
+- [ ] Keep project boundaries explicit. Never mix JARVIS and Even source trees, credentials, build outputs or configuration. Work only in the project/repository explicitly selected by the owner.
+- [ ] Require owner authorization before writing files, committing changes, changing configuration, deploying services or accessing a connected repository. Preserve a recoverable copy or version-control checkpoint before edits.
+- [ ] Never claim a build, test, deployment or feature succeeded unless the corresponding tool/device reports success. Record unsupported tests and unresolved issues honestly.
+
+### Priority 14 — Universal App Intelligence and Knowledge Brain
+
+- [ ] Extend the existing Universal App Intelligence Engine with a structured JARVIS Knowledge Brain: organized, searchable records for app categories, individual apps, documented capabilities, settings, permissions, supported workflows, versions, update notes and source links.
+- [ ] Discover relevant Play Store apps and public app documentation by category and user request; identify new apps only when reliable information is available.
+- [ ] Maintain app-by-app feature knowledge and explain an app's documented operation and capability limits. Do not infer private or undocumented functionality.
+- [ ] Track app updates and refresh affected knowledge when new release notes or documentation are available; show source and last-checked date and flag stale or uncertain information.
+- [ ] Keep research results distinct from verified on-device capabilities. A documented feature is not proof that it works on the owner's installed version or device.
+- [ ] Use Android-supported installed-app/package visibility for local inventory, respecting package-visibility restrictions and permissions.
+
+### Priority 15 — Universal Phone Control and Communication Workflows
+
+- [ ] Expand the existing Universal Application Control Engine to cover supported app opening and operation, Android settings handoffs, music-player controls, notifications and cross-app workflows.
+- [ ] Music controls should use supported media-session, notification or app integration APIs where available; identify the active player when Android exposes it and handle unsupported players gracefully.
+- [ ] Settings controls should open the relevant Android settings page or use a documented permitted API. Do not promise unrestricted control of protected system settings.
+- [ ] Notification access must be opt-in, visibly explained and revocable; read only the notifications the owner has authorized.
+- [ ] Extend communication workflows for WhatsApp, phone calls, SMS, voice-to-text, smart-reply drafts and contact recognition, reusing Priority 11 rules: show recipient/content and obtain explicit confirmation before sending or placing a call.
+- [ ] Cross-app workflows must expose the planned steps, stop safely when a screen or action is unknown, and never bypass app security or Android permission boundaries.
+
+### Priority 16 — Security Intelligence
+
+- [ ] Consolidate privacy protection, permission management, suspicious-activity signals, secure memory and approval gates into a Security Intelligence module.
+- [ ] Explain which permissions each feature needs, why they are needed, what data may be accessed and how the owner can revoke access.
+- [ ] Detect and report observable security-relevant events, such as unexpected permission changes, backend authentication failures or suspicious app/network behavior when reliable signals are available. Clearly distinguish evidence from a possible warning.
+- [ ] Protect stored owner-approved memory and project credentials using platform-appropriate secure storage; keep API secrets on the backend and out of APKs, logs and Git history.
+- [ ] Require explicit owner approval for sensitive actions and any operation that shares private data, changes important settings, sends communications or modifies project files.
+- [ ] Provide a visible pause/stop control for listening, notification access and background activity. Do not silently monitor the device.
+
+### Priority 17 — Autonomous Learning and Scheduled Research
+
+- [ ] Support owner-configured background learning and scheduled research for app documentation, technology updates, API changes and knowledge refreshes.
+- [ ] Use battery-conscious scheduling, Android background-work constraints, network availability and configurable charging/network preferences. Do not promise uninterrupted 24-hour processing.
+- [ ] Summarize what was researched, when it was checked, which sources were used, what changed and what still needs owner review.
+- [ ] Evaluate JARVIS performance using explicit test results, error trends and owner feedback; propose improvements rather than silently changing its own code or permissions.
+- [ ] Keep research bounded and cancellable, respect service terms/rate limits, and avoid collecting unrelated personal data.
+
+### Priority 18 — JARVIS Command Center and Creator Mode
+
+- [ ] Build a central JARVIS Command Center dashboard that brings together module status, available phone workflows, recent owner-approved activity, diagnostics, scheduled research and project-development tasks.
+- [ ] Clearly distinguish available, permission-required, planned, failed and verified capabilities. A dashboard tile must not imply that a feature is implemented.
+- [ ] Add JARVIS Creator Mode for helping the owner design and build new software and AI assistants through project setup, architecture, code assistance, dependency research, build/test workflows and documentation.
+- [ ] Creator Mode must use the selected project workspace and explicit owner authorization; it must not silently alter JARVIS, Even or any other project.
+- [ ] Keep sensitive information out of dashboard previews and diagnostic summaries by default; provide owner-controlled review and sharing.
+
+### Priority 19 — JARVIS Auto Debug & Self-Repair Engine 1.0
+
+- [ ] Add an owner-invoked diagnostic and repair workflow that can cover the Android application, calling, messaging, internet connectivity, AI backend, Even development workspace when explicitly selected, APK builds and GitHub Actions.
+- [ ] Detect reported or test-observed failures, collect relevant error logs and build/test output, and identify the likely cause only when supported by evidence.
+- [ ] Locate the affected code/configuration area and prepare a proposed fix with an explanation, affected-file list and risk assessment.
+- [ ] Preserve the last known working state with a version-control checkpoint or verified backup before applying an authorized change.
+- [ ] After an authorized fix, rerun the relevant build, feature tests and regression tests; compare results with the original failure and report any remaining issue.
+- [ ] If a test still fails, continue diagnosis or leave the issue explicitly unresolved. Never label an untested or partially tested repair successful.
+- [ ] Do not let the installed assistant autonomously rewrite its own APK, execute arbitrary shell commands, change production services or deploy code. Repairs require developer review/authorization and a controlled build/test process.
+
+### Mandatory Zero-Failure Development & Verification workflow
+
+The goal is to prevent known failures and unresolved regressions from being treated as completed work. This is a strict release discipline, **not a promise that software can be guaranteed 100% failure-free**.
+
+1. **Code inspection:** review every changed file and relevant code path.
+2. **Error detection:** run available syntax, static-analysis and compilation checks.
+3. **Dependency check:** verify library versions, compatibility, permissions and required configuration.
+4. **Build testing:** build the affected target (including APK/backend where relevant) and record the actual result.
+5. **Feature testing:** test the new or changed behavior against explicit acceptance criteria.
+6. **Regression testing:** rerun relevant existing-feature tests to catch breakage.
+7. **Repair and re-test:** investigate failures, prepare an authorized fix, then repeat the affected checks.
+8. **Final verification:** report passed, failed, skipped and not-yet-tested checks separately; only mark a feature complete when its required tests pass.
+
+**Release gate:** no feature is marked **Complete/Verified** while a required test is failing, a known regression is unresolved, or essential verification has not been performed. If a test cannot be run (for example, because target-device access is unavailable), mark the feature **Code present — device test needed** or **Platform-dependent**, not verified.
+
+**Backup and separation rule:** retain a recoverable original working version before edits; make changes only in the selected project; keep JARVIS and Even separate; and never sacrifice privacy, security or reliability for speed.
