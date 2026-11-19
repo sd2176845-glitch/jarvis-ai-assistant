@@ -391,3 +391,52 @@ The following main-branch code additions have been committed. They are **code-pr
 - [ ] **Build and device verification:** intentionally deferred until the owner asks to test. Verify compilation, Usage Access grant/revocation and empty-data handling, and Calendar app handoff on the Poco M4 Pro 4G.
 
 These changes do not modify the separate Even project.
+
+## Full implementation audit — 2026-11-19 (main-branch source review)
+
+This audit is a status correction and preservation record, not a new feature proposal. It compares the approved Priorities 8–20 and Core Values above with the current `main` source, manifest, README and latest available Actions run. Existing priorities are retained; do not create duplicate modules.
+
+### Main-branch implementation reality
+
+| Approved capability | Main-branch evidence | Honest status |
+|---|---|---|
+| JARVIS dashboard and red/black Stark-inspired theme | `MainActivity.java` uses a near-black background and red accents; animated orb/HUD is present | Code present — device/UI test needed |
+| Tap-to-speak voice and spoken response | `MainActivity.java` uses Android `SpeechRecognizer` and `TextToSpeech` | Code present — language and device test needed |
+| Hey JARVIS background listener | `WakeWordService.java` is declared as a foreground microphone service with a persistent stop notification and speech-recognition restart logic | Code present — screen-off, battery and reliability test needed; not a guaranteed always-on hotword engine |
+| Common app opening and Android settings handoffs | Voice command routing and supported Android intents are present | Partial code present — test each command on Poco |
+| Contact calling and call confirmation | Foreground/background call paths and explicit confirmation logic are present | Code present — full call/contact/permission test needed |
+| Call controls, phone events and accessibility | Service/receiver integrations are declared | Platform-dependent — owner setup and device test needed |
+| AI backend chat | README documents Render/Groq integration | Code present — live backend and phone test needed |
+| Notes, recent context, modes and briefing | Main app contains local notes/context and Command Center features | Code present — persistence/privacy/regression tests needed |
+| Screen-time overview | Main app contains UsageStats-based overview; manifest declares Usage Access | Code present — optional permission and data accuracy test needed |
+| Calendar event handoff | Tasks/reminders hub opens a calendar event draft for owner review | Code present — installed-calendar handoff test needed; not proof of saved/synced event |
+| Human Intelligence, Universal App Intelligence/Knowledge Brain, full Application Control, Communication Intelligence beyond current basic workflows, Autonomous Intelligence, AI Development/Creator Mode, Security Intelligence, scheduled research and full Auto Debug/Self-Repair | Requirements exist in Priorities 8–19; current main source reviewed here does not demonstrate complete engines for these capabilities | Planned / partial foundations only; do not mark complete |
+| Eight Core Values | Product rules are documented above; no complete scenario-test suite is evidenced in this audit | Approved principles — implementation and scenario tests pending |
+| Direct call after one JARVIS confirmation | Priority 20 code paths exist; previous CI builds succeeded | Code present — device test needed |
+
+### Current build evidence
+
+- [x] Latest inspected main-branch Actions run: **#268**, run ID `44587392143`, commit `1c5490311182fe8d6d26ff0f7a13f699746137db` — **success**.
+- [x] The run completed backend JavaScript syntax checks, Gradle setup, debug APK build and APK artifact upload.
+- [ ] This CI success does not verify installation, microphone behavior, wake-word reliability, calling, permissions, screen-time accuracy, calendar handoff or any other on-device workflow.
+- [ ] Obtain the uploaded artifact and test on the target Poco M4 Pro 4G before marking device-dependent items verified.
+
+### Documentation and branch preservation corrections
+
+- [ ] README currently describes a dark blue/cyan dashboard, but inspected `MainActivity.java` on `main` uses a black/red theme. Reconcile README wording with the actual approved UI and a target-device review; do not change the UI theme based on stale documentation.
+- [ ] Feature branches exist for the complete feature batch, model tiers/parallel workers, offline LLM bundle, owner login, background voice reliability, command reliability, device diagnostics/backup, build lambda repair and feature-preservation audit. Branch existence or README claims do not mean their code is merged into `main`.
+- [ ] Before merging any branch, compare its changed files against current `main`, preserve existing working features, inspect dependencies and secrets, and run the release workflow. Do not merge experimental offline-model assets or unverified changes blindly.
+- [ ] Owner login remains planned unless the Firebase configuration and implementation are present and tested; never commit credentials or authentication secrets.
+- [ ] Keep screen-time and calendar features as code-present until target-device tests pass. Keep FeatureKit backup/restore as branch-documented/unverified unless main source and restore behavior are confirmed.
+- [ ] Continue to track historical build failures separately from current build status. A later successful run does not erase the historical record, and a historical failure does not prove the current main build is failing.
+
+### Next implementation order — preserve all approved decisions
+
+1. Stabilize and test the existing voice/wake-word, call-confirmation, app-launch and permission flows first; these are foundations used by several higher-level modules.
+2. Bring forward only reviewed, non-duplicate feature-branch work that belongs to the approved blueprint; create a backup/checkpoint before any source changes.
+3. Implement the approved modules as separate, permission-bounded components: Human Intelligence; App Intelligence/Knowledge Brain; Application Control; Communication; Autonomous Intelligence/Personality; Security; Learning/Research; Command Center/Creator Mode; Diagnostics/Auto Debug.
+4. Add scenario-based tests for all eight Core Values and acceptance tests for each module.
+5. Build and regression-test after each coherent batch; then test on the Poco. Report passed, failed, skipped and device-pending checks separately.
+
+**Scope guard:** this audit does not authorize unrelated feature invention, does not silently merge feature branches, does not remove existing decisions, and does not modify the separate Even project.
+
