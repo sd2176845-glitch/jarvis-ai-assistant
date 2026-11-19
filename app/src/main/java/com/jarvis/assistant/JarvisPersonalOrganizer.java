@@ -50,7 +50,7 @@ public final class JarvisPersonalOrganizer {
                 .setPositiveButton("Save", (d, w) -> {
                     try {
                         double value = Double.parseDouble(amount.getText().toString().trim());
-                        if (!Double.isFinite(value) || value <= 0) throw new NumberFormatException();
+                        if ((Double.isNaN(value) || Double.isInfinite(value)) || value <= 0) throw new NumberFormatException();
                         String date = new SimpleDateFormat("yyyy-MM", Locale.US).format(new Date());
                         String line = date + "|" + money(value) + "|" + clean(category.getText().toString())
                                 + "|" + clean(note.getText().toString());
@@ -73,7 +73,7 @@ public final class JarvisPersonalOrganizer {
                 .setPositiveButton("Save", (d, w) -> {
                     try {
                         double value = Double.parseDouble(input.getText().toString().trim());
-                        if (!Double.isFinite(value) || value < 0) throw new NumberFormatException();
+                        if ((Double.isNaN(value) || Double.isInfinite(value)) || value < 0) throw new NumberFormatException();
                         prefs(c).edit().putLong("monthly_budget_bits", Double.doubleToLongBits(value)).apply();
                         showFinance(c);
                     } catch (Exception e) {
