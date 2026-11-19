@@ -459,3 +459,25 @@ This audit is a status correction and preservation record, not a new feature pro
 
 **Scope guard:** this audit does not authorize unrelated feature invention, does not silently merge feature branches, does not remove existing decisions, and does not modify the separate Even project.
 
+
+
+## Decision addition — 2026-11-20 (JARVIS Adaptive Self-Design Engine 1.0)
+
+This is an approved, separate UI-design capability. It supplements the existing Priority 6 UI/theme work; it does not replace the current dashboard, erase the red/black theme decision, or duplicate the existing UI backlog. **Planned only — not implemented or verified.**
+
+### Priority 21 — Adaptive Self-Design Engine 1.0
+
+- [ ] **UI design audit:** inspect JARVIS's own screens and identify layout issues using owner feedback and measurable usability signals such as readability, navigation clarity, accessibility and interaction consistency. JARVIS must not claim subjective feelings or consciousness; describe design trade-offs as recommendations.
+- [ ] **Alternative design generation:** propose multiple coherent alternatives for the dashboard, orb, buttons, panels, navigation, status indicators and supported themes while preserving JARVIS identity and core functions.
+- [ ] **Live preview and comparison:** show a preview and concise comparison of proposed designs before applying them. Clearly identify what changes and what remains unchanged.
+- [ ] **Owner-controlled application:** default to requiring the owner's explicit approval before applying a new design. Optionally support a separately enabled, bounded mode for reversible cosmetic adjustments only; provide clear limits, notification and an immediate pause/disable control.
+- [ ] **Design versioning and rollback:** save versioned design snapshots, retain the last-known-good layout, and provide one-step undo/restore if the owner dislikes a change or a regression is detected.
+- [ ] **Adaptive layout:** support the target Poco screen size and other tested Android display sizes, orientation and font scaling without hiding controls or breaking navigation.
+- [ ] **Accessibility and usability checks:** validate text contrast, readable typography, touch-target size, screen-reader labels, layout overflow, state visibility and performance before a design can be recommended for release.
+- [ ] **Functional regression checks:** verify that voice controls, orb/listening states, buttons, panels, settings, permissions and existing workflows still work after a UI change; revert automatically to the last-known-good design if a safe rollback condition is detected.
+- [ ] **Strict change boundary:** the engine may create and apply approved UI/layout/theme configuration changes only. It must not independently change permissions, security controls, authentication, backend behavior, stored personal data, core command logic, source code or deployment settings. Those require separate explicit authorization and developer review.
+- [ ] **No self-modifying release:** do not rewrite the installed APK or execute arbitrary code. Source-code changes must go through the normal developer workflow, backup/checkpoint, review, build, regression tests and owner-approved installation.
+- [ ] **Project boundary:** operate only on JARVIS. Never inspect or modify the separate Even project as part of self-design.
+- [ ] **Acceptance tests:** test preview cancellation, approval, cosmetic-only boundaries, rollback, font scaling, accessibility, small-screen layout, all key controls and recovery from a broken layout on the target Poco M4 Pro 4G.
+
+**Relationship to existing work:** Priority 6 remains responsible for completing the consistent red/black theme and general UI quality. Priority 21 adds the ability to assess, propose, preview, version and safely apply future UI designs. Both must be completed without losing existing features.
