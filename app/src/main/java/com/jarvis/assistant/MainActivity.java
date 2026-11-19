@@ -393,7 +393,8 @@ public class MainActivity extends Activity {
                 "Connected systems",
                 "Privacy & permissions",
                 "Screen-time overview",
-                "Cybersecurity Command Center"
+                "Cybersecurity Command Center",
+                "Digital Threat Inspector • Link / Code"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -429,6 +430,7 @@ public class MainActivity extends Activity {
                     else if (which == 16) showPrivacyOptions();
                     else if (which == 17) showScreenTimeOverview();
                     else if (which == 18) showCybersecurityCommandCenter();
+                    else if (which == 19) showDigitalThreatInspector();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -480,6 +482,86 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("Close", null)
                 .show();
+    }
+
+    /** Opens a user-invoked, static-only inspector. It never visits links or executes supplied code. */
+    private void showDigitalThreatInspector() {
+        EditText input = new EditText(this);
+        input.setHint("Paste a link or code snippet here");
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setMinLines(5);
+        input.setMaxLines(10);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Digital Threat Inspector")
+                .setMessage("Paste only the link or code you want checked. JARVIS analyses the text locally; it will not open links, download files, install APKs or run code.")
+                .setView(input)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Inspect", (dialog, which) -> {
+                    String sample = input.getText().toString().trim();
+                    if (sample.isEmpty()) {
+                        status.setText("NOTHING TO INSPECT");
+                        return;
+                    }
+                    String report = inspectUntrustedText(sample);
+                    status.setText("STATIC INSPECTION COMPLETE");
+                    new AlertDialog.Builder(this)
+                            .setTitle("JARVIS • Inspection report")
+                            .setMessage(report)
+                            .setPositiveButton("Close", null)
+                            .show();
+                }).show();
+    }
+
+    private String inspectUntrustedText(String sample) {
+        String lower = sample.toLowerCase(Locale.ROOT);
+        StringBuilder report = new StringBuilder("LOCAL STATIC TEXT REVIEW\\n\\n");
+        boolean looksLikeUrl = lower.matches("(?s).*(https?://|www\\\\.|[a-z0-9-]+\\\\.[a-z]{2,}).*")
+                && !sample.contains("\\n");
+        if (looksLikeUrl) {
+            String candidate = sample.startsWith("http://") || sample.startsWith("https://")
+                    ? sample : "https://" + sample.replaceFirst("^www\\\\.", "");
+            android.net.Uri uri = android.net.Uri.parse(candidate);
+            String host = uri.getHost();
+            report.append("TYPE: Link / URL\\n");
+            if (host == null || host.trim().isEmpty()) {
+                report.append("• URL format could not be reliably parsed.\\n");
+            } else {
+                report.append("• Host: ").append(host).append("\\n");
+                if (!"https".equalsIgnoreCase(uri.getScheme())) report.append("• Warning: link does not use HTTPS.\\n");
+                if (host.matches("[0-9.]+") || host.contains(":")) report.append("• Warning: host looks like a raw IP address.\\n");
+                if (host.toLowerCase(Locale.ROOT).contains("xn--")) report.append("• Warning: internationalized/punycode hostname; check spelling carefully.\\n");
+                if (host.split("\\\\.").length >= 4) report.append("• Caution: unusually deep subdomain structure.\\n");
+                if (lower.contains("@")) report.append("• Warning: URL contains an @ symbol; inspect the real host carefully.\\n");
+                if (lower.matches(".*(bit\\\\.ly|tinyurl\\\\.com|t\\\\.co|is\\\\\\.gd|cutt\\\\\\.ly).*")) report.append("• Caution: URL may use a link-shortening service; destination is not checked.\\n");
+                if (lower.matches(".*(login|verify|wallet|bank|otp|password|urgent|free-prize|claim).*")) report.append("• Caution: wording commonly used in deceptive messages.\\n");
+                if ("https".equalsIgnoreCase(uri.getScheme()) && !lower.contains("@")
+                        && !host.matches("[0-9.]+") && !host.toLowerCase(Locale.ROOT).contains("xn--")) {
+                    report.append("• No obvious URL red flags were detected by these basic checks.\\n");
+                }
+            }
+            report.append("\\n");
+        } else {
+            report.append("TYPE: Code / text snippet\\n");
+            String[] indicators = {
+                "runtime.getruntime", "processbuilder", "exec(", "eval(", "powershell",
+                "cmd.exe", "chmod ", "curl ", "wget ", "base64", "su -c",
+                "accessibilityservice", "requestinstallpackages"
+            };
+            boolean found = false;
+            for (String indicator : indicators) {
+                if (lower.contains(indicator)) {
+                    report.append("• Review manually: contains '").append(indicator).append("'.\\n");
+                    found = true;
+                }
+            }
+            if (!found) report.append("• No configured high-risk text patterns were found.\\n");
+            report.append("• This is pattern matching only; context matters and benign code can contain these terms.\\n\\n");
+        }
+        report.append("LIMITATIONS\\n");
+        report.append("This is a basic offline text check, not a malware scan or proof that content is safe. Links are not opened and redirects/reputation are not checked. Files and APKs are not analysed in this first version. Never run unknown code or install an unexpected APK.");
+        return report.toString();
     }
 
     private void showCalendarEventDraftDialog() {
