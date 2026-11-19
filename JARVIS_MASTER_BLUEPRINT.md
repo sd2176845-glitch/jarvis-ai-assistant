@@ -573,3 +573,42 @@ This approved module is **planned only — not implemented or verified**. Its pu
 **Autonomy rule:** “No routine approval” applies only to pre-authorized, low-risk, reversible maintenance. It does not mean unrestricted self-modification or permission to expose data, spend money, communicate externally, change security controls or make irreversible decisions. JARVIS must fail safely when uncertain.
 
 **Relationship to existing priorities:** Priority 7 remains the diagnostics and developer repair handoff; Priority 4 remains owner-controlled memory; Priority 23 remains backup/media vault and connected ecosystem. Priority 24 adds autonomous runtime maintenance and continuity without replacing those foundations. All items remain planned until implemented and tested on the target Poco M4 Pro 4G and relevant backend.
+
+## Decision addition — 2026-11-20 (Personal Intelligence Ecosystem)
+
+These owner-approved concepts extend the existing memory, diagnostics, predictive assistance, backup and UI foundations. They are **planned only** until implemented and tested. This is a blueprint decision, not a claim that phone history or private app activity is already accessible.
+
+### Priority 25 — Digital Time Machine
+- [ ] Build an owner-controlled timeline of JARVIS-known events, including JARVIS project milestones, notes, approved file metadata, backup/restore events and explicitly connected sources.
+- [ ] Track file creation/modification history only for files and storage locations Android permissions and the selected provider expose. Show source, timestamp and confidence; never imply complete visibility into all phone activity.
+- [ ] Preserve version snapshots only for owner-selected files/projects and only when storage, permission and backup destination permit it. Provide preview, restore-to-copy, version comparison and confirmation before overwriting anything.
+- [ ] Support natural-language queries such as “show the project I edited last week” using indexed metadata and approved JARVIS records.
+- [ ] Clearly distinguish an event log, a file version, a backup copy and a recoverable deleted file. A timeline alone cannot restore a permanently deleted item; recovery requires a prior independent copy or a platform-supported recovery source.
+- [ ] Provide retention limits, export, deletion, pause and per-source controls. Do not secretly record app usage, keystrokes, screen contents or other people's activity.
+
+### Priority 26 — Smart Context Awareness
+- [ ] Offer explicit context profiles such as Gaming, Driving, Meeting, Study and Quiet, with owner-editable rules and a visible current-mode indicator.
+- [ ] Use only permitted signals such as the owner's manual mode choice, connected-device state, calendar events the owner has connected, or Android-supported app/activity context where access is allowed.
+- [ ] Adapt command suggestions, notification behavior and voice verbosity to the active profile. Driving mode must minimize interaction and avoid requiring visual attention; do not encourage phone handling while driving.
+- [ ] Provide immediate manual override, pause, schedule controls and a clear explanation of which signal activated a profile.
+- [ ] Never capture meeting audio, read private screen content or infer sensitive activity without a separate, explicit action and permission. When context is uncertain, ask or remain in the default mode.
+
+### Priority 27 — Personal Knowledge Vault & Life Event Recall
+- [ ] Extend Priority 4 owner-controlled memory and Priority 22 knowledge graph into one searchable vault for owner-approved ideas, decisions, notes, project records and important events.
+- [ ] Support natural-language recall, date/topic/project filters, related-item links and queries such as “show the idea I saved last week” or “why did I choose this approach?”
+- [ ] Store provenance for each item: user-provided source, capture date, relevant project/context and whether a relationship is known or inferred. Show uncertainty and never invent a remembered event.
+- [ ] Let the owner inspect, correct, export, archive and delete individual entries; support opt-in capture and per-category retention controls.
+- [ ] Keep sensitive information out by default unless the owner explicitly chooses to save it. Respect guest mode, authentication, encryption and device-sync permissions.
+- [ ] Explain that recall is limited to information JARVIS actually saved or was explicitly connected and authorized to access; it cannot reconstruct unsaved conversations or unseen events.
+
+### Priority 28 — Smart Routine Prediction
+- [ ] Offer opt-in analysis of selected routine signals, such as owner-entered tasks, JARVIS reminder history and connected calendar events; do not silently profile all phone usage.
+- [ ] Suggest reminders and preparation steps based on recurring patterns, showing the evidence and confidence behind each suggestion.
+- [ ] Ask before creating, moving or deleting reminders/calendar events; allow dismiss, snooze, edit, disable and “don't suggest this again”.
+- [ ] Avoid sensitive or high-stakes predictions and do not treat patterns as certainty. Let the owner review and delete the routine profile at any time.
+- [ ] Keep routine inference local where practical; disclose any data sent to the backend or third-party provider before processing.
+
+**Relationship to existing priorities:** Priority 4 remains the memory, notes, tasks and secretary foundation; Priority 5 retains notification and context-related platform integrations; Priority 7 retains diagnostics; Priority 21 retains adaptive UI and smart widgets; Priority 22 retains knowledge graph, predictive assistance and explainable action history; Priority 23 retains backup, media vault and sync. Priorities 25–28 add cohesive owner-facing experiences over those foundations rather than creating duplicate stores or permission paths.
+
+**Shared acceptance tests:** verify permission denial and revocation, guest-mode isolation, no unauthorized app/screen/audio monitoring, provenance and timestamps, stale or missing records, time-zone changes, duplicate events, storage limits, backup integrity, restore-to-copy behavior, owner deletion/retention, offline search, routine false positives, manual override, driving-safe interaction and regression on the target Poco M4 Pro 4G. Mark items verified only after relevant tests on the target device; blueprint inclusion alone is not implementation.
+
