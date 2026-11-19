@@ -278,6 +278,25 @@ These decisions extend the existing Universal App Intelligence, Application Cont
 - [ ] If a test still fails, continue diagnosis or leave the issue explicitly unresolved. Never label an untested or partially tested repair successful.
 - [ ] Do not let the installed assistant autonomously rewrite its own APK, execute arbitrary shell commands, change production services or deploy code. Repairs require developer review/authorization and a controlled build/test process.
 
+
+#### Auto Repair Kit — detailed acceptance checklist
+
+The Auto Repair Kit is a controlled maintenance capability, not unrestricted self-modification. Its job is to detect, explain, prepare and verify repairs while keeping the owner in control.
+
+- [ ] **Health monitor:** provide on-demand and (when enabled) scheduled checks for app startup, permissions, foreground services, wake-word service status, speech input/output, network reachability, AI backend health, storage availability and battery-related restrictions.
+- [ ] **Failure reporting:** show the failed check, time, affected component, severity and a short plain-language explanation. Distinguish a confirmed fault from a suspected cause.
+- [ ] **Log collection:** collect only the minimum diagnostic data needed; redact API keys, tokens, passwords, phone numbers, message contents and other private data before display or export.
+- [ ] **Repair suggestions:** map known failures to documented fixes and explain the expected effect, possible side effects and required permissions before changing anything.
+- [ ] **Safe repair levels:** allow automatic, reversible low-risk housekeeping only when the owner has enabled it; require explicit approval for code/configuration edits, permission changes, account changes, data deletion, external communications, backend changes or deployments.
+- [ ] **No destructive guessing:** never delete user data, reset app state, overwrite project files, rotate credentials, disable security protections or run arbitrary commands as an unverified "fix".
+- [ ] **Checkpoint and rollback:** create a verified backup/version-control checkpoint before every approved project repair; keep the previous working version available and provide a rollback path.
+- [ ] **Isolated verification:** run the narrowest relevant tests first, then build and regression checks. Do not install or deploy a repair until its checks pass and the owner authorizes that step.
+- [ ] **Repair history:** keep an owner-visible record of the original issue, evidence, proposed change, approval, files changed, test results and rollback status, without storing secrets.
+- [ ] **Failure escalation:** if diagnosis is uncertain, tests fail, rollback is unavailable or the repair exceeds its permission boundary, stop safely and ask the owner/developer for help.
+- [ ] **Offline behavior:** provide local diagnostics that do not require internet; clearly label backend/cloud checks as unavailable rather than reporting them as passed.
+- [ ] **Project boundary:** JARVIS may inspect or repair only the selected JARVIS project by default. Any other workspace (including Even) must remain untouched unless the owner explicitly selects it for a separate task.
+
+**Completion rule:** the Auto Repair Kit is not complete merely because its blueprint exists. It must have implemented diagnostic checks, a repair proposal/approval flow, backup and rollback, redacted logs, test verification, and scenario tests covering both successful repairs and safe refusal/stop cases.
 ### Mandatory Zero-Failure Development & Verification workflow
 
 The goal is to prevent known failures and unresolved regressions from being treated as completed work. This is a strict release discipline, **not a promise that software can be guaranteed 100% failure-free**.
