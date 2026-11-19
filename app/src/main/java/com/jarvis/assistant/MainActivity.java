@@ -394,7 +394,8 @@ public class MainActivity extends Activity {
                 "Privacy & permissions",
                 "Screen-time overview",
                 "Cybersecurity Command Center",
-                "Digital Threat Inspector • Link / Code"
+                "Digital Threat Inspector • Link / Code",
+                "Background listening voice: Silent / On"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -431,7 +432,28 @@ public class MainActivity extends Activity {
                     else if (which == 17) showScreenTimeOverview();
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
+                    else if (which == 20) showBackgroundVoiceModeOptions();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showBackgroundVoiceModeOptions() {
+        boolean silent = preferences.getBoolean("silent_background_ack", true);
+        String[] options = {
+                "Silent — no repeated wake acknowledgement",
+                "Voice acknowledgement on"
+        };
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Background voice")
+                .setSingleChoiceItems(options, silent ? 0 : 1, (dialog, which) -> {
+                    boolean silentMode = which == 0;
+                    preferences.edit().putBoolean("silent_background_ack", silentMode).apply();
+                    status.setText(silentMode
+                            ? "BACKGROUND LISTENING • SILENT"
+                            : "BACKGROUND VOICE ACKNOWLEDGEMENT ON");
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private void showCybersecurityCommandCenter() {
@@ -1029,6 +1051,16 @@ public class MainActivity extends Activity {
                         preferences.edit().remove("notes").remove("jarvis_notes").apply();
                         replyAndShow(original, "Saved notes clear kar diye.");
                     }).show();
+            return;
+        }
+        if (intent.contains("silent background listening") || intent.contains("background voice silent")) {
+            preferences.edit().putBoolean("silent_background_ack", true).apply();
+            replyAndShow(original, "Silent background listening on. Main wake phrase par baar-baar acknowledgement nahi bolunga.");
+            return;
+        }
+        if (intent.contains("background voice on") || intent.contains("wake acknowledgement on")) {
+            preferences.edit().putBoolean("silent_background_ack", false).apply();
+            replyAndShow(original, "Background voice acknowledgement on.");
             return;
         }
         if (intent.contains("study mode") || intent.contains("padhai mode")) {
