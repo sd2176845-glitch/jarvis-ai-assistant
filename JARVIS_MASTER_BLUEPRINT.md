@@ -683,3 +683,22 @@ All items remain planned until implemented and relevant tests pass on the target
 - [ ] Add test cases for ordinary URLs, shortened URLs, misleading hostnames, punycode, IP-based URLs, benign code and suspicious-looking but legitimate code.
 - [ ] Preserve owner privacy: process pasted content locally by default, do not save inspection history unless the owner opts in, and never upload message contents, links or code without explicit consent.
 - [ ] Never execute pasted code, open suspicious links, download unknown files, install APKs, bypass Android protections, or test systems without authorization.
+
+
+## Decision addition — 2026-11-20 (Silent Background Listening & Voice Announcements)
+
+This approved usability change addresses repeated spoken acknowledgements during background listening. The initial code is present; build and target-device verification are still required.
+
+### Priority 32 — Silent Background Listening Mode
+- [x] Add a user-facing Command Center control for background voice acknowledgement: Silent (default) or Voice acknowledgement on. (Code present — build/device verification pending.)
+- [x] In Silent mode, do not speak the repeated “Haan Boss, bolo” acknowledgement each time the wake phrase is detected. Continue listening for the command and speak the actual command response as usual.
+- [x] Keep the persistent Android foreground-service notification visible so microphone use remains transparent; silent mode must not hide or disable the microphone-use indicator.
+- [x] Store the preference locally in JARVIS app settings and default to Silent for a less irritating experience.
+- [x] Add voice commands “silent background listening” and “background voice on” to switch the preference; the change confirmation may be spoken once when explicitly requested.
+- [ ] Verify that service start/restart, recognition errors and normal listening cycles produce no unsolicited repeated spoken announcements in Silent mode.
+- [ ] Verify that wake-word command handling, command responses, important owner-requested alerts, Stop Listening, notification visibility and microphone permission behavior continue to work.
+- [ ] Test both preference states on the target Poco M4 Pro 4G, including screen-off operation, app restart and service restart. Mark verified only after the tests pass.
+
+**Behavior boundary:** Silent mode suppresses only the routine wake acknowledgement. It does not mute responses to commands or disable safety-critical Android notifications. JARVIS must never conceal active microphone use; the foreground notification and Android microphone privacy indicators remain visible as required by the OS.
+
+**Relationship to existing priorities:** Priority 1 retains wake-word and background voice reliability; Priority 6 and Priority 29 retain voice delivery controls. Priority 32 removes repetitive acknowledgement noise without disabling listening or changing JARVIS's command logic. Do not modify the separate Even project.
