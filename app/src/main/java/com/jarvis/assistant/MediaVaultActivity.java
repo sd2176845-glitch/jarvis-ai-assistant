@@ -29,6 +29,8 @@ import java.util.Locale;
 public class MediaVaultActivity extends Activity {
     private static final int REQUEST_BACKUP = 7101;
     private static final int REQUEST_RESTORE = 7102;
+    private static final int REQUEST_EXPORT = 7103;
+    private static final int REQUEST_IMPORT = 7104;
     private static final String VAULT_DIR = "media_vault";
 
     private LinearLayout content;
@@ -64,7 +66,8 @@ public class MediaVaultActivity extends Activity {
         content.addView(explanation);
 
         addButton("BACK UP SELECTED MEDIA", v -> chooseMediaForBackup());
-        addButton("VIEW VAULT • RESTORE / DELETE", v -> showVaultItems());
+        addButton("VIEW VAULT • RESTORE / EXPORT / DELETE", v -> showVaultItems());
+        addButton("IMPORT BACKUP FROM SD CARD / CLOUD", v -> chooseBackupToImport());
 
         status = new TextView(this);
         status.setTextColor(0xFFBDB5BD);
@@ -148,15 +151,39 @@ public class MediaVaultActivity extends Activity {
             }
             Toast.makeText(this, "Backup complete: " + saved + " saved, " + failed + " failed", Toast.LENGTH_LONG).show();
             updateStatus();
-        } else if (requestCode == REQUEST_RESTORE && pendingRestore != null) {
+        } else if ((requestCode == REQUEST_RESTORE || requestCode == REQUEST_EXPORT) && pendingRestore != null) {
             try {
                 copyFileToUri(pendingRestore, data.getData());
-                Toast.makeText(this, "Restore copy completed", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, requestCode == REQUEST_EXPORT
+                        ? "Backup exported to the selected location"
+                        : "Restore copy completed", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
-                Toast.makeText(this, "Restore failed. Check available storage and try again.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, requestCode == REQUEST_EXPORT
+                        ? "Export failed. Check the destination and try again."
+                        : "Restore failed. Check available storage and try again.", Toast.LENGTH_LONG).show();
             } finally {
                 pendingRestore = null;
             }
+        } else if (requestCode == REQUEST_IMPORT) {
+            ArrayList<Uri> selected = new ArrayList<>();
+            ClipData clip = data.getClipData();
+            if (clip != null) {
+                for (int i = 0; i < clip.getItemCount(); i++) selected.add(clip.getItemAt(i).getUri());
+            } else if (data.getData() != null) {
+                selected.add(data.getData());
+            }
+            int imported = 0;
+            int failed = 0;
+            for (Uri uri : selected) {
+                try {
+                    copyUriIntoVault(uri);
+                    imported++;
+                } catch (Exception e) {
+                    failed++;
+                }
+            }
+            Toast.makeText(this, "Import complete: " + imported + " added, " + failed + " failed", Toast.LENGTH_LONG).show();
+            updateStatus();
         }
     }
 
@@ -196,6 +223,15 @@ public class MediaVaultActivity extends Activity {
         return last == null ? "media_file" : last;
     }
 
+    private void chooseBackupToImport() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*", "audio/*", "application/octet-stream"});
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(intent, REQUEST_IMPORT);
+    }
+
     private void showVaultItems() {
         File[] files = getVaultDirectory().listFiles();
         if (files == null || files.length == 0) {
@@ -215,20 +251,35 @@ public class MediaVaultActivity extends Activity {
     }
 
     private void showFileActions(File file) {
-        String[] actions = {"Restore copy to phone", "Delete vault copy"};
+        String[] actions = {"Restore copy to phone", "Export backup to SD card / cloud", "Delete vault copy"};
         new AlertDialog.Builder(this).setTitle(file.getName())
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) beginRestore(file);
+                    else if (which == 1) beginExport(file);
                     else confirmVaultDelete(file);
                 })
                 .setNegativeButton("Cancel", null).show();
     }
 
+    private void beginExport(File file) {
+        pendingRestore = file;
+        String name = originalDisplayName(file);
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType(getMimeType(name));
+        intent.putExtra(Intent.EXTRA_TITLE, name);
+        startActivityForResult(intent, REQUEST_EXPORT);
+    }
+
+    private String originalDisplayName(File file) {
+        String name = file.getName();
+        if (name.length() > 20 && name.charAt(8) == '_' && name.charAt(15) == '_') return name.substring(20);
+        return name;
+    }
+
     private void beginRestore(File file) {
         pendingRestore = file;
-        String name = file.getName();
-        // Backup names start with yyyyMMdd_HHmmss_SSS_ (20 characters including the final separator).
-        if (name.length() > 20 && name.charAt(8) == '_' && name.charAt(15) == '_') name = name.substring(20);
+        String name = originalDisplayName(file);
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType(getMimeType(name));
