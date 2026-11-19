@@ -336,3 +336,47 @@ These entries update the existing Priority 20 decision; they do not create a sec
 - [ ] This decision removes only the extra dialer confirmation after the owner's confirmation to JARVIS. It does **not** remove JARVIS's own explicit confirmation before placing a call, nor Android permission requirements or other platform safeguards.
 - [ ] Test the full flow on the target Poco M4 Pro 4G, including contact disambiguation, permission denied, clear yes/no responses, successful call launch and failure handling. Mark it verified only after the relevant device tests pass.
 
+## Audit addendum — 2026-11-19 (recorded ideas, branch-only features and build failures)
+
+### Recorded ideas cross-check
+
+The screenshot/recording concepts reviewed on 2026-11-19 have been compared against the existing blueprint. Do not create duplicate modules for ideas already represented:
+
+- [x] Human Intelligence 1.0 — covered by Priority 8.
+- [x] Universal App Intelligence and app knowledge — covered by Priorities 9 and 14.
+- [x] Universal Application/Phone Control — covered by Priorities 10 and 15.
+- [x] Communication Intelligence — covered by Priority 11.
+- [x] Autonomous Intelligence and Personality — covered by Priority 12 and Core Values & Goodwill.
+- [x] AI Development / Creator Mode — covered by Priorities 13 and 18.
+- [x] Security Intelligence — covered by Priority 16.
+- [x] Battery-conscious autonomous learning and scheduled research — covered by Priority 17.
+- [x] Command Center and Auto Debug / Self-Repair — covered by Priorities 18 and 19.
+- [x] Zero-Failure Development & Verification — covered by the Mandatory workflow above.
+
+### Additional feature ideas found in feature-branch documentation
+
+The following capabilities are described in feature-branch README documentation but are not confirmed as merged into `main`. Track them here so they are not lost or mistaken for release-ready features:
+
+- [ ] **Screen-time overview:** optional Android UsageStats-based overview, only after the owner explicitly grants Usage Access; show that results are estimates and allow permission revocation. **Branch-documented; main-branch integration and Poco device test not verified.**
+- [ ] **Calendar event handoff:** prepare an event and open the installed calendar app for owner review; do not claim the event was saved or synchronized until the calendar confirms it. **Branch-documented; main-branch integration and device test not verified.**
+- [ ] **FeatureKit settings backup/restore:** owner-selected settings backup and restore only; clearly state that this does not include notes or AI chat history. Protect encrypted values and explain that values tied to the original Android Keystore key may not be restorable on another installation/device. **Branch-documented; main-branch integration and restore test not verified.**
+- [ ] **Command Center diagnostics integration:** expose the existing Priority 7 read-only diagnostics through the Command Center, with privacy review before exporting/sharing a report. **Priority 7 already covers diagnostics; this is only a UI/integration follow-up, not a duplicate diagnostics engine.**
+- [ ] **Red/black Stark-inspired theme reconciliation:** feature-branch documentation describes a red/black dashboard, while the current main-branch README describes a blue/cyan dashboard and the earlier blueprint says the red/black refresh is partial. Audit the actual main-branch UI, choose the approved theme, and update documentation only after checking the source and target device. Do not mark the theme complete from a branch README alone.
+
+### Build failure register and resolution tracking
+
+This register records known failures so they are not silently treated as successful. A failed run is historical evidence, not proof that the current main branch is still broken.
+
+- [x] **Main-branch Java compile failure — confirmed failed runs #256, #257 and #258:** the shared reported error was in `WakeWordService.java` around line 394: a local variable referenced by a delayed lambda was not final/effectively final. The repair captures the resolved number in `final String phoneNumber` before the lambda. Fix commit: `21d44405c5d5212d94819bdee348e80e052ef3b7`. **Fix committed; later successful builds were reported, but target-phone calling still needs device verification.**
+- [ ] **Historical failure audit — remaining run IDs:** earlier conversation notes mention additional failures with the same lambda-capture cause, but the available run listing did not expose every run ID or its job log in this audit. Retrieve the complete Actions history/logs before declaring the historical failure list exhaustive. Do not invent missing run numbers.
+- [ ] **Offline LLM experiment — `feature/jarvis-offline-llm-bundle`:** this separate branch configures a large GGUF model asset download and checksum validation at build time. The earlier reported failure was that the expected offline-model asset was unavailable. Keep this experiment separate from the main online-Groq release; verify asset download, checksum, packaging size, ABI/device compatibility and runtime inference before considering it usable. The offline fallback remains **not implemented/verified on main**.
+- [x] **Later calling build checks:** the foreground and background call-confirmation changes were reported to have successful GitHub Actions APK builds (runs #261 and #262 in the project history). This verifies those CI builds only; it does not verify real calls on the Poco phone.
+- [ ] **Current release gate:** before the next APK is treated as the release candidate, run the current main-branch build and relevant regression checks, then separately test installation, wake-word behavior, call confirmation, permissions and call-state handling on the target Poco M4 Pro 4G.
+
+### Audit status rules
+
+- A feature mentioned in a screenshot, recording, README or feature branch is not automatically part of the main-branch APK.
+- A feature-branch implementation is not merged/released unless the main branch contains it.
+- A successful CI build does not prove target-device behavior; a failed historical run does not mean a later fixed main branch is still failing.
+- Keep all known failures and unresolved tests visible. Do not mark an item verified until the required test result is available.
+- Keep JARVIS separate from Even and do not modify Even during this audit.
