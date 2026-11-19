@@ -765,3 +765,10 @@ The owner approved all eight concepts from the latest idea batch for inclusion. 
 **Relationship to existing priorities:** Priority 7 remains the diagnostics foundation; Priority 22 remains the AI orchestration and simulation foundation; Priority 33 remains the modular expansion/robotics interface; Priority 34 remains the hardware compatibility and engineering intelligence foundation. Priority 35 adds future-facing simulation, coordination and physical-system architecture without replacing those foundations.
 
 All eight concepts remain planned until implemented, tested and approved for release. Keep JARVIS separate from Even; do not modify Even.
+
+
+## Implementation update — 2026-11-20
+
+- [x] Add an in-app installed TTS voice selector, plus owner-adjustable speech speed and pitch; apply the saved selection to foreground replies and the background wake-word service (code present — CI build and Poco device test required).
+- [ ] Confirm which installed TTS voices are naturally male/female on the target phone. Android TTS engines do not provide consistent gender metadata, so JARVIS lists actual installed voice names rather than guessing a gender label.
+- [ ] Verify that voice selection, speech rate and pitch persist after app restart and are shared by foreground and background speech on the Poco M4 Pro 4G.
