@@ -667,3 +667,19 @@ This owner-approved module is **planned only — not implemented or verified**. 
 **Relationship to existing priorities:** Priority 5 retains general vision/integration foundations; Priority 7 retains diagnostics and repair handoff; Priority 24 retains JARVIS runtime security anomaly response. Priority 30 adds a dedicated defensive cybersecurity workspace without duplicating those features.
 
 All items remain planned until implemented and relevant tests pass on the target Poco M4 Pro 4G and any explicitly authorized lab environment. Do not modify the separate Even project.
+
+
+### Priority 31 — JARVIS Digital Threat Inspector
+**Initial implementation status:** Basic offline text inspector is code-present; Android build and target-device testing are still required. File/APK inspection and online reputation checks remain planned.
+- [x] Add a user-invoked Digital Threat Inspector entry to the Command Center and a voice-command route.
+- [x] Allow the owner to paste a suspicious link or code/text snippet into an in-app inspection dialog.
+- [x] Perform basic local URL checks for HTTPS, raw-IP hosts, punycode, unusually deep subdomains, link-shortener indicators, URL @ symbols and suspicious message wording.
+- [x] Perform basic static text-pattern checks for selected potentially risky code constructs; show matched indicators for manual review.
+- [x] Display limitations clearly: pattern checks can produce false positives/negatives and cannot certify safety.
+- [ ] Add safe online domain reputation and redirect analysis through a reputable security service only after reviewing its privacy policy, terms, API limits and data-sharing implications. Never visit or open a submitted link automatically.
+- [ ] Add user-selected file metadata and static inspection for supported file types; do not execute files or install APKs. APK inspection must remain read-only and explain that static analysis cannot prove an APK safe.
+- [ ] Add an optional share-sheet receiver so the owner can explicitly send selected text/links to JARVIS for inspection; do not read private messages or notifications silently.
+- [ ] Add clearer risk categories (Info / Caution / High concern) with evidence and confidence limits; never label content malicious solely from a keyword match.
+- [ ] Add test cases for ordinary URLs, shortened URLs, misleading hostnames, punycode, IP-based URLs, benign code and suspicious-looking but legitimate code.
+- [ ] Preserve owner privacy: process pasted content locally by default, do not save inspection history unless the owner opts in, and never upload message contents, links or code without explicit consent.
+- [ ] Never execute pasted code, open suspicious links, download unknown files, install APKs, bypass Android protections, or test systems without authorization.
