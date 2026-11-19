@@ -392,7 +392,8 @@ public class MainActivity extends Activity {
                 "Tasks • Reminders • Alarms",
                 "Connected systems",
                 "Privacy & permissions",
-                "Screen-time overview"
+                "Screen-time overview",
+                "Cybersecurity Command Center"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -425,9 +426,60 @@ public class MainActivity extends Activity {
                     else if (which == 13) openVisionTools();
                     else if (which == 14) showTaskAndReminderHub();
                     else if (which == 15) showConnectedSystems();
-                    else if (which == 16) showScreenTimeOverview();
-                    else showPrivacyOptions();
+                    else if (which == 16) showPrivacyOptions();
+                    else if (which == 17) showScreenTimeOverview();
+                    else if (which == 18) showCybersecurityCommandCenter();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showCybersecurityCommandCenter() {
+        boolean micGranted = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        boolean contactsGranted = checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
+        boolean smsGranted = checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
+        boolean callGranted = checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+        boolean overlayAllowed = android.os.Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(this);
+        boolean debugBuild = (getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        String accessibility = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        boolean accessibilityEnabled = accessibility != null && accessibility.contains(getPackageName());
+
+        StringBuilder report = new StringBuilder("JARVIS • CYBERSECURITY COMMAND CENTER\n\n");
+        report.append("LOCAL APP SECURITY REVIEW (READ-ONLY)\n");
+        report.append(micGranted ? "• Microphone: permission granted — review whether you need it enabled.\n"
+                : "• Microphone: permission not granted.\n");
+        report.append(contactsGranted ? "• Contacts: permission granted.\n" : "• Contacts: permission not granted.\n");
+        report.append(smsGranted ? "• SMS: permission granted. Keep this enabled only if you use call/SMS announcements.\n"
+                : "• SMS: permission not granted.\n");
+        report.append(callGranted ? "• Direct calling: permission granted.\n" : "• Direct calling: permission not granted.\n");
+        report.append(overlayAllowed ? "• Display-over-other-apps: allowed. Disable it in Android settings if not needed.\n"
+                : "• Display-over-other-apps: not allowed.\n");
+        report.append(accessibilityEnabled ? "• JARVIS accessibility service: enabled. Keep enabled only while using its call-control feature.\n"
+                : "• JARVIS accessibility service: not enabled.\n");
+        report.append(debugBuild ? "• Build type: debuggable — use a release-signed build for normal use.\n"
+                : "• Build type: not marked debuggable.\n");
+        report.append("\nIMPORTANT\nThis is a basic local permission review, not a malware scan, penetration test, network scan or certification that the phone is secure. No files, accounts or networks were scanned.\n");
+        report.append("\nRECOMMENDED\n1. Install Android and app updates from trusted sources.\n");
+        report.append("2. Review app permissions and remove access you no longer need.\n");
+        report.append("3. Keep screen lock and Google Play Protect enabled.\n");
+        report.append("4. Never share OTPs, passwords or API keys.\n");
+        report.append("5. Only test systems and networks you own or are explicitly authorized to assess.");
+
+        status.setText("CYBERSECURITY REVIEW READY");
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Cybersecurity")
+                .setMessage(report.toString())
+                .setPositiveButton("Android security settings", (d, w) -> {
+                    try { startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS)); }
+                    catch (Exception e) { status.setText("OPEN ANDROID SETTINGS > SECURITY"); }
+                })
+                .setNeutralButton("App permissions", (d, w) -> {
+                    try {
+                        startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName())));
+                    } catch (Exception e) { status.setText("OPEN JARVIS APP INFO IN SETTINGS"); }
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private void showCalendarEventDraftDialog() {
@@ -954,6 +1006,12 @@ public class MainActivity extends Activity {
             showSosOptions();
             return;
         }
+        if (intent.contains("cybersecurity") || intent.contains("cyber security")
+                || intent.contains("security command center") || intent.contains("phone security check")) {
+            showCybersecurityCommandCenter();
+            return;
+        }
+
         if (intent.contains("help commands") || intent.equals("what can you do") || intent.contains("commands list")) {
             replyAndShow(original, "I can open apps and settings, tell time and battery, set alarms, search the web, save local notes with remember that, read notes with what do you remember, change calm or energetic voice mode, and open SOS options.");
             return;
