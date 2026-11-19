@@ -349,10 +349,7 @@ public class MainActivity extends Activity {
                         startActivity(alarm);
                     } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
                 })
-                .setNegativeButton("Calendar", (d, w) -> {
-                    try { startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)); }
-                    catch (Exception e) { status.setText("CALENDAR APP NOT AVAILABLE"); }
-                }).show();
+                .setNegativeButton("New event", (d, w) -> showCalendarEventDraftDialog()).show();
     }
 
     private void showConnectedSystems() {
@@ -431,6 +428,54 @@ public class MainActivity extends Activity {
                     else if (which == 16) showScreenTimeOverview();
                     else showPrivacyOptions();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showCalendarEventDraftDialog() {
+        EditText titleInput = new EditText(this);
+        titleInput.setHint("Event title");
+        titleInput.setSingleLine(true);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Calendar event")
+                .setMessage("JARVIS will prepare an event draft and open your calendar app. Review it there and save it yourself.")
+                .setView(titleInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Choose date & time", (dialog, which) -> {
+                    String eventTitle = titleInput.getText().toString().trim();
+                    if (eventTitle.isEmpty()) {
+                        status.setText("EVENT TITLE REQUIRED");
+                        return;
+                    }
+                    java.util.Calendar chosen = java.util.Calendar.getInstance();
+                    chosen.add(java.util.Calendar.HOUR_OF_DAY, 1);
+                    new android.app.DatePickerDialog(this, (dateView, year, month, day) -> {
+                        chosen.set(java.util.Calendar.YEAR, year);
+                        chosen.set(java.util.Calendar.MONTH, month);
+                        chosen.set(java.util.Calendar.DAY_OF_MONTH, day);
+                        new android.app.TimePickerDialog(this, (timeView, hour, minute) -> {
+                            chosen.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                            chosen.set(java.util.Calendar.MINUTE, minute);
+                            chosen.set(java.util.Calendar.SECOND, 0);
+                            chosen.set(java.util.Calendar.MILLISECOND, 0);
+                            long begin = chosen.getTimeInMillis();
+                            long finish = begin + 60L * 60L * 1000L;
+                            Intent insert = new Intent(Intent.ACTION_INSERT,
+                                    android.provider.CalendarContract.Events.CONTENT_URI);
+                            insert.putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin);
+                            insert.putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, finish);
+                            insert.putExtra(android.provider.CalendarContract.Events.TITLE, eventTitle);
+                            insert.putExtra(android.provider.CalendarContract.Events.DESCRIPTION,
+                                    "Prepared by JARVIS. Please review before saving.");
+                            try {
+                                startActivity(insert);
+                                status.setText("CALENDAR DRAFT OPENED • REVIEW BEFORE SAVE");
+                            } catch (Exception e) {
+                                status.setText("NO COMPATIBLE CALENDAR APP FOUND");
+                            }
+                        }, chosen.get(java.util.Calendar.HOUR_OF_DAY),
+                                chosen.get(java.util.Calendar.MINUTE), false).show();
+                    }, chosen.get(java.util.Calendar.YEAR),
+                            chosen.get(java.util.Calendar.MONTH),
+                            chosen.get(java.util.Calendar.DAY_OF_MONTH)).show();
+                }).show();
     }
 
     private void showScreenTimeOverview() {
