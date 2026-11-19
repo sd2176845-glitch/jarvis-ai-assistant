@@ -545,3 +545,20 @@ This approved expansion adds capabilities beyond UI design and core intelligence
 **Important media-retention clarification:** JARVIS cannot recover a photo, video or song after it has been permanently deleted unless a separate copy was successfully backed up beforehand. The intended protection is a verified, independent backup made before deletion—not magical recovery from the phone. Android storage permissions, available space, cloud-account limits, network access and copyright rules apply. These capabilities remain planned until implemented and tested.
 
 **Relationship to existing priorities:** Priority 4 remains the owner-controlled memory/secretary foundation; Priority 5 retains vision and smart-home foundations; Priority 6 retains modular integration/UI quality; Priority 7 retains diagnostics; Priority 22 coordinates intelligence/orchestration. Priority 23 adds broader device, communication, backup, media, synchronization and extension capabilities without replacing or duplicating those foundations. Keep all items planned until implementation and relevant tests are evidenced.
+
+## Implementation update — 2026-11-20 (Personal Media Vault first code batch)
+
+The first local Android implementation for Priority 23's Personal Media Vault has been added on the feature branch `feature/personal-media-vault-restore`. It is **code present — build and target-device verification pending**, and is not yet merged into `main`.
+
+- [x] Add a private JARVIS Media Vault screen reachable from Command Center.
+- [x] Let the owner explicitly select image, video and audio files through Android's Storage Access Framework and copy them into JARVIS app-private storage. No automatic gallery scan or broad storage permission is used.
+- [x] List stored vault copies and show file sizes.
+- [x] Restore a selected vault copy to a user-chosen phone/storage destination.
+- [x] Export a vault copy through the system document picker to an owner-selected destination, which may include a supported SD-card or cloud-storage document provider.
+- [x] Import previously exported media copies back into the vault through the system document picker.
+- [x] Delete only a selected vault copy after a separate confirmation; this does not delete the phone original.
+- [ ] Build/CI verification and manual testing on the Poco M4 Pro 4G, including multi-select, large files, cancellation, low storage, SD-card/cloud provider behavior, restore correctness and deletion boundaries.
+
+**Limitations:** this first version stores the working vault copy in JARVIS app-private storage. It is not yet encrypted with an application-managed encryption layer, does not provide background/automatic sync, resumable transfers, checksummed manifests or guaranteed cloud backup. The owner should export important copies to a separate trusted destination; uninstalling JARVIS, clearing app data or losing the phone can remove the local vault. Do not delete the original until a separate export has completed and been checked. This is not yet marked verified.
+
+**Branch / review:** [Pull request #11](https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/11). The implementation is not part of the main-branch APK until reviewed and merged.

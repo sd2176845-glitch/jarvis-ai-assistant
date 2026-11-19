@@ -392,7 +392,8 @@ public class MainActivity extends Activity {
                 "Tasks • Reminders • Alarms",
                 "Connected systems",
                 "Privacy & permissions",
-                "Screen-time overview"
+                "Screen-time overview",
+                "Personal Media Vault • Backup & Restore"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -425,8 +426,9 @@ public class MainActivity extends Activity {
                     else if (which == 13) openVisionTools();
                     else if (which == 14) showTaskAndReminderHub();
                     else if (which == 15) showConnectedSystems();
-                    else if (which == 16) showScreenTimeOverview();
-                    else showPrivacyOptions();
+                    else if (which == 16) showPrivacyOptions();
+                    else if (which == 17) showScreenTimeOverview();
+                    else if (which == 18) startActivity(new Intent(MainActivity.this, MediaVaultActivity.class));
                 }).setNegativeButton("Close", null).show();
     }
 
