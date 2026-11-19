@@ -480,4 +480,19 @@ This is an approved, separate UI-design capability. It supplements the existing 
 - [ ] **Project boundary:** operate only on JARVIS. Never inspect or modify the separate Even project as part of self-design.
 - [ ] **Acceptance tests:** test preview cancellation, approval, cosmetic-only boundaries, rollback, font scaling, accessibility, small-screen layout, all key controls and recovery from a broken layout on the target Poco M4 Pro 4G.
 
+
+
+### Priority 21 expansion — Context, voice, gestures, widgets and visual intelligence (2026-11-20)
+
+These are additional capabilities within Priority 21, not a new priority and not duplicates of the original self-design requirements. **Planned only — not implemented or verified.**
+
+- [ ] **Context-aware UI:** adapt the visible dashboard emphasis to the active owner-selected or reliably detected context (Gaming, Study, Calling or Normal). Prioritize relevant controls without unexpectedly removing essential navigation, emergency access, stop/pause controls or privacy indicators. Make context changes visible and allow manual override.
+- [ ] **Voice-controlled design proposals:** understand owner requests such as “make the dashboard more futuristic” and translate them into one or more cosmetic design proposals. Show a preview and require owner approval before applying; voice recognition alone is not approval for a consequential change.
+- [ ] **Gesture-based interface:** provide discoverable, configurable swipe, tap and long-press interactions for supported panels and controls. Include visible alternatives for every essential gesture, avoid gesture conflicts with Android system navigation, and provide accessibility-friendly controls.
+- [ ] **Smart widget system:** support owner-selectable, movable/resizable dashboard widgets for supported information such as battery, weather, calendar, notes and shortcuts. Each widget must declare its data source, freshness/last-updated state, required permissions and offline behavior. Keep private notes/calendar details hidden in guest mode and do not expose sensitive content on a lock screen by default.
+- [ ] **Personalized dashboard profiles:** allow the owner to create, rename, select and restore profiles such as Gaming HUD, Daily Assistant and Minimal Mode. Store profile layout/preferences separately, preserve a safe default profile, and never let a profile weaken permissions, authentication, privacy or security settings.
+- [ ] **Visual error detection:** detect measurable UI defects such as clipped text, overlapping controls, off-screen panels, inaccessible touch targets and layout overflow using supported Android layout/accessibility diagnostics and owner-submitted screenshots where appropriate. Explain the evidence and propose a fix; do not silently capture other apps or the screen.
+- [ ] **Dynamic information display:** prioritize information relevant to the current task and allow nonessential panels/widgets to collapse or temporarily hide. Keep important status, privacy, listening and safety controls discoverable; provide a simple way to reveal hidden panels and reset the layout.
+- [ ] **Context and profile acceptance tests:** verify mode switching, manual override, voice proposal cancellation/approval, gesture discoverability, widget permission denial/offline states, guest-mode privacy, profile restore, visual-defect detection accuracy and access to essential controls on the target device.
+
 **Relationship to existing work:** Priority 6 remains responsible for completing the consistent red/black theme and general UI quality. Priority 21 adds the ability to assess, propose, preview, version and safely apply future UI designs. Both must be completed without losing existing features.
