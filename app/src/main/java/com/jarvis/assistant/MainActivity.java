@@ -1116,15 +1116,32 @@ public class MainActivity extends Activity {
     }
 
     private void requestOrPlaceCall(String number, String name) {
-        if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            pendingDirectCallNumber = number;
-            pendingDirectCallName = name;
-            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PERMISSION_REQUEST);
-            status.setText("PHONE PERMISSION NEEDED");
-            speak("Phone permission allow karo. Uske baad requested call start hogi.");
+        if (number == null || number.trim().isEmpty()) {
+            status.setText("CONTACT NUMBER NOT AVAILABLE");
+            speak("Contact ka number nahi mila. Call nahi ki gayi.");
             return;
         }
-        placeDirectCall(number, name);
+        String displayName = (name == null || name.trim().isEmpty()) ? "this contact" : name.trim();
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Confirm call")
+                .setMessage(displayName + " ko call karna hai?")
+                .setNegativeButton("No, cancel", (dialog, which) -> {
+                    pendingDirectCallNumber = null;
+                    pendingDirectCallName = null;
+                    status.setText("CALL CANCELLED");
+                    speak("Theek hai. Call cancel kar di.");
+                })
+                .setPositiveButton("Yes, call", (dialog, which) -> {
+                    if (checkSelfPermission(Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                        pendingDirectCallNumber = number;
+                        pendingDirectCallName = name;
+                        requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, CALL_PERMISSION_REQUEST);
+                        status.setText("PHONE PERMISSION NEEDED");
+                        speak("Phone permission allow karo. Confirmation mil chuki hai.");
+                    } else {
+                        placeDirectCall(number, name);
+                    }
+                }).show();
     }
 
     private void placeDirectCall(String number, String name) {
