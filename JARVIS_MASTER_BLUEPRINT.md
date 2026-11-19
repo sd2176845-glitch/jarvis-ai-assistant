@@ -315,3 +315,14 @@ These eight values are approved foundational product requirements for JARVIS. Th
 - [ ] Never use loyalty or independence as justification to bypass owner consent, Android permissions, app protections, privacy safeguards or applicable safety boundaries.
 - [ ] Keep these values as JARVIS product principles; do not modify or merge the separate Even project.
 
+## Decision addition — 2026-11-19 (Calling confirmation and direct execution)
+
+### Priority 20 — Direct Call Execution After JARVIS Confirmation
+
+- [ ] When the owner asks JARVIS to call a contact, JARVIS must identify and resolve the intended contact, then ask for one clear confirmation inside JARVIS before placing the call.
+- [ ] After the owner clearly confirms (for example, says “yes”), JARVIS should place the call directly through the supported Android call API when the required permission is granted. Do not open the dialer merely to ask for a second, duplicate confirmation.
+- [ ] If the contact is ambiguous, the number is unavailable, permission is missing, or the owner has not clearly confirmed, do not place the call; explain the issue and ask only for the missing clarification or permission.
+- [ ] Keep a visible, user-accessible way to end the call, and handle call-state/permission/API failures honestly.
+- [ ] This decision removes only the extra dialer confirmation after the owner's confirmation to JARVIS. It does **not** remove JARVIS's own explicit confirmation before placing a call, nor Android permission requirements or other platform safeguards.
+- [ ] Test the full flow on the target Poco M4 Pro 4G, including contact disambiguation, permission denied, clear yes/no responses, successful call launch and failure handling. Mark it verified only after the relevant device tests pass.
+
