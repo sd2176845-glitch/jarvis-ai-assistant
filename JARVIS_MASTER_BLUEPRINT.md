@@ -317,6 +317,16 @@ These eight values are approved foundational product requirements for JARVIS. Th
 
 ## Decision addition — 2026-11-19 (Calling confirmation and direct execution)
 
+## Implementation status update — 2026-11-19
+
+The following call-confirmation code changes have been committed to `main`, and both GitHub Actions APK build runs completed successfully:
+
+- [x] Foreground call flow now asks for explicit JARVIS confirmation before requesting/using the direct-call path (commit `79c35e44eb0278a076c2ef2667b026e0d5c2c52f`; CI build successful). **Code present — device test needed.**
+- [x] Background voice-call flow now asks for spoken yes/no confirmation, cancels on no or timeout, and blocks the call when the required permission is missing (commit `087ed551af235b428d5a1ef8fcaec7cd40fdc24d`; CI build successful). **Code present — device test needed.**
+- [ ] Verify both foreground and background confirmation flows on the target Poco M4 Pro 4G, including contact resolution, yes/no recognition, timeout, permission-denied behavior and call-state/failure handling. Do not mark Priority 20 verified until these device tests pass.
+
+These entries update the existing Priority 20 decision; they do not create a second calling feature or duplicate Priority 20. A successful CI build confirms compilation/build workflow only, not successful calling on the phone.
+
 ### Priority 20 — Direct Call Execution After JARVIS Confirmation
 
 - [ ] When the owner asks JARVIS to call a contact, JARVIS must identify and resolve the intended contact, then ask for one clear confirmation inside JARVIS before placing the call.
