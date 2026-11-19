@@ -27,6 +27,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.app.AppOpsManager;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
+import android.content.Context;
+import android.provider.Settings;
 import android.graphics.Color;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -389,7 +394,8 @@ public class MainActivity extends Activity {
                 "Vision tools",
                 "Tasks • Reminders • Alarms",
                 "Connected systems",
-                "Privacy & permissions"
+                "Privacy & permissions",
+                "Screen-time overview"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -422,8 +428,84 @@ public class MainActivity extends Activity {
                     else if (which == 13) openVisionTools();
                     else if (which == 14) showTaskAndReminderHub();
                     else if (which == 15) showConnectedSystems();
+                    else if (which == 16) showScreenTimeOverview();
                     else showPrivacyOptions();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private void showScreenTimeOverview() {
+        AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), getPackageName());
+        if (mode != AppOpsManager.MODE_ALLOWED) {
+            new AlertDialog.Builder(this)
+                    .setTitle("JARVIS • Screen-time access")
+                    .setMessage("To show an estimated screen-time overview, Android requires you to grant Usage Access manually. JARVIS only reads usage summaries on this device. You can revoke access any time in Settings.")
+                    .setNegativeButton("Not now", null)
+                    .setPositiveButton("Open Usage Access", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)); }
+                        catch (Exception e) { status.setText("OPEN SETTINGS > SPECIAL APP ACCESS > USAGE ACCESS"); }
+                    }).show();
+            return;
+        }
+
+        UsageStatsManager manager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+        if (manager == null) {
+            status.setText("SCREEN-TIME DATA UNAVAILABLE");
+            return;
+        }
+        long end = System.currentTimeMillis();
+        long start = end - 24L * 60L * 60L * 1000L;
+        java.util.List<UsageStats> stats = manager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY, start, end);
+        if (stats == null || stats.isEmpty()) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Screen-time")
+                    .setMessage("Android has not provided usage data yet. Use the phone normally and check again later.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+
+        long total = 0L;
+        java.util.Map<String, Long> byApp = new java.util.HashMap<>();
+        for (UsageStats item : stats) {
+            long duration = item.getTotalTimeInForeground();
+            if (duration <= 0L) continue;
+            total += duration;
+            String packageName = item.getPackageName();
+            Long previous = byApp.get(packageName);
+            byApp.put(packageName, (previous == null ? 0L : previous) + duration);
+        }
+        java.util.List<java.util.Map.Entry<String, Long>> ranked =
+                new java.util.ArrayList<>(byApp.entrySet());
+        java.util.Collections.sort(ranked, (a, b) -> Long.compare(b.getValue(), a.getValue()));
+
+        StringBuilder report = new StringBuilder("Estimated foreground app usage • last 24 hours\n");
+        report.append("Total recorded app time: ").append(formatUsageDuration(total)).append("\n\n");
+        int shown = 0;
+        for (java.util.Map.Entry<String, Long> entry : ranked) {
+            if (shown++ == 5) break;
+            String appLabel = entry.getKey();
+            try {
+                appLabel = getPackageManager().getApplicationLabel(
+                        getPackageManager().getApplicationInfo(entry.getKey(), 0)).toString();
+            } catch (Exception ignored) { }
+            report.append(appLabel).append(" — ")
+                    .append(formatUsageDuration(entry.getValue())).append("\n");
+        }
+        report.append("\nThese are Android usage estimates, not an exact measure of active attention. JARVIS does not upload this report.");
+        transcript.setText("JARVIS • SCREEN-TIME\n\n" + report);
+        status.setText("SCREEN-TIME OVERVIEW READY");
+        new AlertDialog.Builder(this).setTitle("JARVIS • Screen-time")
+                .setMessage(report.toString())
+                .setPositiveButton("Refresh", (d, w) -> showScreenTimeOverview())
+                .setNegativeButton("Close", null).show();
+    }
+
+    private String formatUsageDuration(long millis) {
+        long minutes = millis / 60000L;
+        long hours = minutes / 60L;
+        long remainder = minutes % 60L;
+        return hours > 0 ? hours + " hr " + remainder + " min" : remainder + " min";
     }
 
     private String getSavedNotes() {
