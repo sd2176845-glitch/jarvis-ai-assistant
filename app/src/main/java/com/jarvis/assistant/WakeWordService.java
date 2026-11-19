@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.provider.AlarmClock;
@@ -203,7 +204,9 @@ public class WakeWordService extends Service {
                 awaitingCommand = true;
                 handler.removeCallbacks(commandTimeout);
                 handler.postDelayed(commandTimeout, 8000);
-                say("Haan Boss, bolo.");
+                if (!isSilentBackgroundAcknowledgementEnabled()) {
+                    say("Haan Boss, bolo.");
+                }
                 return;
             }
         } else if (awaitingCallConfirmation || awaitingCommand) {
@@ -445,6 +448,11 @@ public class WakeWordService extends Service {
         pendingCallNumber = null;
         pendingCallName = null;
         handler.removeCallbacks(callConfirmationTimeout);
+    }
+
+    private boolean isSilentBackgroundAcknowledgementEnabled() {
+        SharedPreferences prefs = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        return prefs.getBoolean("silent_background_ack", true);
     }
 
     private void say(String text) {
