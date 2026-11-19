@@ -639,3 +639,28 @@ This approved voice plan supplements the existing basic speech recognition and T
 
 All items remain planned until implemented and relevant automated/device tests pass. Do not modify the separate Even project.
 
+## Decision addition — 2026-11-20 (Cybersecurity Command Center)
+
+This owner-approved module is **planned only — not implemented or verified**. Its purpose is to make JARVIS a defensive cybersecurity learning, monitoring and authorized-testing assistant. It must never be designed as an unrestricted tool for breaking into other people's computers, accounts, networks or devices.
+
+### Priority 30 — Cybersecurity Command Center
+
+- [ ] **Security dashboard:** provide a clear overview of the owner's JARVIS device and explicitly connected systems, including security status, recent alerts, scan history and unresolved findings.
+- [ ] **Owner-device security check:** inspect only Android-supported security posture signals and JARVIS app configuration, such as app permissions, outdated components where detectable, unsafe configuration indicators and available storage/network status. Explain platform limitations and do not claim access to hidden Android diagnostics.
+- [ ] **Authorized network inventory:** discover and describe devices on a network only after the owner explicitly starts a scan and confirms they own or administer that network. Show scope, timestamp and limitations; do not attempt login, exploitation or disruption.
+- [ ] **Defensive network analyzer:** explain basic network configuration and identify defensive warning signs using read-only, non-disruptive checks. Do not capture message contents, credentials or unrelated users' traffic.
+- [ ] **Vulnerability assessment:** assess only systems the owner owns or has explicit, documented permission to test. Begin with safe, non-invasive checks; clearly state scope, evidence, severity, confidence and remediation guidance. No stealth, persistence, credential theft, destructive payloads or evasion features.
+- [ ] **Isolated cyber learning lab:** provide beginner-friendly explanations, guided exercises and safe demonstrations in deliberately vulnerable local labs or simulations that are isolated from real third-party systems.
+- [ ] **Secure coding assistant:** review owner-provided code for common security weaknesses, explain the risk and suggest defensive fixes; do not generate malware, credential stealers or unauthorized access tooling.
+- [ ] **Digital forensics helper:** help the owner examine files, logs and security events that they explicitly select and are authorized to access. Preserve original evidence, record timestamps and hashes where appropriate, and avoid altering source evidence.
+- [ ] **Threat and incident alerts:** identify suspicious events from approved JARVIS/device security signals, explain why an alert was raised, and recommend safe containment steps that preserve owner control.
+- [ ] **Remediation guidance:** prioritize fixes, explain them in plain Hindi/Hinglish or English, and require owner confirmation before changing settings, permissions, firewall/network configuration or deleting/quarantining files.
+- [ ] **Permission and scope gate:** before every assessment, display the target, allowed actions, exclusions and expected impact. Require explicit owner confirmation that the target is owned or authorized; stop if authorization or scope is unclear.
+- [ ] **Privacy and audit trail:** keep scans opt-in, minimize collected data, redact secrets and personal information, store reports locally by default, and let the owner review/export/delete reports.
+- [ ] **Acceptance tests:** verify that scans cannot start without explicit scope confirmation; unauthorized targets are refused; checks remain non-disruptive; no credentials or private traffic are collected; findings include evidence and uncertainty; remediation requires confirmation; lab exercises remain isolated; permission denial and offline behavior fail safely; and normal JARVIS features continue working.
+
+**Hard boundary:** The Cybersecurity Command Center is for defense, education, auditing and explicitly authorized testing only. It must not include unauthorized computer/network access, password attacks, malware, stealth, persistence, data exfiltration, surveillance or bypassing security controls.
+
+**Relationship to existing priorities:** Priority 5 retains general vision/integration foundations; Priority 7 retains diagnostics and repair handoff; Priority 24 retains JARVIS runtime security anomaly response. Priority 30 adds a dedicated defensive cybersecurity workspace without duplicating those features.
+
+All items remain planned until implemented and relevant tests pass on the target Poco M4 Pro 4G and any explicitly authorized lab environment. Do not modify the separate Even project.
