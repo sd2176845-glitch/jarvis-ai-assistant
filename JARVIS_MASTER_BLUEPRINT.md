@@ -772,3 +772,12 @@ All eight concepts remain planned until implemented, tested and approved for rel
 - [x] Add an in-app installed TTS voice selector, plus owner-adjustable speech speed and pitch; apply the saved selection to foreground replies and the background wake-word service (code present — CI build and Poco device test required).
 - [ ] Confirm which installed TTS voices are naturally male/female on the target phone. Android TTS engines do not provide consistent gender metadata, so JARVIS lists actual installed voice names rather than guessing a gender label.
 - [ ] Verify that voice selection, speech rate and pitch persist after app restart and are shared by foreground and background speech on the Poco M4 Pro 4G.
+
+## Implementation update — 2026-11-20 (personal finance and goals modules)
+
+The following features have now been added to the Android app source on branch `feature/voice-profile-controls` and connected to the Command Center:
+
+- [x] **Personal Finance Organizer — code added:** owner-entered expense records, current-month spending summary, optional monthly budget and remaining-budget calculation. Data is stored locally in app preferences. No bank credentials, bank connection, transfers or payments are supported.
+- [x] **Goals & Milestones — code added:** create owner-entered goals with optional target dates, view them and toggle their open/done status. Data is stored locally on the phone.
+- [ ] **Verification pending:** GitHub Actions APK build was triggered for the integration commit. Do not mark either feature build-verified until that run succeeds; both still need target Poco M4 Pro 4G UI, persistence and input-validation tests.
+- [ ] **Scope reminder:** this is one implementation batch, not completion of every missing Priority 1–29 capability. Continue with the remaining non-duplicate planned modules in reviewed batches; preserve the existing features and keep JARVIS separate from Even.
