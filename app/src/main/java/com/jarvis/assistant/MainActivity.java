@@ -419,7 +419,7 @@ public class MainActivity extends Activity {
                                 .setMessage("This clears recent conversation memory stored on this phone. Your notes are kept.")
                                 .setNegativeButton("Cancel", null)
                                 .setPositiveButton("Clear", (d, w) -> {
-                                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().clear().apply();
+                                    getSharedPreferences(JarvisSessionManager.isOwner(MainActivity.this) ? "jarvis_ai_memory_owner" : "jarvis_ai_memory_guest", MODE_PRIVATE).edit().clear().apply();
                                     status.setText("AI MEMORY CLEARED");
                                     transcript.setText("JARVIS memory cleared.");
                                 }).show();
@@ -436,7 +436,6 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
-                    else if (which == 22) showOwnerSessionOptions();
                     else if (which == 22) showOwnerSessionOptions();
                 }).setNegativeButton("Close", null).show();
     }
@@ -762,6 +761,14 @@ public class MainActivity extends Activity {
         if (voiceNotes.isEmpty()) return panelNotes;
         if (panelNotes.isEmpty() || panelNotes.equals(voiceNotes)) return voiceNotes;
         return voiceNotes + "\n" + panelNotes;
+    }
+
+    private boolean requireOwner(String feature) {
+        if (JarvisSessionManager.isOwner(this)) return true;
+        status.setText("OWNER ACCESS REQUIRED");
+        transcript.setText("JARVIS: " + feature + " is private. Unlock Owner session from Command Center.");
+        speak("Owner access required. Please unlock the owner session.");
+        return false;
     }
 
     private void showNotesDialog() {
