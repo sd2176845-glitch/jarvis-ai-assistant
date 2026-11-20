@@ -557,16 +557,39 @@ public class MainActivity extends Activity {
         String report = JarvisRepairKit.diagnose(this, tts != null);
         new AlertDialog.Builder(this).setTitle("JARVIS • Auto Repair Kit")
                 .setMessage(report)
-                .setNeutralButton("App settings", (d, w) -> {
-                    try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            android.net.Uri.parse("package:" + getPackageName()))); }
-                    catch (Exception e) { status.setText("APP SETTINGS COULD NOT OPEN"); }
-                })
-                .setPositiveButton("Accessibility settings", (d, w) -> {
-                    try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
-                    catch (Exception e) { status.setText("ACCESSIBILITY SETTINGS COULD NOT OPEN"); }
-                })
+                .setPositiveButton("Repair options", (d, w) -> showRepairActions())
                 .setNegativeButton("Close", null).show();
+    }
+
+    private void showRepairActions() {
+        String[] actions = {"Repair voice profile (backup first)", "Rollback last voice repair",
+                "Open app settings", "Open accessibility settings"};
+        new AlertDialog.Builder(this).setTitle("Choose a repair action")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) {
+                        if (!requireOwner("Repairing JARVIS settings")) return;
+                        new AlertDialog.Builder(this).setTitle("Repair voice settings?")
+                                .setMessage("JARVIS will back up the current voice profile before correcting invalid values.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Repair", (rd, rw) -> {
+                                    boolean ok = JarvisRepairKit.repairVoicePreferences(this);
+                                    if (ok && tts != null) JarvisVoiceEngine.apply(tts, preferences);
+                                    status.setText(ok ? "VOICE PROFILE REPAIRED • BACKUP SAVED" : "VOICE REPAIR FAILED");
+                                }).show();
+                    } else if (which == 1) {
+                        if (!requireOwner("Rolling back JARVIS settings")) return;
+                        boolean ok = JarvisRepairKit.rollbackVoiceRepair(this);
+                        if (ok && tts != null) JarvisVoiceEngine.apply(tts, preferences);
+                        status.setText(ok ? "VOICE REPAIR ROLLED BACK" : "NO REPAIR BACKUP FOUND");
+                    } else if (which == 2) {
+                        try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception e) { status.setText("APP SETTINGS COULD NOT OPEN"); }
+                    } else {
+                        try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+                        catch (Exception e) { status.setText("ACCESSIBILITY SETTINGS COULD NOT OPEN"); }
+                    }
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showCreatorStudio() {
