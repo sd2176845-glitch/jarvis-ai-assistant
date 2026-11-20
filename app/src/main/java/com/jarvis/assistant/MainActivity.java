@@ -399,7 +399,8 @@ public class MainActivity extends Activity {
                 "Voice settings • Male / Female / Language / Speed / Pitch",
                 "Owner / Guest Mode",
                 "Autonomous Engine • Local reminders",
-                "Scheduled Learning • Topic review"
+                "Scheduled Learning • Topic review",
+                "Personal Media Vault • Backup / Restore"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -441,6 +442,12 @@ public class MainActivity extends Activity {
                     else if (which == 22) showOwnerSessionOptions();
                     else if (which == 23) showScheduledReminderDialog(false);
                     else if (which == 24) showScheduledReminderDialog(true);
+                    else if (which == 25) {
+                        if (requireOwner("Personal Media Vault")) {
+                            try { startActivity(new Intent(this, MediaVaultActivity.class)); }
+                            catch (Exception e) { status.setText("MEDIA VAULT COULD NOT OPEN"); }
+                        }
+                    }
                 }).setNegativeButton("Close", null).show();
     }
 
