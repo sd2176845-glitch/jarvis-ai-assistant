@@ -37,7 +37,8 @@ jobs:
           key: jarvis-debug-signing-key-v1
       - name: Build debug APK
         run: gradle assembleDebug
-      - name: Upload APK
+      - name: Upload final APK only
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: jarvis-debug-apk
