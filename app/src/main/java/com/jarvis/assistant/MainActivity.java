@@ -1701,9 +1701,11 @@ public class MainActivity extends Activity {
 
     private void speak(String text) {
         if (tts != null) {
+            JarvisVoiceEngine.apply(tts, preferences);
             String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
+            float configuredRate = preferences == null ? 0.92f : preferences.getFloat("voice_rate", 0.92f);
+            float multiplier = "calm".equals(style) ? 0.90f : ("energetic".equals(style) ? 1.08f : 1.0f);
+            tts.setSpeechRate(Math.max(0.65f, Math.min(1.35f, configuredRate * multiplier)));
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
         }
     }
