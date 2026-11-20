@@ -473,7 +473,7 @@ public class MainActivity extends Activity {
                 .setView(pin).setNegativeButton("Cancel", null)
                 .setPositiveButton(create ? "Save PIN" : "Unlock", (d, w) -> {
                     char[] value = pin.getText().toString().toCharArray();
-                    boolean ok = create ? setOwnerPinSafely(value)
+                    boolean ok = create ? JarvisSessionManager.setOwnerPin(this, value)
                             : JarvisSessionManager.unlockOwner(this, value);
                     java.util.Arrays.fill(value, (char) 0);
                     status.setText(ok ? "OWNER SESSION UNLOCKED" : "OWNER PIN INVALID • GUEST MODE");
@@ -482,15 +482,6 @@ public class MainActivity extends Activity {
                 }).show();
     }
 
-
-    private boolean setOwnerPinSafely(char[] pin) {
-        try {
-            JarvisSessionManager.setOwnerPin(this, pin);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
 
     private void showBackgroundVoiceModeOptions() {
         boolean silent = preferences.getBoolean("silent_background_ack", true);
