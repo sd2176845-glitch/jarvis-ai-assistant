@@ -40,6 +40,12 @@ public class MediaVaultActivity extends Activity {
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
+        if (!JarvisSessionManager.isOwner(this)) {
+            new AlertDialog.Builder(this).setTitle("Owner Mode required")
+                    .setMessage("Unlock JARVIS Owner Mode before opening the private media vault.")
+                    .setPositiveButton("OK", (dialog, which) -> finish()).show();
+            return;
+        }
         getWindow().setStatusBarColor(0xFF080509);
         getWindow().setNavigationBarColor(0xFF080509);
 
