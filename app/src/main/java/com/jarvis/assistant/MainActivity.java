@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(bg);
         getWindow().setNavigationBarColor(bg);
         preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        JarvisSessionManager.enterGuest();
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
@@ -435,6 +436,7 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
+                    else if (which == 22) showOwnerSessionOptions();
                     else if (which == 22) showOwnerAccessOptions();
                 }).setNegativeButton("Close", null).show();
     }
@@ -505,6 +507,47 @@ public class MainActivity extends Activity {
                 .setPositiveButton("Unlock", (d, w) -> promptOwnerPin(false))
                 .setNegativeButton("Cancel", null).show();
         return false;
+    }
+
+
+    private void showOwnerSessionOptions() {
+        String state = JarvisSessionManager.isOwner(this) ? "Owner session active" : "Guest session active";
+        String[] choices = {"Set / change Owner PIN", "Unlock Owner session", "Switch to Guest session"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • " + state)
+                .setItems(choices, (dialog, which) -> {
+                    if (which == 0) promptOwnerPin(true);
+                    else if (which == 1) promptOwnerPin(false);
+                    else {
+                        JarvisSessionManager.enterGuest();
+                        status.setText("GUEST SESSION • PRIVATE OWNER DATA LOCKED");
+                        transcript.setText("JARVIS: Guest session enabled. Owner notes are locked.");
+                    }
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void promptOwnerPin(boolean create) {
+        if (!create && !JarvisSessionManager.hasOwnerPin(this)) {
+            new AlertDialog.Builder(this).setTitle("Owner PIN not set")
+                    .setMessage("Set an Owner PIN first. Use at least 6 digits.")
+                    .setPositiveButton("Set PIN", (d, w) -> promptOwnerPin(true))
+                    .setNegativeButton("Cancel", null).show();
+            return;
+        }
+        EditText pin = new EditText(this);
+        pin.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        pin.setHint(create ? "Create 6–12 digit PIN" : "Enter Owner PIN");
+        new AlertDialog.Builder(this).setTitle(create ? "Create Owner PIN" : "Unlock Owner")
+                .setMessage("PIN stays on this device; the app stores a salted password hash.")
+                .setView(pin).setNegativeButton("Cancel", null)
+                .setPositiveButton(create ? "Save PIN" : "Unlock", (d, w) -> {
+                    char[] value = pin.getText().toString().toCharArray();
+                    boolean ok = create ? JarvisSessionManager.setOwnerPin(this, value)
+                            : JarvisSessionManager.unlockOwner(this, value);
+                    java.util.Arrays.fill(value, (char) 0);
+                    status.setText(ok ? "OWNER SESSION UNLOCKED" : "OWNER PIN INVALID • GUEST MODE");
+                    transcript.setText(ok ? "JARVIS: Owner session unlocked." :
+                            "JARVIS: PIN save/unlock failed. Guest mode remains active.");
+                }).show();
     }
 
     private void showBackgroundVoiceModeOptions() {
@@ -1094,6 +1137,13 @@ public class MainActivity extends Activity {
                 "Yes Boss—I'm listening. Tell me."
             };
             replyAndShow(original, greetings[(int)(System.currentTimeMillis() % greetings.length)]);
+            return;
+        }
+
+        // Private notes are owner-only; Guest sessions cannot read or write them.
+        if ((intent.startsWith("remember that ") || intent.startsWith("remember "))
+                && !JarvisSessionManager.isOwner(this)) {
+            replyAndShow(original, "Ye private owner feature hai. Pehle Owner PIN se unlock karo.");
             return;
         }
 
