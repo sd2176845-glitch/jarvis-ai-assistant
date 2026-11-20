@@ -115,10 +115,10 @@ public class MediaVaultActivity extends Activity {
 
     private void updateStatus() {
         File[] files = getVaultDirectory().listFiles();
-        int count = files == null ? 0 : files.length;
+        int count = 0;
         long bytes = 0L;
         if (files != null) {
-            for (File file : files) if (file.isFile()) bytes += file.length();
+            for (File file : files) if (file.isFile() && !file.getName().endsWith(".sha256")) { count++; bytes += file.length(); }
         }
         status.setText("Vault copies: " + count + "  •  Stored: " + android.text.format.Formatter.formatShortFileSize(this, bytes));
     }
@@ -207,10 +207,45 @@ public class MediaVaultActivity extends Activity {
             int read;
             while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
             output.flush();
+            writeChecksum(destination);
         } catch (Exception e) {
             if (destination.exists()) destination.delete();
+            File checksum = checksumFile(destination);
+            if (checksum.exists()) checksum.delete();
             throw e;
         }
+    }
+
+    private File checksumFile(File media) { return new File(media.getParentFile(), media.getName() + ".sha256"); }
+
+    private String sha256(File file) throws Exception {
+        java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+        try (InputStream input = new FileInputStream(file)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = input.read(buffer)) != -1) digest.update(buffer, 0, read);
+        }
+        StringBuilder out = new StringBuilder();
+        for (byte value : digest.digest()) out.append(String.format(Locale.US, "%02x", value & 255));
+        return out.toString();
+    }
+
+    private void writeChecksum(File file) throws Exception {
+        try (OutputStream output = new FileOutputStream(checksumFile(file))) {
+            output.write(sha256(file).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    private boolean verifyChecksum(File file) throws Exception {
+        File sidecar = checksumFile(file);
+        if (!sidecar.exists()) return true; // Older vault copies predate checksum manifests.
+        byte[] stored = new byte[(int) sidecar.length()];
+        try (InputStream input = new FileInputStream(sidecar)) {
+            int offset = 0, read;
+            while (offset < stored.length && (read = input.read(stored, offset, stored.length - offset)) > 0) offset += read;
+        }
+        String expected = new String(stored, java.nio.charset.StandardCharsets.UTF_8).trim();
+        return expected.equalsIgnoreCase(sha256(file));
     }
 
     private String queryDisplayName(Uri uri) {
@@ -239,8 +274,11 @@ public class MediaVaultActivity extends Activity {
     }
 
     private void showVaultItems() {
-        File[] files = getVaultDirectory().listFiles();
-        if (files == null || files.length == 0) {
+        File[] allFiles = getVaultDirectory().listFiles();
+        File[] files = allFiles == null ? new File[0] : Arrays.stream(allFiles)
+                .filter(file -> file.isFile() && !file.getName().endsWith(".sha256"))
+                .toArray(File[]::new);
+        if (files.length == 0) {
             new AlertDialog.Builder(this).setTitle("JARVIS Media Vault")
                     .setMessage("No backed-up media yet. Select media and create a backup first.")
                     .setPositiveButton("OK", null).show();
@@ -309,6 +347,7 @@ public class MediaVaultActivity extends Activity {
 
     private void copyFileToUri(File source, Uri destination) throws Exception {
         if (destination == null) throw new IllegalArgumentException("No restore destination selected");
+        if (!verifyChecksum(source)) throw new IllegalStateException("Vault integrity check failed. Restore/export stopped.");
         try (InputStream input = new FileInputStream(source);
              OutputStream output = getContentResolver().openOutputStream(destination, "w")) {
             if (output == null) throw new IllegalStateException("Unable to open destination");
@@ -325,6 +364,8 @@ public class MediaVaultActivity extends Activity {
                 .setNegativeButton("Keep copy", null)
                 .setPositiveButton("Delete vault copy", (dialog, which) -> {
                     boolean deleted = file.delete();
+                    File checksum = checksumFile(file);
+                    if (checksum.exists()) checksum.delete();
                     Toast.makeText(this, deleted ? "Vault copy deleted" : "Could not delete vault copy", Toast.LENGTH_LONG).show();
                     updateStatus();
                 }).show();
