@@ -20,7 +20,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 ## Requested capabilities and honest status
 1. Natural voice engine: **coded and CI build-verified**; Command Center settings save language, voice preference, speed and pitch, and foreground/background TTS apply the shared profile. Female/male selection is best-effort based on installed voice names; actual engine availability and device behavior remain unverified.
 2. Owner / Guest Mode: **local Owner PIN / Guest session code added**; app starts in Guest, owner PIN is salted and derived with PBKDF2, private notes are owner-gated, and AI conversation memory uses separate owner/guest stores. This is an app-level gate, not device-level encryption; test PIN setup/unlock, app restarts, and every private-data surface.
-3. Reliable background listening (wake lifecycle, screen-off, duplicate restart prevention, visible stop/pause, MIUI limits): **partial branch implementation; device test required**.
+3. Reliable background listening: **duplicate service starts and queued recognition restarts now guarded in code**, while the existing visible foreground notification and Stop action remain. Android recognizer / MIUI battery behavior still requires device testing; it is not guaranteed always-on hotword detection.
 4. Human Intelligence Engine (context, intent, clarification, controlled memory, honest capability reporting): **planned; define testable interfaces**.
 5. Universal App Knowledge & Control (supported Android intents/integrations, explicit permissions and confirmations; no security bypass): **planned; platform-limited**.
 6. Communication Engine (contact/call/message drafts and explicit confirmation; never silently send/place calls): **partial foundation; expand and test**.
@@ -35,7 +35,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 ### Priority sprint A — requested items 1–4
 - [x] **1. Natural voice engine — initial implementation:** shared voice profile and Command Center controls integrated; CI build succeeded. Remaining: actual installed voice list/availability and device testing.
 - [x] **2. Owner / Guest Mode — initial implementation:** local salted PBKDF2 PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, owner-only notes guard, and separate owner/guest AI conversation stores. Remaining: full private-data surface audit, rate limiting, session timeout, and on-device tests.
-- [ ] **3. Reliable background listening:** reconcile wake-service changes; prevent duplicate listeners/restarts, provide visible pause/stop controls and clear status, handle microphone permission and Android/MIUI battery limits honestly.
+- [x] **3. Reliable background listening — initial code hardening:** duplicate service starts and queued restart callbacks are guarded; visible notification/Stop action and microphone permission checks remain. Remaining: pause/resume UX, error/status visibility and Poco/MIUI device tests.
 - [ ] **4. Human Intelligence Engine:** implement testable intent/context/clarification interfaces, controlled opt-in memory, and truthful capability/error reporting; never pretend to understand an ambiguous command.
 
 ### Priority sprint B — remaining items 5–12
