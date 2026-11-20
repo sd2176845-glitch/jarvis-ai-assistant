@@ -50,6 +50,9 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int NOTIFICATION_PERMISSION_REQUEST = 1005;
+    private String pendingReminderTitle = null;
+    private int pendingReminderMinutes = 0;
     private boolean startWakeAfterPermission = false;
     private String pendingDirectCallNumber = null;
     private String pendingDirectCallName = null;
@@ -533,6 +536,22 @@ public class MainActivity extends Activity {
     }
 
 
+
+    private void scheduleReminderWithPermission(String title, int minutes) {
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingReminderTitle = title;
+            pendingReminderMinutes = minutes;
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
+            status.setText("NOTIFICATION PERMISSION NEEDED FOR REMINDERS");
+            return;
+        }
+        boolean ok = JarvisAutomationEngine.scheduleReminder(this, title, minutes);
+        status.setText(ok ? "REMINDER SCHEDULED" : "REMINDER NOT SCHEDULED");
+        transcript.setText(ok ? "JARVIS: Scheduled locally — " + title
+                : "JARVIS: Reminder could not be scheduled. Check the time and Android settings.");
+    }
+
     private void showRepairKit() {
         String report = JarvisRepairKit.diagnose(this, tts != null);
         new AlertDialog.Builder(this).setTitle("JARVIS • Auto Repair Kit")
@@ -606,10 +625,12 @@ public class MainActivity extends Activity {
                     try { minutes = Integer.parseInt(minutesInput.getText().toString().trim()); }
                     catch (Exception e) { minutes = 0; }
                     String message = learningReview ? "Learning review: " + topic : topic;
-                    boolean ok = JarvisAutomationEngine.scheduleReminder(this, message, minutes);
-                    status.setText(ok ? "REMINDER SCHEDULED" : "REMINDER NOT SCHEDULED • CHECK INPUT");
-                    transcript.setText(ok ? "JARVIS: Scheduled locally — " + message
-                            : "JARVIS: Please enter a title and a time from 1 to 43200 minutes.");
+                    if (minutes < 1 || minutes > 43200 || topic.trim().isEmpty()) {
+                        status.setText("REMINDER NOT SCHEDULED • CHECK INPUT");
+                        transcript.setText("JARVIS: Please enter a title and a time from 1 to 43200 minutes.");
+                    } else {
+                        scheduleReminderWithPermission(message, minutes);
+                    }
                 }).show();
     }
 
@@ -1163,6 +1184,17 @@ public class MainActivity extends Activity {
                 pendingDirectCallName = null;
                 status.setText("PHONE PERMISSION DENIED • CALL NOT PLACED");
                 speak("Phone permission nahi mili. Call nahi ki gayi.");
+            }
+        } else if (requestCode == NOTIFICATION_PERMISSION_REQUEST) {
+            String title = pendingReminderTitle;
+            int minutes = pendingReminderMinutes;
+            pendingReminderTitle = null;
+            pendingReminderMinutes = 0;
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && title != null && minutes > 0) {
+                scheduleReminderWithPermission(title, minutes);
+            } else {
+                status.setText("REMINDER NOT SCHEDULED • NOTIFICATIONS DENIED");
             }
         }
     }
