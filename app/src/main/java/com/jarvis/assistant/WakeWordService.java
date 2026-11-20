@@ -63,7 +63,7 @@ public class WakeWordService extends Service {
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applyVoicePreferences();
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String utteranceId) {
                         handler.post(() -> {
@@ -450,6 +450,23 @@ public class WakeWordService extends Service {
         handler.removeCallbacks(callConfirmationTimeout);
     }
 
+
+    private void applyVoicePreferences() {
+        if (tts == null) return;
+        SharedPreferences prefs = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        String voiceName = prefs.getString("tts_voice_name", "");
+        if (!voiceName.isEmpty() && tts.getVoices() != null) {
+            for (android.speech.tts.Voice voice : tts.getVoices()) {
+                if (voiceName.equals(voice.getName())) {
+                    try { tts.setVoice(voice); } catch (Exception ignored) {}
+                    break;
+                }
+            }
+        }
+        tts.setSpeechRate(prefs.getFloat("tts_speech_rate", 0.92f));
+        tts.setPitch(prefs.getFloat("tts_pitch", 1.0f));
+    }
+
     private boolean isSilentBackgroundAcknowledgementEnabled() {
         SharedPreferences prefs = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
         return prefs.getBoolean("silent_background_ack", true);
@@ -462,6 +479,7 @@ public class WakeWordService extends Service {
             scheduleRestart(350);
             return;
         }
+        applyVoicePreferences();
         String utteranceId = "jarvis_background_reply_" + (++utteranceCounter);
         activeUtteranceId = utteranceId;
         speaking = true;
@@ -479,6 +497,7 @@ public class WakeWordService extends Service {
             say(text);
             return;
         }
+        applyVoicePreferences();
         String utteranceId = "jarvis_ai_reply_" + (++utteranceCounter);
         activeUtteranceId = utteranceId;
         speaking = true;
