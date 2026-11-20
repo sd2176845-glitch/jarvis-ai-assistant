@@ -765,3 +765,29 @@ The owner approved all eight concepts from the latest idea batch for inclusion. 
 **Relationship to existing priorities:** Priority 7 remains the diagnostics foundation; Priority 22 remains the AI orchestration and simulation foundation; Priority 33 remains the modular expansion/robotics interface; Priority 34 remains the hardware compatibility and engineering intelligence foundation. Priority 35 adds future-facing simulation, coordination and physical-system architecture without replacing those foundations.
 
 All eight concepts remain planned until implemented, tested and approved for release. Keep JARVIS separate from Even; do not modify Even.
+
+
+## Decision addition — 2026-11-20 (Workflow Automation & Orchestration)
+
+The owner requested a dedicated Workflows capability alongside Priorities 0–35. This is planned only — not implemented or verified. Reuse the existing command-chain planner (Priority 4), app-control and communication engines (Priorities 10–11), autonomous orchestration (Priority 12), scheduling/resource management (Priorities 17 and 34), diagnostics (Priority 7) and connected-device interfaces (Priorities 33–35). Do not create duplicate schedulers, memory stores or permission systems.
+
+### Priority 36 — Workflow Automation & Orchestration
+
+- [ ] Workflow Builder: let the owner create, name, edit, duplicate, pause and delete reusable workflows using voice or a visual step-by-step builder. Support simple sequences first and clearly show each step before saving.
+- [ ] Multi-Step Workflow Planner: translate a natural-language goal into ordered steps, identify required apps, APIs, permissions, inputs and dependencies, and show a preview for owner approval before first execution.
+- [ ] Triggers & Schedules: support owner-configured manual, time-based and supported event-based triggers (for example a chosen time, device connection or reminder event). Explain Android background limits, battery impact and required permissions; provide pause/disable controls.
+- [ ] Cross-App Workflow Runner: connect only supported app intents, documented APIs and owner-enabled integrations. Display the active step and result; do not bypass app protections, access private app data without permission or promise unrestricted background control.
+- [ ] Conditional Branching: support clear if/then/else conditions based on authorized, available signals; show the condition and resulting path, and handle missing or stale data without guessing.
+- [ ] Approval Gates: require fresh, explicit owner confirmation before sensitive or consequential steps such as calls, sending messages, sharing files/location, purchases, changing important settings or controlling physical devices. A previous approval must not silently authorize a later unrelated action.
+- [ ] Workflow State & Recovery: save safe execution state so an interrupted workflow can explain where it stopped and offer resume, restart or cancel. Avoid repeating completed external actions; use idempotency or confirmation checks where possible.
+- [ ] Failure Handling & Diagnostics: provide step-specific errors, bounded retries for transient failures, timeout handling and safe stop behavior. Never loop indefinitely or silently continue after a critical step fails; offer a diagnostic report through Priority 7.
+- [ ] Workflow History & Audit Log: show owner-readable run history with trigger, time, steps, outcomes, approvals and errors. Keep logs privacy-minimized, locally controlled where practical, and provide review/export/delete controls.
+- [ ] Workflow Templates & Sharing: provide editable templates for routines such as morning briefing, study session, project build/check, device setup and travel preparation. Export/import workflow definitions with preview; never include credentials or private data, and require approval before enabling imported workflows.
+- [ ] Resource & Connectivity Awareness: use Priority 34's resource manager to defer or pause non-urgent work when battery, network or backend availability is unsuitable; keep local/offline steps available where possible and explain any deferred work.
+- [ ] Workflow Test Mode: allow a dry run that validates the plan, permissions, inputs and expected actions without sending messages, placing calls, changing external data or actuating hardware. Clearly distinguish simulated results from real execution.
+
+**Shared acceptance tests:** verify preview-before-run; trigger permission and pause controls; correct branch selection; approval gates for every sensitive action; interruption/resume without duplicate external actions; bounded retry and safe-stop behavior; useful step-level diagnostics; log privacy and deletion; imported-template review; low-battery/offline handling; and dry-run isolation from real actions.
+
+**Relationship to existing priorities:** Priority 4 remains the command-chain foundation; Priorities 10–11 remain app and communication action layers; Priority 12 remains the orchestration/initiative layer; Priority 17 and 34 remain scheduling/resource foundations; Priority 7 remains diagnostics; Priorities 33–35 remain connected-device and robotics foundations. Priority 36 coordinates these existing capabilities into owner-controlled workflows without duplicating them.
+
+All Priority 36 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
