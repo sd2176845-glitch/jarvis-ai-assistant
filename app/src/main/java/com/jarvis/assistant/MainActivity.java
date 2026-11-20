@@ -1056,6 +1056,11 @@ public class MainActivity extends Activity {
         String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
         cleaned = cleaned.replaceFirst("^(jarvis ji|jarvis|jarvesh|jarvish|j a r v i s)(\\s+)", "");
         String intent = cleaned.trim();
+        String clarification = JarvisIntelligenceEngine.clarificationFor(intent);
+        if (clarification != null) {
+            replyAndShow(original, clarification);
+            return;
+        }
         if (!JarvisSessionManager.isOwner(this) &&
                 (intent.contains("remember") || intent.contains("my notes") || intent.contains("show notes")
                  || intent.contains("personal vault") || intent.contains("private memory"))) {
