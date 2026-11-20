@@ -395,7 +395,8 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "R&D Innovation Lab • 8 future modules"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -433,6 +434,11 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) InnovationLab.show(MainActivity.this, moduleStatus -> {
+                        status.setText(moduleStatus);
+                        transcript.setText("JARVIS R&D INNOVATION LAB\\n\\n" + moduleStatus
+                                + "\\n\\nThese are implementation foundations, not completed or verified hardware features.");
+                    });
                 }).setNegativeButton("Close", null).show();
     }
 
