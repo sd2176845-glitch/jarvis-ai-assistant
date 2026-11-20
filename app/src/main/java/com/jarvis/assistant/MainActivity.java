@@ -397,7 +397,9 @@ public class MainActivity extends Activity {
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
                 "Voice settings • Male / Female / Language / Speed / Pitch",
-                "Owner / Guest Mode"
+                "Owner / Guest Mode",
+                "Autonomous Engine • Local reminders",
+                "Scheduled Learning • Topic review"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -437,6 +439,8 @@ public class MainActivity extends Activity {
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
                     else if (which == 22) showOwnerSessionOptions();
+                    else if (which == 23) showScheduledReminderDialog(false);
+                    else if (which == 24) showScheduledReminderDialog(true);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -481,6 +485,36 @@ public class MainActivity extends Activity {
                 }).show();
     }
 
+
+
+    private void showScheduledReminderDialog(boolean learningReview) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(28, 8, 28, 0);
+        EditText titleInput = new EditText(this);
+        titleInput.setHint(learningReview ? "Topic to review (e.g. Java basics)" : "What should JARVIS remind you?");
+        panel.addView(titleInput);
+        EditText minutesInput = new EditText(this);
+        minutesInput.setHint("Minutes from now (1–43200)");
+        minutesInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+        panel.addView(minutesInput);
+        new AlertDialog.Builder(this)
+                .setTitle(learningReview ? "Schedule a learning review" : "Schedule a reminder")
+                .setMessage("JARVIS will show a local notification at the scheduled time. Android may delay reminders to save battery.")
+                .setView(panel)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Schedule", (d, w) -> {
+                    String topic = titleInput.getText().toString().trim();
+                    int minutes;
+                    try { minutes = Integer.parseInt(minutesInput.getText().toString().trim()); }
+                    catch (Exception e) { minutes = 0; }
+                    String message = learningReview ? "Learning review: " + topic : topic;
+                    boolean ok = JarvisAutomationEngine.scheduleReminder(this, message, minutes);
+                    status.setText(ok ? "REMINDER SCHEDULED" : "REMINDER NOT SCHEDULED • CHECK INPUT");
+                    transcript.setText(ok ? "JARVIS: Scheduled locally — " + message
+                            : "JARVIS: Please enter a title and a time from 1 to 43200 minutes.");
+                }).show();
+    }
 
     private void showBackgroundVoiceModeOptions() {
         boolean silent = preferences.getBoolean("silent_background_ack", true);
