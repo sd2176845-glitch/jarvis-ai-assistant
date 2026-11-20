@@ -38,6 +38,8 @@ public class WakeWordService extends Service {
     private TextToSpeech tts;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean stopping = false;
+    private boolean serviceActive = false;
+    private final Runnable restartRecognition = () -> beginRecognition();
     private boolean waitingForAi = false;
     private boolean speaking = false;
     private int utteranceCounter = 0;
@@ -92,7 +94,9 @@ public class WakeWordService extends Service {
             stopSelf();
             return START_NOT_STICKY;
         }
+        if (serviceActive && !stopping) return START_STICKY;
         stopping = false;
+        serviceActive = true;
         startForeground(NOTIFICATION_ID, buildNotification());
         acquireScreenOffWakeLock();
         beginRecognition();
@@ -150,9 +154,10 @@ public class WakeWordService extends Service {
     }
 
     private void beginRecognition() {
-        if (stopping || waitingForAi || speaking) return;
+        handler.removeCallbacks(restartRecognition);
+        if (stopping || !serviceActive || waitingForAi || speaking) return;
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            handler.postDelayed(this::beginRecognition, 5000);
+            scheduleRestart(5000);
             return;
         }
         try {
@@ -502,11 +507,14 @@ public class WakeWordService extends Service {
     }
 
     private void scheduleRestart(long delay) {
-        if (!stopping) handler.postDelayed(this::beginRecognition, delay);
+        if (stopping || !serviceActive) return;
+        handler.removeCallbacks(restartRecognition);
+        handler.postDelayed(restartRecognition, delay);
     }
 
     private void stopListening() {
         stopping = true;
+        serviceActive = false;
         handler.removeCallbacksAndMessages(null);
         if (recognizer != null) {
             try { recognizer.cancel(); recognizer.destroy(); } catch (Exception ignored) {}
@@ -520,6 +528,7 @@ public class WakeWordService extends Service {
     @Override
     public void onDestroy() {
         stopping = true;
+        serviceActive = false;
         handler.removeCallbacksAndMessages(null);
         if (recognizer != null) recognizer.destroy();
         if (tts != null) tts.shutdown();
