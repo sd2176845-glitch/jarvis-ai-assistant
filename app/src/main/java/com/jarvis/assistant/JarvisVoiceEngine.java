@@ -41,7 +41,8 @@ public final class JarvisVoiceEngine {
                 String name = voice.getName().toLowerCase(Locale.ROOT);
                 boolean match = "female".equals(gender)
                         ? name.contains("female") || name.contains("woman") || name.contains("feminine")
-                        : name.contains("male") || name.contains("man") || name.contains("masculine");
+                        : (name.contains("male") && !name.contains("female"))
+                                || (name.contains("man") && !name.contains("woman")) || name.contains("masculine");
                 if (match) { tts.setVoice(voice); return; }
             }
         } catch (Exception ignored) {
