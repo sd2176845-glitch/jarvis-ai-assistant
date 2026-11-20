@@ -400,7 +400,8 @@ public class MainActivity extends Activity {
                 "Owner / Guest Mode",
                 "Autonomous Engine • Local reminders",
                 "Scheduled Learning • Topic review",
-                "Personal Media Vault • Backup / Restore"
+                "Personal Media Vault • Backup / Restore",
+                "Creator Studio • Captions / Scripts / Stories"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -447,7 +448,7 @@ public class MainActivity extends Activity {
                             try { startActivity(new Intent(this, MediaVaultActivity.class)); }
                             catch (Exception e) { status.setText("MEDIA VAULT COULD NOT OPEN"); }
                         }
-                    }
+                    } else if (which == 26) showCreatorStudio();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -493,6 +494,42 @@ public class MainActivity extends Activity {
     }
 
 
+
+
+    private void showCreatorStudio() {
+        String[] formats = {"Social captions", "Short video script", "Instagram story text", "Profile bio"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Creator Studio")
+                .setItems(formats, (dialog, which) -> promptCreatorBrief(formats[which]))
+                .setNegativeButton("Close", null).show();
+    }
+
+    private void promptCreatorBrief(String format) {
+        EditText brief = new EditText(this);
+        brief.setHint("Topic, language and preferred tone");
+        brief.setMinLines(2);
+        brief.setGravity(Gravity.TOP | Gravity.START);
+        new AlertDialog.Builder(this).setTitle("Create " + format)
+                .setView(brief).setNegativeButton("Cancel", null)
+                .setPositiveButton("Generate draft", (d, w) -> {
+                    String prompt = JarvisCreatorEngine.buildPrompt(format, brief.getText().toString());
+                    status.setText("CREATOR STUDIO • GENERATING DRAFT");
+                    JarvisAiClient.ask(this, prompt, result -> {
+                        status.setText("CREATOR DRAFT READY • REVIEW BEFORE USE");
+                        replyAndShow(format, result);
+                        new AlertDialog.Builder(this).setTitle("Save this draft?")
+                                .setMessage("Generated content is a draft. Review it before posting or sharing.")
+                                .setNegativeButton("Not now", null)
+                                .setPositiveButton("Save locally", (sd, sw) -> {
+                                    if (!requireOwner("Saving private creator drafts")) return;
+                                    String old = preferences.getString("creator_drafts", "");
+                                    String updated = (old.isEmpty() ? "" : old + "\n\n---\n\n")
+                                            + format + "\n" + result;
+                                    preferences.edit().putString("creator_drafts", updated).apply();
+                                    status.setText("CREATOR DRAFT SAVED LOCALLY");
+                                }).show();
+                    });
+                }).show();
+    }
 
     private void showScheduledReminderDialog(boolean learningReview) {
         LinearLayout panel = new LinearLayout(this);
