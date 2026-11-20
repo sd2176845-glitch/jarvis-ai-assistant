@@ -18,8 +18,8 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - `feature/jarvis-18-feature-implementation`: diverged (7 ahead / 41 behind); FeatureKit groundwork.
 
 ## Requested capabilities and honest status
-1. Natural voice engine: **shared configurable TTS profile coded on the integration branch**; Command Center settings now save language, voice preference, speed and pitch, and foreground/background TTS both apply the same profile. Female/male selection is best-effort based on installed voice names; actual engine availability and device behavior remain unverified.
-2. Owner / Guest Mode (authenticated owner, private-data isolation, owner-only actions): **planned / branch groundwork; security review required**.
+1. Natural voice engine: **coded and CI build-verified**; Command Center settings save language, voice preference, speed and pitch, and foreground/background TTS apply the shared profile. Female/male selection is best-effort based on installed voice names; actual engine availability and device behavior remain unverified.
+2. Owner / Guest Mode: **local Owner PIN / Guest session code added**; app starts in Guest, owner PIN is salted and derived with PBKDF2, private notes are owner-gated, and AI conversation memory uses separate owner/guest stores. This is an app-level gate, not device-level encryption; test PIN setup/unlock, app restarts, and every private-data surface.
 3. Reliable background listening (wake lifecycle, screen-off, duplicate restart prevention, visible stop/pause, MIUI limits): **partial branch implementation; device test required**.
 4. Human Intelligence Engine (context, intent, clarification, controlled memory, honest capability reporting): **planned; define testable interfaces**.
 5. Universal App Knowledge & Control (supported Android intents/integrations, explicit permissions and confirmations; no security bypass): **planned; platform-limited**.
@@ -33,8 +33,8 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 
 ## Work sequence
 ### Priority sprint A — requested items 1–4
-- [ ] **1. Natural voice engine:** reconcile the voice branch; provide installed-voice selection (male/female only when available), language, rate and pitch controls; keep foreground/background speech settings consistent; handle missing voices gracefully.
-- [ ] **2. Owner / Guest Mode:** implement an authenticated owner session, explicit guest entry/exit, private-data isolation, and owner confirmation for sensitive actions. Do not expose owner data to guests.
+- [x] **1. Natural voice engine — initial implementation:** shared voice profile and Command Center controls integrated; CI build succeeded. Remaining: actual installed voice list/availability and device testing.
+- [x] **2. Owner / Guest Mode — initial implementation:** local salted PBKDF2 PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, owner-only notes guard, and separate owner/guest AI conversation stores. Remaining: full private-data surface audit, rate limiting, session timeout, and on-device tests.
 - [ ] **3. Reliable background listening:** reconcile wake-service changes; prevent duplicate listeners/restarts, provide visible pause/stop controls and clear status, handle microphone permission and Android/MIUI battery limits honestly.
 - [ ] **4. Human Intelligence Engine:** implement testable intent/context/clarification interfaces, controlled opt-in memory, and truthful capability/error reporting; never pretend to understand an ambiguous command.
 
