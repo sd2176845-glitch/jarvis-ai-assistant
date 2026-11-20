@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(bg);
         getWindow().setNavigationBarColor(bg);
         preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
-        JarvisAccessController.enterGuest(this);
+        JarvisSessionManager.enterGuest();
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
@@ -437,88 +437,20 @@ public class MainActivity extends Activity {
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
                     else if (which == 22) showOwnerSessionOptions();
-                    else if (which == 22) showOwnerAccessOptions();
+                    else if (which == 22) showOwnerSessionOptions();
                 }).setNegativeButton("Close", null).show();
-    }
-
-
-    private void showOwnerAccessOptions() {
-        String role = JarvisAccessController.isOwner(this) ? "OWNER" : "GUEST";
-        String[] options = {"Enter Guest Mode", "Unlock Owner Mode", "Set / Change Owner PIN"};
-        new AlertDialog.Builder(this).setTitle("JARVIS ACCESS • " + role)
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        JarvisAccessController.enterGuest();
-                        status.setText("GUEST MODE • PRIVATE OWNER DATA LOCKED");
-                        transcript.setText("Guest mode is active. Owner notes and owner conversation memory are isolated.");
-                    } else if (which == 1) {
-                        promptOwnerPin(false);
-                    } else if (which == 2) {
-                        if (JarvisAccessController.hasOwnerPin(this) && !JarvisAccessController.isOwner(this)) {
-                            promptOwnerPin(true);
-                        } else {
-                            promptSetOwnerPin();
-                        }
-                    }
-                }).setNegativeButton("Close", null).show();
-    }
-
-    private void promptOwnerPin(boolean changeAfterUnlock) {
-        EditText pin = new EditText(this);
-        pin.setHint("Enter 6–8 digit owner PIN");
-        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        new AlertDialog.Builder(this).setTitle("Unlock Owner Mode").setView(pin)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Unlock", (d, w) -> {
-                    if (JarvisAccessController.unlockOwner(this, pin.getText().toString().toCharArray())) {
-                        status.setText("OWNER MODE UNLOCKED");
-                        transcript.setText("Owner mode is active. Private owner data is available.");
-                        if (changeAfterUnlock) promptSetOwnerPin();
-                    } else {
-                        status.setText("OWNER PIN INCORRECT");
-                        new AlertDialog.Builder(this).setMessage("PIN match nahi hua. Guest mode active rahega.")
-                                .setPositiveButton("OK", null).show();
-                    }
-                }).show();
-    }
-
-    private void promptSetOwnerPin() {
-        EditText pin = new EditText(this);
-        pin.setHint("Choose 6–8 digit PIN");
-        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        new AlertDialog.Builder(this).setTitle("Set Owner PIN").setMessage("PIN phone par locally store hoga as a salted hash.")
-                .setView(pin).setNegativeButton("Cancel", null)
-                .setPositiveButton("Save", (d, w) -> {
-                    try {
-                        JarvisAccessController.setOwnerPin(this, pin.getText().toString().toCharArray());
-                        status.setText("OWNER PIN SAVED • OWNER MODE");
-                    } catch (IllegalArgumentException e) {
-                        status.setText("PIN MUST BE 6–8 DIGITS");
-                        new AlertDialog.Builder(this).setMessage("Please choose a 6–8 digit numeric PIN.")
-                                .setPositiveButton("OK", null).show();
-                    }
-                }).show();
-    }
-
-    private boolean requireOwner(String action) {
-        if (JarvisAccessController.isOwner(this)) return true;
-        new AlertDialog.Builder(this).setTitle("Owner permission required")
-                .setMessage(action + " is available only in Owner Mode. Unlock with the owner PIN first.")
-                .setPositiveButton("Unlock", (d, w) -> promptOwnerPin(false))
-                .setNegativeButton("Cancel", null).show();
-        return false;
     }
 
 
     private void showOwnerSessionOptions() {
-        String state = JarvisAccessController.isOwner(this) ? "Owner session active" : "Guest session active";
+        String state = JarvisSessionManager.isOwner(this) ? "Owner session active" : "Guest session active";
         String[] choices = {"Set / change Owner PIN", "Unlock Owner session", "Switch to Guest session"};
         new AlertDialog.Builder(this).setTitle("JARVIS • " + state)
                 .setItems(choices, (dialog, which) -> {
                     if (which == 0) promptOwnerPin(true);
                     else if (which == 1) promptOwnerPin(false);
                     else {
-                        JarvisAccessController.enterGuest();
+                        JarvisSessionManager.enterGuest();
                         status.setText("GUEST SESSION • PRIVATE OWNER DATA LOCKED");
                         transcript.setText("JARVIS: Guest session enabled. Owner notes are locked.");
                     }
@@ -526,7 +458,7 @@ public class MainActivity extends Activity {
     }
 
     private void promptOwnerPin(boolean create) {
-        if (!create && !JarvisAccessController.hasOwnerPin(this)) {
+        if (!create && !JarvisSessionManager.hasOwnerPin(this)) {
             new AlertDialog.Builder(this).setTitle("Owner PIN not set")
                     .setMessage("Set an Owner PIN first. Use at least 6 digits.")
                     .setPositiveButton("Set PIN", (d, w) -> promptOwnerPin(true))
@@ -542,7 +474,7 @@ public class MainActivity extends Activity {
                 .setPositiveButton(create ? "Save PIN" : "Unlock", (d, w) -> {
                     char[] value = pin.getText().toString().toCharArray();
                     boolean ok = create ? setOwnerPinSafely(value)
-                            : JarvisAccessController.unlockOwner(this, new String(value));
+                            : JarvisSessionManager.unlockOwner(this, value);
                     java.util.Arrays.fill(value, (char) 0);
                     status.setText(ok ? "OWNER SESSION UNLOCKED" : "OWNER PIN INVALID • GUEST MODE");
                     transcript.setText(ok ? "JARVIS: Owner session unlocked." :
@@ -553,7 +485,7 @@ public class MainActivity extends Activity {
 
     private boolean setOwnerPinSafely(char[] pin) {
         try {
-            JarvisAccessController.setOwnerPin(this, new String(pin));
+            JarvisSessionManager.setOwnerPin(this, pin);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
@@ -1126,7 +1058,7 @@ public class MainActivity extends Activity {
         String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
         cleaned = cleaned.replaceFirst("^(jarvis ji|jarvis|jarvesh|jarvish|j a r v i s)(\\s+)", "");
         String intent = cleaned.trim();
-        if (!JarvisAccessController.isOwner(this) &&
+        if (!JarvisSessionManager.isOwner(this) &&
                 (intent.contains("remember") || intent.contains("my notes") || intent.contains("show notes")
                  || intent.contains("personal vault") || intent.contains("private memory"))) {
             replyAndShow(original, "Guest mode mein owner ka private data access nahi ho sakta.");
@@ -1152,7 +1084,7 @@ public class MainActivity extends Activity {
 
         // Private notes are owner-only; Guest sessions cannot read or write them.
         if ((intent.startsWith("remember that ") || intent.startsWith("remember "))
-                && !JarvisAccessController.isOwner(this)) {
+                && !JarvisSessionManager.isOwner(this)) {
             replyAndShow(original, "Ye private owner feature hai. Pehle Owner PIN se unlock karo.");
             return;
         }
