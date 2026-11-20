@@ -32,10 +32,16 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 12. Personal Media Vault (SAF import/export/restore, integrity and independent backup verification): **partial branch implementation; encryption/integrity/device tests required**.
 
 ## Work sequence
+### Priority sprint A — requested items 1–4
+- [ ] **1. Natural voice engine:** reconcile the voice branch; provide installed-voice selection (male/female only when available), language, rate and pitch controls; keep foreground/background speech settings consistent; handle missing voices gracefully.
+- [ ] **2. Owner / Guest Mode:** implement an authenticated owner session, explicit guest entry/exit, private-data isolation, and owner confirmation for sensitive actions. Do not expose owner data to guests.
+- [ ] **3. Reliable background listening:** reconcile wake-service changes; prevent duplicate listeners/restarts, provide visible pause/stop controls and clear status, handle microphone permission and Android/MIUI battery limits honestly.
+- [ ] **4. Human Intelligence Engine:** implement testable intent/context/clarification interfaces, controlled opt-in memory, and truthful capability/error reporting; never pretend to understand an ambiguous command.
+
+### Priority sprint B — remaining items 5–12
 - [ ] Reconcile branch diffs against current main; port changes file-by-file, resolving conflicts intentionally.
-- [ ] Add Owner/Guest authorization and private-data isolation before enabling private assistant workflows.
-- [ ] Integrate voice engine and background reliability with a single shared preference/configuration path.
-- [ ] Add modular interfaces for intelligence, app actions, communications, autonomy and creator workflows.
+- [ ] Add modular interfaces for app actions, communications, autonomy and creator workflows.
+- [ ] Add security controls, scheduled-learning policy, diagnostics/repair rollback, and vault integrity safeguards.
 - [ ] Add security controls, scheduled-learning policy, diagnostics/repair rollback, and vault integrity safeguards.
 - [ ] Update the master blueprint with implemented / partial / platform-dependent / device-test-needed status.
 - [ ] Run unit tests, lint, build, APK size/existence checks; upload one final APK artifact.
