@@ -948,10 +948,13 @@ public class MainActivity extends Activity {
             int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             if (level >= 0 && scale > 0) batteryText = "Battery: " + (level * 100 / scale) + "%";
         }
-        String notes = preferences.getString("jarvis_notes", "");
+        String notes = JarvisSessionManager.isOwner(this) ? preferences.getString("jarvis_notes", "") : "";
+        String notesSummary = JarvisSessionManager.isOwner(this)
+                ? (notes.isEmpty() ? "none" : String.valueOf(notes.split("\\n").length))
+                : "locked in Guest Mode";
         String report = "JARVIS • DAILY BRIEFING\n\n" + date + "\n" + batteryText
                 + "\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
-                + "\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
+                + "\nSaved notes: " + notesSummary
                 + "\n\nLive weather and current news require an internet search.";
         transcript.setText(report);
         status.setText("DAILY BRIEFING READY");
