@@ -496,6 +496,40 @@ public class MainActivity extends Activity {
 
 
 
+
+    private void showInstalledAppPicker(String query) {
+        java.util.List<JarvisAppControlEngine.AppEntry> apps = JarvisAppControlEngine.search(this, query);
+        if (apps.isEmpty()) {
+            replyAndShow(query, "Is naam ka launchable app nahi mila. App ka naam dobara batao.");
+            return;
+        }
+        String[] labels = new String[apps.size()];
+        for (int i = 0; i < apps.size(); i++) labels[i] = apps.get(i).label;
+        if (apps.size() == 1) {
+            confirmLaunchInstalledApp(apps.get(0));
+        } else {
+            new AlertDialog.Builder(this).setTitle("Which app should I open?")
+                    .setItems(labels, (d, which) -> confirmLaunchInstalledApp(apps.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
+    private void confirmLaunchInstalledApp(JarvisAppControlEngine.AppEntry app) {
+        new AlertDialog.Builder(this).setTitle("Open " + app.label + "?")
+                .setMessage("JARVIS will only launch the selected app.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Open", (d, w) -> {
+                    try {
+                        Intent launch = getPackageManager().getLaunchIntentForPackage(app.packageName);
+                        if (launch == null) throw new IllegalStateException("No launcher activity");
+                        startActivity(launch);
+                        status.setText("OPENED " + app.label.toUpperCase(Locale.ROOT));
+                    } catch (Exception e) {
+                        status.setText("COULD NOT OPEN " + app.label.toUpperCase(Locale.ROOT));
+                    }
+                }).show();
+    }
+
     private void showCreatorStudio() {
         String[] formats = {"Social captions", "Short video script", "Instagram story text", "Profile bio"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Creator Studio")
@@ -1497,6 +1531,9 @@ public class MainActivity extends Activity {
             launchApp("com.instagram.android", "Instagram", "https://www.instagram.com"); return;
         } else if (intent.contains("open facebook") || intent.contains("facebook kholo") || intent.equals("facebook")) {
             launchApp("com.facebook.katana", "Facebook", "https://www.facebook.com"); return;
+        } else if (intent.startsWith("open app ") || intent.startsWith("launch app ")) {
+            showInstalledAppPicker(intent.replaceFirst("^(open|launch) app\\s+", ""));
+            return;
         } else if (intent.contains("your name") || intent.contains("who are you") || intent.contains("tum kaun ho") || intent.contains("tera naam")) {
             reply = "Main JARVIS hoon, tumhara personal assistant. Batao, kya help karun?";
         } else if (intent.contains("listen") || intent.contains("suno") || intent.contains("meri baat sun")) {
