@@ -406,7 +406,8 @@ public class MainActivity extends Activity {
                 "Scheduled Learning • Topic review",
                 "Personal Media Vault • Backup / Restore",
                 "Creator Studio • Captions / Scripts / Stories",
-                "Auto Repair Kit • Diagnostics"
+                "Auto Repair Kit • Diagnostics",
+                "Communication Engine • Compose SMS draft"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -455,6 +456,7 @@ public class MainActivity extends Activity {
                         }
                     } else if (which == 26) showCreatorStudio();
                     else if (which == 27) showRepairKit();
+                    else if (which == 28) showSmsDraftComposer();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -551,6 +553,43 @@ public class MainActivity extends Activity {
         status.setText(ok ? "REMINDER SCHEDULED" : "REMINDER NOT SCHEDULED");
         transcript.setText(ok ? "JARVIS: Scheduled locally — " + title
                 : "JARVIS: Reminder could not be scheduled. Check the time and Android settings.");
+    }
+
+
+    private void showSmsDraftComposer() {
+        if (!requireOwner("SMS composer")) return;
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(28, 8, 28, 0);
+        EditText number = new EditText(this);
+        number.setHint("Recipient phone number");
+        number.setInputType(InputType.TYPE_CLASS_PHONE);
+        panel.addView(number);
+        EditText body = new EditText(this);
+        body.setHint("Message draft");
+        body.setMinLines(3);
+        body.setGravity(Gravity.TOP | Gravity.START);
+        panel.addView(body);
+        new AlertDialog.Builder(this).setTitle("JARVIS • SMS draft")
+                .setMessage("JARVIS will open your SMS app with a draft. It will not send the message.")
+                .setView(panel).setNegativeButton("Cancel", null)
+                .setPositiveButton("Open SMS app", (d, w) -> {
+                    String recipient = number.getText().toString().trim();
+                    String message = body.getText().toString().trim();
+                    if (recipient.isEmpty() || message.isEmpty()) {
+                        status.setText("RECIPIENT AND MESSAGE REQUIRED");
+                        return;
+                    }
+                    try {
+                        Intent send = new Intent(Intent.ACTION_SENDTO,
+                                android.net.Uri.parse("smsto:" + android.net.Uri.encode(recipient)));
+                        send.putExtra("sms_body", message);
+                        startActivity(send);
+                        status.setText("SMS DRAFT OPENED • REVIEW BEFORE SENDING");
+                    } catch (Exception e) {
+                        status.setText("NO SMS APP AVAILABLE");
+                    }
+                }).show();
     }
 
     private void showRepairKit() {
