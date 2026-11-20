@@ -582,7 +582,7 @@ public class MainActivity extends Activity {
                     }
                     try {
                         Intent send = new Intent(Intent.ACTION_SENDTO,
-                                android.net.Uri.parse("smsto:" + android.net.Uri.encode(recipient)));
+                                android.net.Uri.fromParts("smsto", recipient, null));
                         send.putExtra("sms_body", message);
                         startActivity(send);
                         status.setText("SMS DRAFT OPENED • REVIEW BEFORE SENDING");
