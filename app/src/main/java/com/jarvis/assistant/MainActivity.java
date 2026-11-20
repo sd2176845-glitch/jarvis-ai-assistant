@@ -401,7 +401,8 @@ public class MainActivity extends Activity {
                 "Autonomous Engine • Local reminders",
                 "Scheduled Learning • Topic review",
                 "Personal Media Vault • Backup / Restore",
-                "Creator Studio • Captions / Scripts / Stories"
+                "Creator Studio • Captions / Scripts / Stories",
+                "Auto Repair Kit • Diagnostics"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -449,6 +450,7 @@ public class MainActivity extends Activity {
                             catch (Exception e) { status.setText("MEDIA VAULT COULD NOT OPEN"); }
                         }
                     } else if (which == 26) showCreatorStudio();
+                    else if (which == 27) showRepairKit();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -528,6 +530,23 @@ public class MainActivity extends Activity {
                         status.setText("COULD NOT OPEN " + app.label.toUpperCase(Locale.ROOT));
                     }
                 }).show();
+    }
+
+
+    private void showRepairKit() {
+        String report = JarvisRepairKit.diagnose(this, tts != null);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Auto Repair Kit")
+                .setMessage(report)
+                .setNeutralButton("App settings", (d, w) -> {
+                    try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            android.net.Uri.parse("package:" + getPackageName()))); }
+                    catch (Exception e) { status.setText("APP SETTINGS COULD NOT OPEN"); }
+                })
+                .setPositiveButton("Accessibility settings", (d, w) -> {
+                    try { startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+                    catch (Exception e) { status.setText("ACCESSIBILITY SETTINGS COULD NOT OPEN"); }
+                })
+                .setNegativeButton("Close", null).show();
     }
 
     private void showCreatorStudio() {
