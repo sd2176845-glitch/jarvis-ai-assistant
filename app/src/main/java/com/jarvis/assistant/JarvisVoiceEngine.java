@@ -8,6 +8,8 @@ import android.speech.tts.Voice;
 import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,14 +85,22 @@ public final class JarvisVoiceEngine {
         panel.addView(pitchLabel);
         panel.addView(pitch);
 
-        final int[] genderChoice = {selected};
+        TextView genderLabel = new TextView(context);
+        genderLabel.setText("Voice type");
+        panel.addView(genderLabel);
+        RadioGroup genderGroup = new RadioGroup(context);
+        RadioButton system = new RadioButton(context); system.setText(genders[0]); system.setId(100);
+        RadioButton male = new RadioButton(context); male.setText(genders[1]); male.setId(101);
+        RadioButton female = new RadioButton(context); female.setText(genders[2]); female.setId(102);
+        genderGroup.addView(system); genderGroup.addView(male); genderGroup.addView(female);
+        genderGroup.check(selected == 2 ? 102 : (selected == 1 ? 101 : 100));
+        panel.addView(genderGroup);
         new AlertDialog.Builder(context).setTitle("JARVIS • Voice settings")
-                .setSingleChoiceItems(genders, selected, (dialog, which) -> genderChoice[0] = which)
                 .setView(panel)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save", (dialog, which) -> {
-                    String gender = genderChoice[0] == 2 ? "female" :
-                            (genderChoice[0] == 1 ? "male" : "system");
+                    int checked = genderGroup.getCheckedRadioButtonId();
+                    String gender = checked == 102 ? "female" : (checked == 101 ? "male" : "system");
                     prefs.edit()
                             .putString("voice_gender", gender)
                             .putString("voice_language", spinner.getSelectedItemPosition() == 1 ? "hi-IN" : "en-IN")
