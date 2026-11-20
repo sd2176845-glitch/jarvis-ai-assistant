@@ -11,6 +11,40 @@ import android.provider.Settings;
 public final class JarvisRepairKit {
     private JarvisRepairKit() {}
 
+
+    /** Backs up the current profile before restoring safe TTS preference defaults. */
+    public static boolean repairVoicePreferences(Context context) {
+        android.content.SharedPreferences prefs = context.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+        android.content.SharedPreferences.Editor backup = context.getSharedPreferences("jarvis_repair_backup", Context.MODE_PRIVATE).edit();
+        backup.putBoolean("has_backup", true)
+                .putString("voice_language", prefs.getString("voice_language", "en-IN"))
+                .putString("voice_gender", prefs.getString("voice_gender", "system"))
+                .putFloat("voice_rate", prefs.getFloat("voice_rate", 0.92f))
+                .putFloat("voice_pitch", prefs.getFloat("voice_pitch", 1.0f))
+                .apply();
+        String language = prefs.getString("voice_language", "en-IN");
+        String gender = prefs.getString("voice_gender", "system");
+        float rate = prefs.getFloat("voice_rate", 0.92f);
+        float pitch = prefs.getFloat("voice_pitch", 1.0f);
+        if (!"en-IN".equals(language) && !"hi-IN".equals(language)) language = "en-IN";
+        if (!"system".equals(gender) && !"male".equals(gender) && !"female".equals(gender)) gender = "system";
+        rate = Math.max(0.65f, Math.min(1.35f, rate));
+        pitch = Math.max(0.75f, Math.min(1.25f, pitch));
+        return prefs.edit().putString("voice_language", language).putString("voice_gender", gender)
+                .putFloat("voice_rate", rate).putFloat("voice_pitch", pitch).commit();
+    }
+
+    /** Restores the last saved voice-profile backup if one exists. */
+    public static boolean rollbackVoiceRepair(Context context) {
+        android.content.SharedPreferences backup = context.getSharedPreferences("jarvis_repair_backup", Context.MODE_PRIVATE);
+        if (!backup.getBoolean("has_backup", false)) return false;
+        return context.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE).edit()
+                .putString("voice_language", backup.getString("voice_language", "en-IN"))
+                .putString("voice_gender", backup.getString("voice_gender", "system"))
+                .putFloat("voice_rate", backup.getFloat("voice_rate", 0.92f))
+                .putFloat("voice_pitch", backup.getFloat("voice_pitch", 1.0f)).commit();
+    }
+
     public static String diagnose(Context context, boolean ttsReady) {
         StringBuilder report = new StringBuilder("JARVIS • AUTO REPAIR DIAGNOSTICS\n\n");
         boolean mic = Build.VERSION.SDK_INT < 23 ||
