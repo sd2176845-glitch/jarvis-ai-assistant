@@ -23,7 +23,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 3. Reliable background listening: **duplicate service starts and queued recognition restarts now guarded in code**, while the existing visible foreground notification and Stop action remain. Android recognizer / MIUI battery behavior still requires device testing; it is not guaranteed always-on hotword detection.
 4. Human Intelligence Engine: **partial implementation**; deterministic missing-target clarification is integrated before command routing, and the existing backend transcript-correction path remains text-only. Full context reasoning, consent controls and expanded tests remain.
 5. Universal App Knowledge & Control: **partial implementation**; known Android intents remain, and dynamic installed-app discovery/launch is added with explicit user confirmation. This does not control arbitrary apps or bypass their security.
-6. Communication Engine (contact/call/message drafts and explicit confirmation; never silently send/place calls): **partial foundation; expand and test**.
+6. Communication Engine: **partial implementation**; owner-gated call confirmation and call/SMS announcements remain, and a new SMS composer opens the default messaging app with a draft only—JARVIS never auto-sends it. Contact resolution, broader messaging workflows and device tests remain.
 7. Autonomous Engine: **partial implementation**; local user-scheduled reminders use AlarmManager and a notification receiver. Recurring routines, cancellation UI and an audit log remain.
 8. Creator Engine: **partial implementation**; Creator Studio asks the AI backend for caption, short-video script, story and bio drafts; saving is explicit and owner-gated. No auto-posting or auto-sharing.
 9. Security Engine: **partial implementation**; read-only permission review and a static link/code inspector exist, owner/guest privacy gates were expanded, and backend secrets remain server-side. A full threat model, encrypted storage and audit tests remain.
@@ -44,7 +44,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - [x] **8. Creator Engine — initial implementation:** AI-backed draft generation and explicit local save added.
 - [x] **11. Auto Repair Kit — initial repair implementation:** diagnostics, owner-approved voice-profile repair with backup, and rollback added; other repair categories remain manual.
 - [x] **12. Personal Media Vault — initial implementation:** owner-gated selected-file backup/import/export/restore plus SHA-256 sidecar integrity checks added; encryption and independent backup verification remain.
-- [ ] Finish Communication Engine audit and test all call/SMS actions and confirmations.
+- [x] **6. Communication Engine — initial integration:** owner-gated calls and announcements plus SMS draft handoff to the user's messaging app; sending remains a user action. Device and contact-flow tests remain.
 - [ ] Implement automated approved-source Scheduled Learning with provenance, pause/disable and limits.
 - [ ] Add safe repair/rollback workflow and complete privacy/security review.
 - [ ] Run lint, unit tests, latest CI build, APK size/existence checks and target-device testing.
