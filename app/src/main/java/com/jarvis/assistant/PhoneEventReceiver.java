@@ -29,8 +29,8 @@ public class PhoneEventReceiver extends BroadcastReceiver {
                     finish.run();
                     return;
                 }
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                android.content.SharedPreferences voicePrefs = context.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+                JarvisVoiceEngine.apply(tts, voicePrefs);
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String id) {}
                     @Override public void onDone(String id) {
@@ -53,7 +53,7 @@ public class PhoneEventReceiver extends BroadcastReceiver {
     }
 
     @Override public void onReceive(Context context, Intent intent) {
-        if (intent == null) return;
+        if (intent == null || !JarvisSessionManager.isOwner(context)) return;
         String action = intent.getAction();
         if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
