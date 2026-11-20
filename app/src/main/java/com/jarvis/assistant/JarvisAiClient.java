@@ -92,7 +92,7 @@ public final class JarvisAiClient {
         Handler main = new Handler(Looper.getMainLooper());
         boolean ownerSession = JarvisSessionManager.isOwner(appContext);
         SharedPreferences memory = appContext.getSharedPreferences(
-                ownerSession ? "jarvis_ai_memory" : "jarvis_guest_ai_memory", Context.MODE_PRIVATE);
+                ownerSession ? "jarvis_ai_memory_owner" : "jarvis_ai_memory_guest", Context.MODE_PRIVATE);
         String originalMessage = message == null ? "" : message.trim();
         String prior = memory.getString("conversation", "");
         SharedPreferences appPreferences = appContext.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
