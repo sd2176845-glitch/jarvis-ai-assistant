@@ -340,6 +340,7 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
+        if (!requireOwner("Personal tasks and reminders")) return;
         String notes = getSavedNotes();
         String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
@@ -833,6 +834,7 @@ public class MainActivity extends Activity {
     }
 
     private void showScreenTimeOverview() {
+        if (!requireOwner("Screen-time overview")) return;
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
                 android.os.Process.myUid(), getPackageName());
@@ -1103,6 +1105,7 @@ public class MainActivity extends Activity {
     }
 
     private void enablePhoneEventPermissions() {
+        if (!requireOwner("Call and SMS announcements")) return;
         java.util.ArrayList<String> needed = new java.util.ArrayList<>();
         if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_CONTACTS);
@@ -1628,6 +1631,7 @@ public class MainActivity extends Activity {
     }
 
     private void showEmergencyContactDialog() {
+        if (!requireOwner("Emergency contact")) return;
         EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_PHONE);
         input.setHint("Phone number, e.g. +91...");
@@ -1649,6 +1653,7 @@ public class MainActivity extends Activity {
     }
 
     private void showSosOptions() {
+        if (!requireOwner("SOS controls")) return;
         String contact = preferences.getString("emergency_contact", "");
         String[] options = contact.isEmpty()
                 ? new String[]{"Open 112 dialer", "Set emergency contact"}
@@ -1664,6 +1669,7 @@ public class MainActivity extends Activity {
     }
 
     private void requestOrPlaceCall(String number, String name) {
+        if (!requireOwner("Phone calls")) return;
         if (number == null || number.trim().isEmpty()) {
             status.setText("CONTACT NUMBER NOT AVAILABLE");
             speak("Contact ka number nahi mila. Call nahi ki gayi.");
