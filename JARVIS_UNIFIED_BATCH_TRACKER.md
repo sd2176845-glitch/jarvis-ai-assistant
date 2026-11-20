@@ -21,28 +21,33 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 1. Natural voice engine: **coded and CI build-verified**; Command Center settings save language, voice preference, speed and pitch, and foreground/background TTS apply the shared profile. Female/male selection is best-effort based on installed voice names; actual engine availability and device behavior remain unverified.
 2. Owner / Guest Mode: **local Owner PIN / Guest session code added**; app starts in Guest, owner PIN is salted and derived with PBKDF2, private notes are owner-gated, and AI conversation memory uses separate owner/guest stores. This is an app-level gate, not device-level encryption; test PIN setup/unlock, app restarts, and every private-data surface.
 3. Reliable background listening: **duplicate service starts and queued recognition restarts now guarded in code**, while the existing visible foreground notification and Stop action remain. Android recognizer / MIUI battery behavior still requires device testing; it is not guaranteed always-on hotword detection.
-4. Human Intelligence Engine (context, intent, clarification, controlled memory, honest capability reporting): **planned; define testable interfaces**.
-5. Universal App Knowledge & Control (supported Android intents/integrations, explicit permissions and confirmations; no security bypass): **planned; platform-limited**.
+4. Human Intelligence Engine: **partial implementation**; deterministic missing-target clarification is integrated before command routing, and the existing backend transcript-correction path remains text-only. Full context reasoning, consent controls and expanded tests remain.
+5. Universal App Knowledge & Control: **partial implementation**; known Android intents remain, and dynamic installed-app discovery/launch is added with explicit user confirmation. This does not control arbitrary apps or bypass their security.
 6. Communication Engine (contact/call/message drafts and explicit confirmation; never silently send/place calls): **partial foundation; expand and test**.
-7. Autonomous Engine (owner-approved routines, schedule, cancel, audit log and permissions): **planned; bounded execution only**.
-8. Creator Engine (user-directed creation, preview, explicit save/share): **planned**.
+7. Autonomous Engine: **partial implementation**; local user-scheduled reminders use AlarmManager and a notification receiver. Recurring routines, cancellation UI and an audit log remain.
+8. Creator Engine: **partial implementation**; Creator Studio asks the AI backend for caption, short-video script, story and bio drafts; saving is explicit and owner-gated. No auto-posting or auto-sharing.
 9. Security Engine (permission review, secure local storage, secret hygiene, privacy controls): **partial foundation; threat/privacy audit required**.
-10. Scheduled Learning (owner-configured refresh, source provenance, limits, pause/disable; no self-modifying code): **planned**.
-11. Auto Repair Kit (diagnostics, backup, owner-approved repair, rollback): **partial diagnostics foundation; safe repair/rollback not complete**.
-12. Personal Media Vault (SAF import/export/restore, integrity and independent backup verification): **partial branch implementation; encryption/integrity/device tests required**.
+10. Scheduled Learning: **limited initial implementation**; users can schedule a local topic-review reminder. Automated approved-source refresh/indexing, provenance, pause/disable and learning history are not yet implemented.
+11. Auto Repair Kit: **read-only diagnostics implemented** for microphone permission, speech recognition, TTS, notifications and accessibility state, with links to Android settings. Automatic repair, backup-before-change and rollback remain unimplemented.
+12. Personal Media Vault: **partial implementation ported**; user-selected media copies stay in private app storage, with import/export/restore and SHA-256 integrity checks before restore/export. Files are not encrypted by this implementation and local storage is not an independent cloud backup; device and recovery tests remain.
 
 ## Work sequence
 ### Priority sprint A — requested items 1–4
 - [x] **1. Natural voice engine — initial implementation:** shared voice profile and Command Center controls integrated; CI build succeeded. Remaining: actual installed voice list/availability and device testing.
 - [x] **2. Owner / Guest Mode — initial implementation:** local salted PBKDF2 PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, owner-only notes guard, and separate owner/guest AI conversation stores. Remaining: full private-data surface audit, rate limiting, session timeout, and on-device tests.
 - [x] **3. Reliable background listening — initial code hardening:** duplicate service starts and queued restart callbacks are guarded; visible notification/Stop action and microphone permission checks remain. Remaining: pause/resume UX, error/status visibility and Poco/MIUI device tests.
-- [ ] **4. Human Intelligence Engine:** implement testable intent/context/clarification interfaces, controlled opt-in memory, and truthful capability/error reporting; never pretend to understand an ambiguous command.
+- [x] **4. Human Intelligence Engine — initial implementation:** deterministic clarification for incomplete open/call/message/reminder/search requests is wired into local command routing. Broader context and memory-consent tests remain.
 
 ### Priority sprint B — remaining items 5–12
-- [ ] Reconcile branch diffs against current main; port changes file-by-file, resolving conflicts intentionally.
-- [ ] Add modular interfaces for app actions, communications, autonomy and creator workflows.
-- [ ] Add security controls, scheduled-learning policy, diagnostics/repair rollback, and vault integrity safeguards.
-- [ ] Add security controls, scheduled-learning policy, diagnostics/repair rollback, and vault integrity safeguards.
+- [x] **5. Universal App Control — initial implementation:** dynamic app discovery and explicit launch confirmation added; broader per-app actions remain platform-limited.
+- [x] **7. Autonomous Engine — initial implementation:** local reminder scheduling and notification receiver added; recurring/cancel/audit functions remain.
+- [x] **8. Creator Engine — initial implementation:** AI-backed draft generation and explicit local save added.
+- [x] **11. Auto Repair Kit — diagnostics implementation:** read-only health checks and settings shortcuts added; no automatic changes or rollback.
+- [x] **12. Personal Media Vault — initial implementation:** selected-file backup/import/export/restore plus SHA-256 sidecar integrity checks added; encryption and independent backup verification remain.
+- [ ] Finish Communication Engine audit and test all call/SMS actions and confirmations.
+- [ ] Implement automated approved-source Scheduled Learning with provenance, pause/disable and limits.
+- [ ] Add safe repair/rollback workflow and complete privacy/security review.
+- [ ] Run lint, unit tests, latest CI build, APK size/existence checks and target-device testing.
 - [ ] Update the master blueprint with implemented / partial / platform-dependent / device-test-needed status.
 - [ ] Run unit tests, lint, build, APK size/existence checks; upload one final APK artifact.
 - [ ] Perform target-device tests on Poco M4 Pro 4G before calling device-dependent capabilities verified.
