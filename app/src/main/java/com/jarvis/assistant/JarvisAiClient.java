@@ -90,7 +90,7 @@ public final class JarvisAiClient {
     public static void ask(Context context, String message, Callback callback) {
         Context appContext = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
-        boolean ownerSession = JarvisAccessController.isOwner(appContext);
+        boolean ownerSession = JarvisSessionManager.isOwner(appContext);
         SharedPreferences memory = appContext.getSharedPreferences(
                 ownerSession ? "jarvis_ai_memory" : "jarvis_guest_ai_memory", Context.MODE_PRIVATE);
         String originalMessage = message == null ? "" : message.trim();
