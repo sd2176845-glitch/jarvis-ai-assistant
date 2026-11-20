@@ -18,7 +18,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - `feature/jarvis-18-feature-implementation`: diverged (7 ahead / 41 behind); FeatureKit groundwork.
 
 ## Requested capabilities and honest status
-1. Natural voice engine (male/female where reliably identified; installed voice list, language, rate, pitch; foreground/background parity): **partial branch implementation; integrate and test**.
+1. Natural voice engine: **shared configurable TTS profile coded on the integration branch**; Command Center settings now save language, voice preference, speed and pitch, and foreground/background TTS both apply the same profile. Female/male selection is best-effort based on installed voice names; actual engine availability and device behavior remain unverified.
 2. Owner / Guest Mode (authenticated owner, private-data isolation, owner-only actions): **planned / branch groundwork; security review required**.
 3. Reliable background listening (wake lifecycle, screen-off, duplicate restart prevention, visible stop/pause, MIUI limits): **partial branch implementation; device test required**.
 4. Human Intelligence Engine (context, intent, clarification, controlled memory, honest capability reporting): **planned; define testable interfaces**.
