@@ -395,7 +395,8 @@ public class MainActivity extends Activity {
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
-                "Voice settings • Male / Female / Language / Speed / Pitch"
+                "Voice settings • Male / Female / Language / Speed / Pitch",
+                "Owner / Guest Mode"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -434,7 +435,76 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
+                    else if (which == 22) showOwnerAccessOptions();
                 }).setNegativeButton("Close", null).show();
+    }
+
+
+    private void showOwnerAccessOptions() {
+        String role = JarvisAccessController.isOwner(this) ? "OWNER" : "GUEST";
+        String[] options = {"Enter Guest Mode", "Unlock Owner Mode", "Set / Change Owner PIN"};
+        new AlertDialog.Builder(this).setTitle("JARVIS ACCESS • " + role)
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        JarvisAccessController.enterGuest(this);
+                        status.setText("GUEST MODE • PRIVATE OWNER DATA LOCKED");
+                        transcript.setText("Guest mode is active. Owner notes and owner conversation memory are isolated.");
+                    } else if (which == 1) {
+                        promptOwnerPin(false);
+                    } else if (which == 2) {
+                        if (JarvisAccessController.hasOwnerPin(this) && !JarvisAccessController.isOwner(this)) {
+                            promptOwnerPin(true);
+                        } else {
+                            promptSetOwnerPin();
+                        }
+                    }
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void promptOwnerPin(boolean changeAfterUnlock) {
+        EditText pin = new EditText(this);
+        pin.setHint("Enter 6–8 digit owner PIN");
+        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        new AlertDialog.Builder(this).setTitle("Unlock Owner Mode").setView(pin)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Unlock", (d, w) -> {
+                    if (JarvisAccessController.unlockOwner(this, pin.getText().toString())) {
+                        status.setText("OWNER MODE UNLOCKED");
+                        transcript.setText("Owner mode is active. Private owner data is available.");
+                        if (changeAfterUnlock) promptSetOwnerPin();
+                    } else {
+                        status.setText("OWNER PIN INCORRECT");
+                        new AlertDialog.Builder(this).setMessage("PIN match nahi hua. Guest mode active rahega.")
+                                .setPositiveButton("OK", null).show();
+                    }
+                }).show();
+    }
+
+    private void promptSetOwnerPin() {
+        EditText pin = new EditText(this);
+        pin.setHint("Choose 6–8 digit PIN");
+        pin.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        new AlertDialog.Builder(this).setTitle("Set Owner PIN").setMessage("PIN phone par locally store hoga as a salted hash.")
+                .setView(pin).setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (d, w) -> {
+                    try {
+                        JarvisAccessController.setOwnerPin(this, pin.getText().toString());
+                        status.setText("OWNER PIN SAVED • OWNER MODE");
+                    } catch (IllegalArgumentException e) {
+                        status.setText("PIN MUST BE 6–8 DIGITS");
+                        new AlertDialog.Builder(this).setMessage("Please choose a 6–8 digit numeric PIN.")
+                                .setPositiveButton("OK", null).show();
+                    }
+                }).show();
+    }
+
+    private boolean requireOwner(String action) {
+        if (JarvisAccessController.isOwner(this)) return true;
+        new AlertDialog.Builder(this).setTitle("Owner permission required")
+                .setMessage(action + " is available only in Owner Mode. Unlock with the owner PIN first.")
+                .setPositiveButton("Unlock", (d, w) -> promptOwnerPin(false))
+                .setNegativeButton("Cancel", null).show();
+        return false;
     }
 
     private void showBackgroundVoiceModeOptions() {
@@ -719,6 +789,7 @@ public class MainActivity extends Activity {
     }
 
     private void showNotesDialog() {
+        if (!requireOwner("Private notes")) return;
         EditText input = new EditText(this);
         input.setHint("Write a note or task");
         input.setMinLines(2);
@@ -1002,6 +1073,13 @@ public class MainActivity extends Activity {
         String cleaned = lower.replaceFirst("^(hey |hi |hello |oye |oy |arey |are |ok |okay |please )*", "");
         cleaned = cleaned.replaceFirst("^(jarvis ji|jarvis|jarvesh|jarvish|j a r v i s)(\\s+)", "");
         String intent = cleaned.trim();
+        if (!JarvisAccessController.isOwner(this) &&
+                (intent.contains("remember") || intent.contains("my notes") || intent.contains("show notes")
+                 || intent.contains("personal vault") || intent.contains("private memory"))) {
+            replyAndShow(original, "Guest mode mein owner ka private data access nahi ho sakta.");
+            return;
+        }
+
         if (intent.contains("digital threat inspector") || intent.contains("inspect link")
                 || intent.contains("check this link") || intent.contains("check code")
                 || intent.contains("scan link") || intent.contains("link checker")) {
