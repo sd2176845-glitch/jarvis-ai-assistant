@@ -62,8 +62,8 @@ public class WakeWordService extends Service {
         createChannel();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                SharedPreferences voicePrefs = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+                JarvisVoiceEngine.apply(tts, voicePrefs);
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String utteranceId) {
                         handler.post(() -> {
