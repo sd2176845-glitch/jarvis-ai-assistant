@@ -791,3 +791,30 @@ The owner requested a dedicated Workflows capability alongside Priorities 0–35
 **Relationship to existing priorities:** Priority 4 remains the command-chain foundation; Priorities 10–11 remain app and communication action layers; Priority 12 remains the orchestration/initiative layer; Priority 17 and 34 remain scheduling/resource foundations; Priority 7 remains diagnostics; Priorities 33–35 remain connected-device and robotics foundations. Priority 36 coordinates these existing capabilities into owner-controlled workflows without duplicating them.
 
 All Priority 36 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+
+## Priority 37 — R&D Innovation Lab foundations (approved 2026-11-20)
+
+These eight modules are approved for the JARVIS product roadmap. The Android app now contains an owner-invoked catalogue scaffold with descriptions, phase labels and explicit implementation-status warnings. The catalogue is **not** the completed implementation of the modules.
+
+- [ ] **Digital Twin Simulator:** define versioned system models, assumptions, input parameters, scenario runs and comparison reports; label simulations as estimates and validate models before relying on them.
+- [ ] **3D Holographic Workspace:** build an interactive 3D project workspace where supported by the device; distinguish an on-screen 3D view from actual holographic hardware.
+- [ ] **Robotics Engineer Mode:** provide circuit/robot design references, control-logic authoring and offline simulation; keep physical actuator control disabled until hardware-specific safety review, explicit owner authorization and emergency stop are implemented.
+- [ ] **Autonomous Research Lab:** create owner-started research jobs that gather sources, compare claims, track freshness and generate cited reports; no unattended publishing or external account actions.
+- [ ] **Knowledge Galaxy:** implement an owner-controlled graph linking notes, concepts, sources and projects, with search, edit, export and deletion.
+- [ ] **Multi-Agent Intelligence:** coordinate bounded specialist agents for research, planning and code review; validate outputs, limit tools, prevent circular delegation and require approval for consequential actions.
+- [ ] **Project Time Machine:** store project milestones and version snapshots, compare changes and restore prior project documents with confirmation; never silently roll back live systems.
+- [ ] **Smart Environment Intelligence:** integrate only documented compatible devices through explicit setup and consent; preview actions, confirm sensitive/physical-world changes and provide a reliable stop/disconnect control.
+
+### Implementation phases
+1. Research Lab and Multi-Agent orchestration foundations.
+2. Knowledge Galaxy and Project Time Machine.
+3. Digital Twin and Robotics design/simulation (simulation only until hardware safety controls are reviewed).
+4. 3D workspace and Smart Environment integrations.
+
+### Acceptance rules
+- A catalogue entry or UI screen is not a completed feature.
+- Each module needs a separate implementation, unit/integration tests, failure handling, privacy review and target-device verification.
+- Offline catalogue browsing must work without Wi-Fi; online research, cloud agents and connected devices must clearly report when unavailable.
+- Do not claim a true holographic display, validated digital twin, autonomous physical robot control or smart-home compatibility without the required hardware and tests.
+- Keep all changes inside the JARVIS repository; do not modify Even.
