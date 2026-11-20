@@ -68,8 +68,7 @@ public class MainActivity extends Activity {
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                JarvisVoiceEngine.apply(tts, preferences);
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -395,7 +394,8 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "Voice settings • Male / Female / Language / Speed / Pitch"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -433,6 +433,7 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
                 }).setNegativeButton("Close", null).show();
     }
 
