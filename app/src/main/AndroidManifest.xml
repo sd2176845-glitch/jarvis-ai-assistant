@@ -33,7 +33,8 @@
         android:label="JARVIS"
         android:allowBackup="false"
         android:supportsRtl="true">
-        <receiver android:name=".JarvisReminderReceiver" android:enabled="true" android:exported="false" />\n        <receiver android:name=".JarvisScheduledLearningReceiver" android:enabled="true" android:exported="false" />
+        <receiver android:name=".JarvisReminderReceiver" android:enabled="true" android:exported="false" />
+        <receiver android:name=".JarvisScheduledLearningReceiver" android:enabled="true" android:exported="false" />
         <receiver android:name=".PhoneEventReceiver" android:enabled="true" android:exported="true" android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
