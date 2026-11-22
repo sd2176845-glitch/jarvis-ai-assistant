@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `blueprint/advanced-feature-integration`
+- Branch: `feature/m14-diagnostics-3pack` (based on `blueprint/advanced-feature-integration` at PR #21 head)
 - Draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/21
 - `main` has not been changed or merged by this work.
 
@@ -30,7 +30,7 @@
 1. Read this tracker and `JARVIS_MASTER_BLUEPRINT_CONSOLIDATED.md`.
 2. Inspect the current branch head and open PR before editing.
 3. Check whether a requested capability already exists; do not duplicate existing features.
-4. Implement one bounded module per batch, update this tracker and the blueprint, then run CI/build checks.
+4. Implement three distinct, independently tracked sub-features per batch; keep their code paths and acceptance checks separate, then run a combined build/regression check. If a feature fails, record its result independently.
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
@@ -96,3 +96,31 @@
 - **CI:** GitHub Actions run #495 (45040755446) passed backend syntax validation, Gradle debug APK build, and artifact upload. Artifact 14761891383; SHA-256 93c16f0cbfe5dfca2da02e855a13c43672d9b5904225cda413d102e2feb2e3f2.
 - **Not verified:** Android unit tests/lint were not separate steps in this workflow; Poco M4 Pro 4G physical-device testing remains pending. Do not mark M09 or the earlier features device-verified.
 - **Next gate:** test timeline add/list/detail/delete/export on the Poco, including empty/corrupt data handling. Then choose the next separate unimplemented sub-feature from the consolidated blueprint. Keep all work on this feature branch; do not merge without owner approval.
+
+
+## Batch B01 — M14 Diagnostics Studio (three independent sub-features; 2026-11-22)
+
+**Branch:** `feature/m14-diagnostics-3pack`, created from PR #21 head `b209bb0a81f84aaf70d9294771bba2e669f4f22f`. PR #21 remains open and unchanged; this batch has not been merged.
+
+### Feature 1 — App Health Check
+- **Code-present:** upgraded the existing Command Center's **System safety check** entry to open Diagnostics Studio. It checks speech-recognition service availability, TTS initialization, INTERNET permission declaration, app package/version readability, and reports optional microphone/contacts/call/notification permission states.
+- This extends the existing safety-check entry; it does not add a duplicate diagnostics menu or repeat M17 battery/storage/RAM reporting.
+- **Acceptance checks:** run with microphone granted/denied; verify optional permission states; verify unavailable speech/TTS handling; confirm no permission prompt or settings change is triggered.
+
+### Feature 2 — Sanitized Diagnostic Report Export
+- **Code-present:** the owner can explicitly open Android's share chooser for the current app-health report.
+- The report excludes contacts, messages, call data, conversation content and raw logs. No network upload or automatic sharing occurs.
+- **Acceptance checks:** inspect report contents; verify share chooser appears only after owner action; cancel chooser and confirm nothing is sent.
+
+### Feature 3 — Local Diagnostic History
+- **Code-present:** owner may save a diagnostic summary locally, view the last 10 timestamp/pass-count summaries, or clear the history after confirmation. Only timestamp and check counts are retained; report text and personal content are not stored.
+- Uses the existing private `jarvis_preferences` store under `m14_diagnostic_history_v1`; no new database or permission.
+- **Acceptance checks:** save/view multiple summaries; confirm maximum 10 entries; clear with confirmation; verify malformed history is preserved and reported rather than silently overwritten.
+
+### Batch validation and safety status
+- **Source commits:** `cc8e73d3a6b8b8c65d9ee7639f2893e8e94dedbc` (DiagnosticsStudio), `21c7b04de1e6b48907ffb95925feff36c7a7b1e1` (existing safety-check integration), and `7c86b2f73fffab58a782bb8c11473c213f6db9dd` (history navigation correction).
+- **CI/build:** pending for this batch; do not claim successful build or APK artifact until the workflow completes.
+- **Physical device:** pending on Poco M4 Pro 4G. Do not mark any of the three sub-features device-verified.
+- **Permissions:** no new manifest permission; no hidden monitoring, log collection, private-content access, settings changes, or background work.
+- **Regression:** re-test existing System safety check entry, voice session, M17 resource dashboard, Command Center navigation and app startup.
+- **Merge policy:** keep the batch on its feature branch; do not merge into PR #21 or `main` without owner approval.
