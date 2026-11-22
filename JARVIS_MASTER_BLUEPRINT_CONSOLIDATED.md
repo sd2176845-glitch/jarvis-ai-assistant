@@ -301,3 +301,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B08 verification update (2026-11-22):** corrected code head `b922a78b5e9c2956c7f4237331633939cb701861` passed GitHub Actions run #591 (`45045770900`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763955311`, SHA-256 `84ef58a3e5e25fa086c270be6e4a8002019ec8143f903ce088a35a97b1f209fa`. Initial runs #586–#590 failed on two extra closing parentheses in nested dialog callbacks; corrected in the passing head. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #30 is open and unmerged.
+
+
+### M12 — Data Intelligence Center (Batch B09; implementation status tracked separately)
+- Added a local-first CSV Dataset Profiler, Data Quality Inspector and Aggregate AI Insight Report.
+- Parsing and structural/numeric statistics run locally with limits of 50,000 characters, 1,000 rows and 50 columns. Original CSV is not saved.
+- AI report preview sends only anonymized column labels and aggregate counts/statistics after explicit confirmation; raw CSV rows and cell values are excluded.
+- Structural checks do not establish factual correctness or cover all semantic anomalies. User is warned not to paste sensitive/confidential records.
+- **Status:** code added on `feature/m12-data-intelligence-3pack`; CI/build and target-device verification pending.
