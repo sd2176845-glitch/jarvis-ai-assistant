@@ -1,8 +1,5 @@
 package com.jarvis.assistant;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 /** Pure, content-free summaries for M01 owner privacy controls. */
 public final class OwnerPrivacyRules {
     private OwnerPrivacyRules() { }
@@ -11,14 +8,57 @@ public final class OwnerPrivacyRules {
         return granted ? "Granted" : "Not granted";
     }
 
-    /** Returns -1 for unreadable/missing JSON so corruption is not presented as an empty list. */
+    /**
+     * Counts top-level array entries without Android's org.json classes so the rule
+     * can be unit-tested on the JVM. This is a conservative structural check, not
+     * a general-purpose JSON parser; malformed/unbalanced input returns -1.
+     */
     public static int jsonArrayCount(String raw) {
         if (raw == null || raw.trim().isEmpty()) return 0;
-        try {
-            return new JSONArray(raw).length();
-        } catch (JSONException e) {
-            return -1;
+        String value = raw.trim();
+        if (value.length() < 2 || value.charAt(0) != '['
+                || value.charAt(value.length() - 1) != ']') return -1;
+        int objects = 0;
+        int arrays = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        boolean elementStarted = false;
+        int count = 0;
+        for (int i = 1; i < value.length() - 1; i++) {
+            char ch = value.charAt(i);
+            if (inString) {
+                elementStarted = true;
+                if (escaped) escaped = false;
+                else if (ch == '\\\\') escaped = true;
+                else if (ch == '"') inString = false;
+                continue;
+            }
+            if (ch == '"') {
+                inString = true;
+                elementStarted = true;
+            } else if (ch == '{') {
+                objects++;
+                elementStarted = true;
+            } else if (ch == '}') {
+                if (objects == 0) return -1;
+                objects--;
+            } else if (ch == '[') {
+                arrays++;
+                elementStarted = true;
+            } else if (ch == ']') {
+                if (arrays == 0) return -1;
+                arrays--;
+            } else if (ch == ',' && objects == 0 && arrays == 0) {
+                if (!elementStarted) return -1;
+                count++;
+                elementStarted = false;
+            } else if (!Character.isWhitespace(ch)) {
+                elementStarted = true;
+            }
         }
+        if (inString || escaped || objects != 0 || arrays != 0) return -1;
+        if (!elementStarted) return count == 0 ? 0 : -1;
+        return count + 1;
     }
 
     public static String countLabel(int count, String itemName) {
