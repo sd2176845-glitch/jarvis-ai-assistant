@@ -207,3 +207,32 @@
 - **CI/build:** passed on code head `7d06870c70630171b69fbd9f6bc3935e6fb88fdc`; GitHub Actions run #553 (`45044836017`) completed backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762504922`, SHA-256 `77eb8572bc40e7e53c22515789486388cba95d9287e3c976ee4ff8387a2d7f65`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Device acceptance:** confirm Android 13 visibility results, catalogue count/labels, app update/uninstall race handling and permission declaration labels.
 - **Merge policy:** do not merge to parent PR #25 or `main` without owner approval.
+
+
+## Batch B05 — M05 Public Knowledge Lookups (three independent read-only integrations; 2026-11-22)
+
+**Branch:** `feature/m05-public-knowledge-3pack`, stacked on M04 App Intelligence / PR #26. Separate, unmerged batch.
+
+### Feature 1 — Country Information
+- **Code-present:** owner enters a country name or ISO alpha-2/alpha-3 code. JARVIS retrieves public country facts including capital, region, population, area, currencies and languages. Name searches may return multiple matches; up to eight are displayed rather than silently choosing one.
+- **Provider:** countries.dev, HTTPS, no API key. Source URL: https://countries.dev/docs
+- **Acceptance checks:** ISO2, ISO3, full name, ambiguous partial name, unknown country, missing optional fields, rate-limit and network failure.
+
+### Feature 2 — India PIN Code Lookup
+- **Code-present:** owner enters a six-digit PIN; JARVIS displays the returned post-office list, branch type, delivery status, district, state and division. A PIN may map to several post offices, so the UI shows multiple entries and does not pick one as the user's address.
+- **Provider:** PostalPincode.in public API. Source URL: https://www.postalpincode.in/Api-Details
+- **Reliability note:** community-maintained reference service; no production SLA. Results are informational, not address verification or delivery guarantees.
+- **Acceptance checks:** valid PIN with multiple post offices, unknown/invalid PIN, HTTP errors, long result list, unavailable provider and non-delivery branch labels.
+
+### Feature 3 — English Dictionary
+- **Code-present:** owner enters one English word; JARVIS displays available phonetic spelling, parts of speech, definitions and examples.
+- **Provider:** Free Dictionary API / dictionaryapi.dev. Source URL: https://dictionaryapi.dev/
+- **Scope:** English-only in this increment; no claim of Hindi/Bengali dictionary coverage. Provider availability and response completeness may vary.
+- **Acceptance checks:** common word, multiple meanings, hyphen/apostrophe word, not-found word, missing phonetics/examples, HTTP 429 and malformed response.
+
+### Privacy, network and verification
+- Each lookup is separately selected and requires a confirmation before sending the entered value. Only the entered country name/code, six-digit PIN or English word is sent; no contacts, notes, conversation history, precise location or background data is attached.
+- HTTPS GET only; bounded connect/read timeouts; response size capped; HTTP and malformed-response errors handled. No API keys or new Android permissions.
+- **Implementation files:** `PublicKnowledgeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on this branch until GitHub Actions completes. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #26; do not merge to parent PR #26 or `main` without owner approval.
