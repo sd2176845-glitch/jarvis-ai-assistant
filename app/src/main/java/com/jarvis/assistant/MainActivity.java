@@ -2736,9 +2736,19 @@ public class MainActivity extends Activity {
                     dialog.dismiss();
                 })
                 .setPositiveButton("Speech style", (dialog, which) -> showSpeechStyleOptions())
-                .setNeutralButton("Input language", (dialog, which) -> showSpeechInputLanguageOptions())
+                .setNeutralButton("More voice settings", (dialog, which) -> showVoiceAdvancedOptions())
                 .setNegativeButton("Close", null)
                 .show();
+    }
+
+    private void showVoiceAdvancedOptions() {
+        new AlertDialog.Builder(this).setTitle("JARVIS • Voice options")
+                .setItems(new String[]{"Speech input language", "Speech style", "Voice pitch"},
+                        (dialog, which) -> {
+                            if (which == 0) showSpeechInputLanguageOptions();
+                            else if (which == 1) showSpeechStyleOptions();
+                            else showVoicePitchOptions();
+                        }).setNegativeButton("Close", null).show();
     }
 
     private void showSpeechInputLanguageOptions() {
