@@ -290,3 +290,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B07 verification update (2026-11-22):** code/documentation head `a9cd77178709102a9bc746840f9c6e44b0f496b8` passed GitHub Actions run #581 (`45045554373`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763640351`, SHA-256 `648188031f44642066caf26da29fe54d3a14dec55c84095f7468ed01a2672ccf`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #29 is open and unmerged.
+
+
+### M11 — Software Development Studio (Batch B08; implementation status tracked separately)
+- Added Project Architect, Bug & Error Explainer, and Code Quality Review as three separate tools.
+- Project Architect produces a reviewable project plan; Bug Explainer analyses only pasted error/context; Code Review assesses only the owner-pasted excerpt. These do not execute code, create files, deploy software or claim whole-project security verification.
+- Uses the existing memory-isolated AI request path, explicit pre-send confirmation and a 5,000-character input limit. No saved memory, notes, contacts, new permission or persistent code archive.
+- Unsafe code categories (malware, credential theft, covert surveillance, backdoors, evasion, unauthorized access) are excluded.
+- **Status:** code added on `feature/m11-software-dev-studio-3pack`; CI/build and target-device verification pending.
