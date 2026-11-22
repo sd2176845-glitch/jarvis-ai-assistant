@@ -68,8 +68,7 @@ public class MainActivity extends Activity {
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
-                tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applyVoicePreferences();
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -395,7 +394,8 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "Voice settings • Language / Voice / Speed / Pitch"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -433,6 +433,7 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) showVoiceSettings();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1491,11 +1492,83 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applyVoicePreferences() {
+        if (tts == null || preferences == null) return;
+        String code = preferences.getString("tts_language", "en-IN");
+        Locale locale = "hi-IN".equals(code) ? new Locale("hi", "IN") : ("bn-IN".equals(code) ? new Locale("bn", "IN") : new Locale("en", "IN"));
+        int result = tts.setLanguage(locale);
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+            status.setText("LANGUAGE NOT INSTALLED • USING ENGLISH");
+            tts.setLanguage(new Locale("en", "IN"));
+        }
+        String voiceName = preferences.getString("tts_voice_name", "");
+        if (!voiceName.isEmpty() && tts.getVoices() != null) {
+            for (android.speech.tts.Voice voice : tts.getVoices()) if (voiceName.equals(voice.getName())) { tts.setVoice(voice); break; }
+        }
+        tts.setSpeechRate(preferences.getFloat("tts_rate", 0.92f));
+        tts.setPitch(preferences.getFloat("tts_pitch", 1.0f));
+    }
+
+    private void showVoiceSettings() {
+        String[] labels = {"English (India)", "Hindi (India)", "Bengali (India)", "Choose installed voice", "Speech speed", "Voice pitch"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Voice settings").setItems(labels, (d, which) -> {
+            if (which <= 2) {
+                String[] codes = {"en-IN", "hi-IN", "bn-IN"};
+                preferences.edit().putString("tts_language", codes[which]).remove("tts_voice_name").apply();
+                applyVoicePreferences();
+                showInstalledVoicePicker();
+            } else if (which == 3) showInstalledVoicePicker();
+            else showVoiceSlider(which == 4);
+        }).setNegativeButton("Close", null).show();
+    }
+
+    private void showInstalledVoicePicker() {
+        if (tts == null || tts.getVoices() == null) { status.setText("TTS VOICE LIST UNAVAILABLE"); return; }
+        java.util.ArrayList<android.speech.tts.Voice> voices = new java.util.ArrayList<>();
+        String language = preferences.getString("tts_language", "en-IN");
+        for (android.speech.tts.Voice voice : tts.getVoices()) {
+            if (voice.getLocale() != null && voice.getLocale().getLanguage().equalsIgnoreCase(language.substring(0, 2))) voices.add(voice);
+        }
+        if (voices.isEmpty()) { status.setText("NO VOICES INSTALLED FOR THIS LANGUAGE"); return; }
+        String[] names = new String[voices.size()];
+        int selected = 0;
+        String saved = preferences.getString("tts_voice_name", "");
+        for (int i = 0; i < voices.size(); i++) {
+            android.speech.tts.Voice voice = voices.get(i);
+            names[i] = voice.getName() + (voice.isNetworkConnectionRequired() ? " • Online" : " • Offline");
+            if (voice.getName().equals(saved)) selected = i;
+        }
+        new AlertDialog.Builder(this).setTitle("Installed voices").setSingleChoiceItems(names, selected, (d, which) -> {
+            android.speech.tts.Voice voice = voices.get(which);
+            if (tts.setVoice(voice) == TextToSpeech.SUCCESS) { preferences.edit().putString("tts_voice_name", voice.getName()).apply(); status.setText("VOICE UPDATED"); }
+            d.dismiss();
+        }).setNegativeButton("Close", null).show();
+    }
+
+    private void showVoiceSlider(boolean speed) {
+        android.widget.SeekBar bar = new android.widget.SeekBar(this);
+        bar.setMax(100);
+        float current = preferences.getFloat(speed ? "tts_rate" : "tts_pitch", speed ? 0.92f : 1.0f);
+        bar.setProgress(Math.max(0, Math.min(100, Math.round((current - 0.5f) * 100f))));
+        TextView value = new TextView(this);
+        value.setText(String.format(Locale.US, "%.2f", current));
+        LinearLayout panel = new LinearLayout(this); panel.setOrientation(LinearLayout.VERTICAL); panel.setPadding(24, 12, 24, 8); panel.addView(value); panel.addView(bar);
+        bar.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener() {
+            public void onProgressChanged(android.widget.SeekBar seekBar, int progress, boolean fromUser) { value.setText(String.format(Locale.US, "%.2f", 0.5f + progress / 100f)); }
+            public void onStartTrackingTouch(android.widget.SeekBar seekBar) {}
+            public void onStopTrackingTouch(android.widget.SeekBar seekBar) {}
+        });
+        new AlertDialog.Builder(this).setTitle(speed ? "Speech speed" : "Voice pitch").setView(panel).setNegativeButton("Cancel", null)
+            .setPositiveButton("Save", (d, w) -> { float v = 0.5f + bar.getProgress() / 100f; preferences.edit().putFloat(speed ? "tts_rate" : "tts_pitch", v).apply(); applyVoicePreferences(); }).show();
+    }
+
     private void speak(String text) {
         if (tts != null) {
             String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
+            float savedRate = preferences == null ? 0.92f : preferences.getFloat("tts_rate", 0.92f);
+            float multiplier = "calm".equals(style) ? 0.90f : ("energetic".equals(style) ? 1.10f : 1.0f);
+            tts.setSpeechRate(Math.max(0.65f, Math.min(1.35f, savedRate * multiplier)));
+            tts.setPitch(preferences == null ? 1.0f : preferences.getFloat("tts_pitch", 1.0f));
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
         }
     }
