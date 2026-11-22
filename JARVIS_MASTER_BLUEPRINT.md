@@ -96,7 +96,8 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 ### Priority 4 — Memory and personal secretary
 - [ ] User-approved long-term preferences with review/edit/delete controls.
 - [ ] Structured notes and to-do lists with editing and deletion per item (current implementation stores and clears a simple local notes text list).
-- [x] One-time JARVIS-owned scheduled reminders using Android AlarmManager and a local notification receiver (code present — notification permission/settings and Doze delivery need device testing; reminders are not restored after reboot yet).
+- [x] One-time JARVIS-owned scheduled reminders using Android AlarmManager and a local notification receiver (code present — notification permission/settings and Doze delivery need device testing).
+- [~] Persist owner-created reminder records and restore future alarms after Android reboot or JARVIS app replacement; remove delivered/expired records. Code present — build/device tests still required; force-stop, OEM battery policies, and reboot behavior must be verified on the target phone.
 - [ ] Calendar-connected morning briefing and daily schedule.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
 - [ ] Expand multi-step command handling into a safe command-chain planner: parse the requested steps, show the proposed actions, execute reversible low-risk steps, and ask separately before calls, messages, purchases, sharing data or changing calendar events.
