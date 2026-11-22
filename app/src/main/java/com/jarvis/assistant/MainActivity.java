@@ -457,7 +457,7 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
-                    else if (which == 21) showVoiceSettings();
+                    else if (which == 21) showVoiceSettings();\n                    else if (which == 22) showSmartNotificationIntelligence();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1534,6 +1534,41 @@ public class MainActivity extends Activity {
         }
         tts.setSpeechRate(preferences.getFloat("tts_rate", 0.92f));
         tts.setPitch(preferences.getFloat("tts_pitch", 1.0f));
+    }
+
+
+    private void showSmartNotificationIntelligence() {
+        android.content.SharedPreferences stats = getSharedPreferences("jarvis_notification_intelligence", MODE_PRIVATE);
+        boolean enabled = android.provider.Settings.Secure.getString(getContentResolver(),
+                "enabled_notification_listeners") != null
+                && android.provider.Settings.Secure.getString(getContentResolver(),
+                "enabled_notification_listeners").contains(getPackageName());
+        long high = stats.getLong("high_count", 0L);
+        long normal = stats.getLong("normal_count", 0L);
+        long low = stats.getLong("low_count", 0L);
+        String summary = "Notification access: " + (enabled ? "ENABLED" : "NOT ENABLED")
+                + "\n\nPriority summary since last reset"
+                + "\n• High priority: " + high
+                + "\n• Normal priority: " + normal
+                + "\n• Low priority: " + low
+                + "\n• Total: " + (high + normal + low)
+                + "\n\nJARVIS only counts notification priority locally. It does not save notification text, sender names, message contents, or upload notification data.";
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Smart Notifications")
+                .setMessage(summary)
+                .setPositiveButton(enabled ? "Notification settings" : "Enable access", (d, w) -> {
+                    try {
+                        startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                    } catch (Exception e) {
+                        status.setText("OPEN ANDROID SETTINGS > NOTIFICATION ACCESS");
+                    }
+                })
+                .setNeutralButton("Reset counts", (d, w) -> {
+                    stats.edit().clear().apply();
+                    status.setText("NOTIFICATION COUNTS RESET");
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private void showVoiceSettings() {
