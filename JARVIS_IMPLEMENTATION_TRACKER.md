@@ -64,3 +64,8 @@
 - Existing legacy notes (`jarvis_notes` / `notes`) are displayed separately and are not migrated, overwritten, or deleted by this feature.
 - Alarm and calendar actions remain Android Clock/Calendar handoffs with user confirmation; M07 does not add background scheduling or external sync.
 - **Validation:** CI/build status pending for the M07 commits. Poco M4 Pro 4G device verification pending. M02 device verification also remains pending; both must be tested on the eventual final APK.
+
+
+### M07 CI correction note
+- The first M07 workflow run (#470, run ID `45039317458`) failed at Java compilation because the import line contained literal escaped newline characters. The line was corrected in commit `e5474c7476633dc9de490e4bd9e03b74550820f3`.
+- A successful post-fix CI run has not yet been confirmed. Do not download or treat any artifact from the failed run as an M07 build. Target-device testing remains pending.
