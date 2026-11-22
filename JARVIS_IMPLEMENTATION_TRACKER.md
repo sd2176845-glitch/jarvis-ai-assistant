@@ -515,3 +515,21 @@
 - **CI/build:** corrected final head `34941b26529b36519f27bae775d0f85a588443b1` passed GitHub Actions run #711 (`45051230977`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14765930477`. Earlier runs #707–#710 exposed a local JVM test issue from using Android's `org.json` stub; the counter was rewritten as a pure-Java structural check and the final run passed.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify permission status accuracy, Android settings handoffs, all known inventory counts, corrupt JSON handling, share chooser cancel/selection, and confirm no private content appears in exported text.
 - **Merge policy:** keep stacked on PR #40; do not merge into PR #40 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B16 — M02 Owner-Reviewed Voice Transcript Correction (2026-11-22)
+
+**Branch:** `feature/m02-voice-transcript-review-3pack`, stacked on M01 / PR #41. Draft PR targets `feature/m01-owner-privacy-studio-3pack`; separate and unmerged.
+
+### Feature — Transcript Correction Review Gate
+- **Code-present:** after the existing speech-understanding endpoint returns a corrected transcript, JARVIS compares it with the original recognized words.
+- **No unnecessary interruption:** unchanged wording continues through the existing command router without a dialog.
+- **Owner choice:** when wording changes, JARVIS displays original and suggested correction with **Use correction**, **Use original**, **Edit text**, and cancel. No command is routed until the owner chooses.
+- **Edit safety:** empty edited text is rejected. Cancelling review runs no command. The transcript is not saved by this review feature.
+- **Anti-duplication:** upgrades the existing `understandVoiceCommand()` flow; reuses the existing speech recognizer, backend correction endpoint, command router and foreground voice UI. Does not create another voice assistant, transcript store, or command router.
+- **Privacy:** only the current recognized utterance is reviewed; no new persistence, contacts access, background collection, or additional network request is introduced.
+- **Files:** `VoiceTranscriptReviewRules.java`, `VoiceTranscriptReviewRulesTest.java`, and existing `MainActivity.java`.
+- **Automated tests:** three JUnit tests cover unchanged wording, changed-word review requirement, and safe fallback for empty correction.
+- **CI/build:** pending for this branch; do not report as passed until completed.
+- **Physical device:** pending on Poco M4 Pro 4G. Verify unchanged transcripts route normally; changed transcripts show all choices; Use original/correction/Edit work; cancel and empty edit run no command; existing local commands and confirmation flows remain intact.
+- **Merge:** draft PR only; no merge into M01 or `main` without owner approval. JARVIS only; Even untouched.
