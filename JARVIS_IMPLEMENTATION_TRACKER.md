@@ -159,7 +159,7 @@
 
 ## Batch B03 — M03 Language & Learning Studio (three independent owner-invoked tools; 2026-11-22)
 
-**Branch:** `feature/m03-language-studio-3pack`, stacked on the M09 memory-expansion branch / PR #24. This batch is separate and unmerged.
+**Branch:** `feature/m03-language-studio-3pack`, stacked on the M09 memory-expansion branch / PR #24. Draft PR #25: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/25. This batch is separate and unmerged.
 
 ### Feature 1 — Hindi / Bengali / English Translation
 - **Code-present:** added an owner-invoked translation workflow with explicit target-language selection (Hindi, Bengali, English), text entry, result preview and optional Android text-to-speech playback.
@@ -179,6 +179,6 @@
 - The dialog discloses backend processing before submission. No automatic clipboard/gallery access, background collection, local history, extra permission or new persistent data store.
 - Uses the existing HTTPS JARVIS backend and Android TTS engine; no API key is added to the APK.
 - **Implementation files:** `LanguageStudio.java` (new), `JarvisAiClient.java` (isolated request method), and `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on the current branch until GitHub Actions completes. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on final code head `4caf2cacef9ca55cac77b4ef05b990bee9c24545`; GitHub Actions run #547 (`45044601421`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762243808`, SHA-256 `6915af375edcef95663da8204b636c6ec971bf991a482461fb4c108be8d15eef`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Device acceptance:** test language voice availability, network-offline messaging, cancellation, text limit, and ensure the studio does not modify saved notes or conversation memory.
 - **Merge policy:** keep this stacked PR separate; do not merge to parent PR #24 or `main` without owner approval.
