@@ -319,5 +319,5 @@
 - No new Android permission, background collection, persistent code archive or API key in APK.
 - Safety boundaries exclude malware, credential theft, covert surveillance, backdoors, evasion and unauthorized access.
 - **Implementation files:** `SoftwareDevelopmentStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed after correction on code head `b922a78b5e9c2956c7f4237331633939cb701861`; GitHub Actions run #591 (`45045770900`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763955311`, SHA-256 `84ef58a3e5e25fa086c270be6e4a8002019ec8143f903ce088a35a97b1f209fa`. Initial runs #586–#590 failed due two extra closing parentheses in nested dialog callbacks; corrected in this head. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #29; do not merge to parent PR #29 or `main` without owner approval.
