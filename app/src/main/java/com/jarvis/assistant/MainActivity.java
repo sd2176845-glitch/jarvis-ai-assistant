@@ -1752,7 +1752,8 @@ public class MainActivity extends Activity {
                 "Practical Intelligence Suite • Emergency / Legal / Vehicle",
                 "Display & Accessibility Studio • Text / Contrast",
                 "Image Text Reader • Local OCR",
-                "PDF Text Reader • First-page OCR"
+                "PDF Text Reader • First-page OCR",
+                "Guest Mode • Hide private data"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1779,11 +1780,11 @@ public class MainActivity extends Activity {
                                     transcript.setText("JARVIS memory cleared.");
                                 }).show();
                     } else if (which == 9) showModeSelector();
-                    else if (which == 10) runAfterOwnerAuthentication(() -> showNotesDialog());
+                    else if (which == 10) openPrivateArea(() -> showNotesDialog());
                     else if (which == 11) showDailyBriefing();
                     else if (which == 12) showLiveInfoOptions();
                     else if (which == 13) openVisionTools();
-                    else if (which == 14) runAfterOwnerAuthentication(() -> showTaskAndReminderHub());
+                    else if (which == 14) openPrivateArea(() -> showTaskAndReminderHub());
                     else if (which == 15) showConnectedSystems();
                     else if (which == 16) showPrivacyOptions();
                     else if (which == 17) showScreenTimeOverview();
@@ -1793,8 +1794,8 @@ public class MainActivity extends Activity {
                     else if (which == 21) showVoiceSettings();
                     else if (which == 22) showFocusSession();
                     else if (which == 23) showDeviceResourceDashboard();
-                    else if (which == 24) runAfterOwnerAuthentication(() -> showWorkflowStudio());
-                    else if (which == 25) runAfterOwnerAuthentication(() -> showPersonalMemoryVault());
+                    else if (which == 24) openPrivateArea(() -> showWorkflowStudio());
+                    else if (which == 25) openPrivateArea(() -> showPersonalMemoryVault());
                     else if (which == 26) LanguageStudio.show(MainActivity.this, status, transcript);
                     else if (which == 27) AppIntelligenceStudio.show(MainActivity.this);
                     else if (which == 28) PublicKnowledgeStudio.show(MainActivity.this);
@@ -1810,6 +1811,7 @@ public class MainActivity extends Activity {
                     else if (which == 38) DisplayAccessibilityStudio.show(MainActivity.this, status, transcript);
                     else if (which == 39) ImageOcrStudio.chooseImage(MainActivity.this);
                     else if (which == 40) DocumentOcrStudio.choosePdf(MainActivity.this);
+                    else if (which == 41) showGuestModeOptions();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -2198,7 +2200,37 @@ public class MainActivity extends Activity {
 
     private void showPrivacyOptions() {
         // Upgrade the existing privacy entry in place; require the phone's own credential.
-        runAfterOwnerAuthentication(() -> OwnerPrivacyStudio.show(this, preferences));
+        openPrivateArea(() -> OwnerPrivacyStudio.show(this, preferences));
+    }
+
+    private boolean isGuestModeEnabled() {
+        return preferences.getBoolean("guest_mode_enabled", false);
+    }
+
+    private void openPrivateArea(Runnable action) {
+        if (isGuestModeEnabled()) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Guest Mode active")
+                    .setMessage("Private notes, tasks, workflows, memory and privacy exports are hidden while Guest Mode is on. The owner can turn it off using the phone's screen lock.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+        runAfterOwnerAuthentication(action);
+    }
+
+    private void showGuestModeOptions() {
+        boolean enabled = isGuestModeEnabled();
+        String message = enabled
+                ? "Guest Mode is active. Turning it off requires the Android device PIN, pattern or password."
+                : "Guest Mode hides private notes, tasks, workflows, memory and privacy exports. Enabling it requires the Android device lock.";
+        new AlertDialog.Builder(this).setTitle("JARVIS • Guest Mode")
+                .setMessage(message)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton(enabled ? "Turn off Guest Mode" : "Enable Guest Mode",
+                        (d, w) -> runAfterOwnerAuthentication(() -> {
+                            preferences.edit().putBoolean("guest_mode_enabled", !enabled).apply();
+                            status.setText(!enabled ? "GUEST MODE ON • PRIVATE DATA HIDDEN"
+                                    : "GUEST MODE OFF • OWNER ACCESS RESTORED");
+                        })).show();
     }
 
     private void runAfterOwnerAuthentication(Runnable action) {
