@@ -162,3 +162,12 @@ Suggested implementation order:
 ## 7. Source-of-truth migration note
 
 This consolidated architecture is a new reviewable baseline. The existing `JARVIS_MASTER_BLUEPRINT.md` is preserved unchanged on the source branch during this pass so no detailed requirement or audit record is accidentally lost. After owner review, migrate every detailed checklist item and its acceptance criteria into the canonical modules, then update the original master pointer and retire duplicate headings in a separately reviewed change. Do not merge to `main` without owner approval.
+
+
+## 7. Implementation progress (branch-specific)
+
+| Module / capability | Code status | Verification status |
+|---|---|---|
+| M02 — Core Voice, Conversation & Human Intelligence: Voice Studio | Added to `MainActivity`: installed offline TTS voice selection where exposed by Android, saved speech-speed presets (calm/normal/energetic), saved pitch presets (lower/normal/higher), and persistence through app preferences. | **Code added; Android build and device testing still required.** Voice availability and labels depend on the installed TTS engine. No guarantee that both male and female voices are installed. |
+
+This table records only changes actually made on this development branch. It does not imply that the other modules are implemented.
