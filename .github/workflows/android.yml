@@ -19,6 +19,8 @@ jobs:
           node-version: "22"
       - name: Validate backend syntax
         run: node --check server.js
+      - name: Run backend tests
+        run: npm test
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
