@@ -8,8 +8,9 @@
 
 ## Current working branch
 - Branch: `feature/m16-smart-home-studio-3pack` (stacked on `feature/m13-creative-media-studio-3pack`; JARVIS only)
-- Current draft PR: pending creation after the batch code and tracker update.
+- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/37
 - Parent batch PR: #36 (Creative Media Studio); previous data batch PR #31.
+- Latest branch head: `eaf5634ca4f8f652e242ba44bec940c9db2e7afe`.
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
