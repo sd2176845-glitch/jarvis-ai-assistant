@@ -18,13 +18,15 @@ public final class SimulationEngineeringStudio {
         String[] options = {
                 "Digital World Simulator • conceptual scenarios",
                 "Virtual Experiment Lab • safe science concepts",
-                "3D Invention Studio • product design brief"
+                "3D Invention Studio • product design brief",
+                "Virtual Experiment Notebook • saved studies"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Simulation & Engineering")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) chooseWorld(activity, status, transcript);
                     else if (which == 1) chooseExperiment(activity, status, transcript);
-                    else chooseInvention(activity, status, transcript);
+                    else if (which == 2) chooseInvention(activity, status, transcript);
+                    else showNotebook(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -93,7 +95,10 @@ public final class SimulationEngineeringStudio {
                         status.setText(title + " • READY");
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + title)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save to notebook", (resultDialog, resultWhich) ->
+                                        saveNotebookEntry(activity, title, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
     }
