@@ -224,7 +224,7 @@ public final class SoftwareDevelopmentStudio {
             item.put("type", type);
             item.put("content", content);
             item.put("created_at", System.currentTimeMillis());
-            item.put("status", "Draft • owner-reviewed");
+            item.put("status", "Draft");
             plans.put(item);
             prefs.edit().putString(PLANS_KEY, plans.toString()).apply();
             Toast.makeText(activity, "Software plan saved on this device.", Toast.LENGTH_SHORT).show();
@@ -253,7 +253,8 @@ public final class SoftwareDevelopmentStudio {
         String[] labels = new String[plans.length()];
         for (int i = 0; i < plans.length(); i++) {
             org.json.JSONObject item = plans.optJSONObject(i);
-            labels[i] = item == null ? "Unavailable plan" : item.optString("type", "Software plan");
+            labels[i] = item == null ? "Unavailable plan" : item.optString("type", "Software plan")
+                    + " • " + item.optString("status", "Draft");
         }
         new AlertDialog.Builder(activity).setTitle("Software Project Notebook")
                 .setItems(labels, (dialog, which) -> {
@@ -262,9 +263,27 @@ public final class SoftwareDevelopmentStudio {
                         String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
                                 .format(new java.util.Date(item.optLong("created_at", 0L)));
                         new AlertDialog.Builder(activity).setTitle(item.optString("type", "Software plan"))
-                                .setMessage("OWNER-REVIEWED DRAFT • NOT EXECUTED\nSaved: " + date + "\n\n"
+                                .setMessage(item.optString("status", "Draft") + " • NOT EXECUTED\\nSaved: " + date + "\\n\\n"
                                         + item.optString("content", ""))
-                                .setPositiveButton("Close", null).show();
+                                .setPositiveButton("Mark reviewed", (d, w) -> {
+                                    try {
+                                        item.put("status", "Reviewed");
+                                        prefs.edit().putString(PLANS_KEY, plans.toString()).apply();
+                                        Toast.makeText(activity, "Software plan marked reviewed.", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Plan status could not be updated.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNegativeButton("Delete plan", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this software plan?")
+                                                .setMessage("This removes only the selected plan from this device.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (cd, cw) -> {
+                                                    plans.remove(which);
+                                                    prefs.edit().putString(PLANS_KEY, plans.toString()).apply();
+                                                    Toast.makeText(activity, "Software plan deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .show();
                     }
                 })
                 .setNegativeButton("Close", null)
