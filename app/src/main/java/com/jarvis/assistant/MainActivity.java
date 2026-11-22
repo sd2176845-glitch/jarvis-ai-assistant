@@ -523,6 +523,180 @@ public class MainActivity extends Activity {
                 .setNegativeButton("Cancel", null).show();
     }
 
+
+    // M08 safe foundation: owner-created, manually-run checklists only.
+    // No background triggers, cross-app actions, calls, messages, or device changes.
+    private org.json.JSONArray readManualWorkflows() {
+        try {
+            return new org.json.JSONArray(preferences.getString("manual_workflows_v1", "[]"));
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private boolean saveManualWorkflows(org.json.JSONArray workflows) {
+        if (workflows == null) return false;
+        preferences.edit().putString("manual_workflows_v1", workflows.toString()).apply();
+        return true;
+    }
+
+    private void showWorkflowStudio() {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Workflow Studio")
+                    .setMessage("Workflow data could not be read. Existing data has not been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < workflows.length(); i++) {
+            org.json.JSONObject item = workflows.optJSONObject(i);
+            if (item == null) {
+                labels.add("Unavailable workflow");
+                continue;
+            }
+            org.json.JSONArray steps = item.optJSONArray("steps");
+            org.json.JSONArray done = item.optJSONArray("done");
+            int total = steps == null ? 0 : steps.length();
+            int completed = 0;
+            if (done != null) {
+                for (int j = 0; j < done.length(); j++) if (done.optBoolean(j, false)) completed++;
+            }
+            labels.add(item.optString("title", "Untitled workflow") + "  •  " + completed + "/" + total);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Workflow Studio")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> showManualWorkflow(which))
+                .setPositiveButton("Create workflow", (dialog, which) -> showCreateManualWorkflow())
+                .setNeutralButton("Delete", (dialog, which) -> showDeleteManualWorkflow())
+                .setNegativeButton("Close", null);
+        if (labels.isEmpty()) builder.setMessage("Create a personal checklist, then run it manually. Workflows never run in the background.");
+        else builder.setMessage("Choose a checklist to review or continue. All steps are manual and owner-controlled.");
+        builder.show();
+    }
+
+    private void showCreateManualWorkflow() {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(32, 12, 32, 4);
+        EditText titleInput = new EditText(this);
+        titleInput.setSingleLine(true);
+        titleInput.setHint("Workflow name");
+        EditText stepsInput = new EditText(this);
+        stepsInput.setHint("One checklist step per line (max 12)");
+        stepsInput.setMinLines(4);
+        stepsInput.setGravity(Gravity.TOP);
+        stepsInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        panel.addView(titleInput);
+        panel.addView(stepsInput);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Create checklist")
+                .setMessage("Manual checklist only. No automatic app/device actions or background triggers.")
+                .setView(panel)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String title = titleInput.getText().toString().trim();
+                    String rawSteps = stepsInput.getText().toString();
+                    String[] split = rawSteps.split("\\r?\\n");
+                    org.json.JSONArray steps = new org.json.JSONArray();
+                    for (String line : split) {
+                        String step = line.trim();
+                        if (!step.isEmpty() && steps.length() < 12 && step.length() <= 120) steps.put(step);
+                    }
+                    if (title.isEmpty() || title.length() > 60 || steps.length() == 0) {
+                        status.setText("ADD A NAME AND AT LEAST ONE VALID STEP");
+                        return;
+                    }
+                    org.json.JSONArray workflows = readManualWorkflows();
+                    if (workflows == null) {
+                        status.setText("WORKFLOW DATA COULD NOT BE READ");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("steps", steps);
+                        item.put("done", new org.json.JSONArray());
+                        item.put("created_at", System.currentTimeMillis());
+                        workflows.put(item);
+                        saveManualWorkflows(workflows);
+                        status.setText("MANUAL WORKFLOW SAVED");
+                        showWorkflowStudio();
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW COULD NOT BE SAVED");
+                    }
+                }).show();
+    }
+
+    private void showManualWorkflow(int index) {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) return;
+        org.json.JSONObject item = workflows.optJSONObject(index);
+        if (item == null) return;
+        org.json.JSONArray steps = item.optJSONArray("steps");
+        if (steps == null || steps.length() == 0) {
+            status.setText("WORKFLOW HAS NO STEPS");
+            return;
+        }
+        org.json.JSONArray done = item.optJSONArray("done");
+        boolean[] checked = new boolean[steps.length()];
+        String[] labels = new String[steps.length()];
+        for (int i = 0; i < steps.length(); i++) {
+            checked[i] = done != null && done.optBoolean(i, false);
+            labels[i] = steps.optString(i, "Unavailable step");
+        }
+        new AlertDialog.Builder(this).setTitle(item.optString("title", "Workflow"))
+                .setMessage("Tick steps as you complete them. JARVIS does not execute the steps for you.")
+                .setMultiChoiceItems(labels, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setPositiveButton("Save progress", (dialog, which) -> {
+                    org.json.JSONArray updated = new org.json.JSONArray();
+                    for (boolean value : checked) updated.put(value);
+                    try {
+                        item.put("done", updated);
+                        saveManualWorkflows(workflows);
+                        status.setText("WORKFLOW CHECKLIST PROGRESS SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW PROGRESS COULD NOT BE SAVED");
+                    }
+                    showWorkflowStudio();
+                })
+                .setNeutralButton("Reset checklist", (dialog, which) -> {
+                    try {
+                        item.put("done", new org.json.JSONArray());
+                        saveManualWorkflows(workflows);
+                        status.setText("WORKFLOW CHECKLIST RESET");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW COULD NOT BE RESET");
+                    }
+                    showWorkflowStudio();
+                })
+                .setNegativeButton("Close", null).show();
+    }
+
+    private void showDeleteManualWorkflow() {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null || workflows.length() == 0) {
+            status.setText(workflows == null ? "WORKFLOW DATA COULD NOT BE READ" : "NO WORKFLOWS TO DELETE");
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < workflows.length(); i++) {
+            org.json.JSONObject item = workflows.optJSONObject(i);
+            labels.add(item == null ? "Unavailable workflow" : item.optString("title", "Untitled workflow"));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Delete workflow")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    new AlertDialog.Builder(this).setTitle("Delete this checklist?")
+                            .setMessage("This removes only the selected workflow from this phone.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete", (d, w) -> {
+                                workflows.remove(which);
+                                saveManualWorkflows(workflows);
+                                status.setText("WORKFLOW DELETED");
+                                showWorkflowStudio();
+                            }).show();
+                }).setNegativeButton("Cancel", null).show();
+    }
+
     private void showConnectedSystems() {
         String[] items = {"Wi-Fi settings", "Bluetooth settings", "Location settings", "Open Maps", "Open Calendar", "Open Phone dialer"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Connected systems")
@@ -750,7 +924,8 @@ public class MainActivity extends Activity {
                 "Background listening voice: Silent / On",
                 "Voice Studio • Voice / Speed / Pitch",
                 "Focus & Productivity Session",
-                "Device Resource Intelligence"
+                "Device Resource Intelligence",
+                "Workflow Studio • Manual checklists"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -791,6 +966,7 @@ public class MainActivity extends Activity {
                     else if (which == 21) showVoiceSettings();
                     else if (which == 22) showFocusSession();
                     else if (which == 23) showDeviceResourceDashboard();
+                    else if (which == 24) showWorkflowStudio();
                 }).setNegativeButton("Close", null).show();
     }
 
