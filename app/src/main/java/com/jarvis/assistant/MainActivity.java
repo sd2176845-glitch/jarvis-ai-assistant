@@ -597,7 +597,61 @@ public class MainActivity extends Activity {
                 }).show();
     }
 
+    private void showMessageRecipientChoices(String requestedName, String draft) {
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            new AlertDialog.Builder(this).setTitle("Contacts permission needed")
+                    .setMessage("To select a recipient, allow Contacts permission in Android app settings, then retry. No message was opened.")
+                    .setPositiveButton("Open app settings", (d, w) -> {
+                        try {
+                            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    android.net.Uri.parse("package:" + getPackageName())));
+                        } catch (Exception e) {
+                            status.setText("OPEN JARVIS APP INFO IN ANDROID SETTINGS");
+                        }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> numbers = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    selection, new String[]{"%" + requestedName + "%"},
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String number = cursor.getString(1);
+                    if (number == null || number.trim().isEmpty()) continue;
+                    labels.add((name == null ? "Unknown contact" : name) + " • " + number);
+                    numbers.add(number);
+                }
+            }
+        } catch (SecurityException e) {
+            status.setText("CONTACTS UNAVAILABLE • NO MESSAGE OPENED");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (numbers.isEmpty()) {
+            status.setText("NO MATCHING RECIPIENT • NO MESSAGE OPENED");
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose message recipient")
+                    .setMessage("Select the intended recipient. You will review the message before opening the messaging app.")
+                    .setItems(labels.toArray(new String[0]), (d, which) ->
+                            showMessageDraftPreview(draft, numbers.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
     private void showMessageDraftPreview(String draft) {
+        showMessageDraftPreview(draft, null);
+    }
+
+    private void showMessageDraftPreview(String draft, String recipientNumber) {
         EditText message = new EditText(this);
         message.setText(draft);
         message.setMinLines(3);
@@ -614,7 +668,9 @@ public class MainActivity extends Activity {
                         return;
                     }
                     try {
-                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                        String target = recipientNumber == null || recipientNumber.trim().isEmpty()
+                                ? "smsto:" : "smsto:" + android.net.Uri.encode(recipientNumber);
+                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse(target));
                         sms.putExtra("sms_body", approvedText);
                         startActivity(sms);
                         status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
@@ -2577,7 +2633,18 @@ public class MainActivity extends Activity {
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
             String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
-            showMessageDraftPreview(body);
+            if (body.toLowerCase(Locale.ROOT).startsWith("to ") && body.contains(":")) {
+                int separator = body.indexOf(':');
+                String recipient = body.substring(3, separator).trim();
+                String messageBody = body.substring(separator + 1).trim();
+                if (recipient.isEmpty() || messageBody.isEmpty()) {
+                    replyAndShow(original, "Use: message to contact-name: your message. Nothing was opened.");
+                } else {
+                    showMessageRecipientChoices(recipient, messageBody);
+                }
+            } else {
+                showMessageDraftPreview(body);
+            }
             return;
         } else if (intent.contains("open phone") || intent.contains("dialer kholo") || intent.contains("call screen kholo") || intent.equals("dialer")) {
             speak("Phone dialer khol raha hoon.");
