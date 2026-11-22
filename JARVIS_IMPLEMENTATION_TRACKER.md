@@ -266,3 +266,30 @@
 - **Implementation files:** `LiveInfoStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on code/documentation head `7b2c1c1e88fc299d36af3e198a29449e1f0146c0`; GitHub Actions run #572 (`45045389085`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763293374`, SHA-256 `6648c8850934b605c00b918a49b579eb4ab317ab45a9d39ca31d62b954391e28`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #27; do not merge to parent PR #27 or `main` without owner approval.
+
+
+## Batch B07 — M10 AI Learning Academy (three guided learning modes; 2026-11-22)
+
+**Branch:** `feature/m10-learning-academy-3pack`, stacked on M06 Live Information / PR #28. Separate, unmerged batch.
+
+### Feature 1 — Coding Tutor
+- **Code-present:** learner selects Python, Java, Kotlin or JavaScript, chooses Beginner/Intermediate/Advanced level, and enters a topic. JARVIS generates a structured lesson with explanation, small benign example, line-by-line notes, common mistake and practice task with a separate answer key.
+- **Safety scope:** excludes malware, credential theft, covert surveillance, backdoors, exploit instructions and harmful code; unsafe topics are redirected to harmless programming concepts.
+- **Acceptance checks:** each language selection, each level, empty/long topic, accurate runnable sample, offline/backend error and safety redirection.
+
+### Feature 2 — Science Explorer
+- **Code-present:** learner selects Physics, Chemistry, Biology or Space & Earth Science, chooses a level and enters a concept. JARVIS returns a definition, explanation, everyday example, key terms, misconception and review questions.
+- **Safety scope:** conceptual teaching only; no hazardous experiment instructions, dangerous chemical procedures or unsafe activity steps.
+- **Acceptance checks:** all subject choices, each level, uncertainty handling, empty/long topic, and safe conceptual redirection.
+
+### Feature 3 — Technology Learning Roadmap
+- **Code-present:** learner selects Android development, website development, AI basics, digital safety/defensive cybersecurity or computer-science foundations, then receives staged prerequisites, concepts, safe projects, effort estimates and checkpoints.
+- **Safety scope:** cybersecurity path stays defensive and lawful; no intrusion, attack, credential theft, malware, evasion or surveillance instructions.
+- **Acceptance checks:** each track, each level, roadmap structure, realistic project scope and defensive-only cyber content.
+
+### Privacy, integration and verification
+- Uses existing `JarvisAiClient.askStandalone`, so it sends only the selected learning choices and topic. Recent conversation memory, saved notes and contacts are not attached or updated.
+- Explicit confirmation before the AI request; topic capped at 300 characters. No new Android permission, persistent learning database, background collection or API key in APK.
+- **Implementation files:** `LearningAcademyStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #28; do not merge to parent PR #28 or `main` without owner approval.
