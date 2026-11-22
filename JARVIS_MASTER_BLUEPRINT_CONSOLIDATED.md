@@ -329,3 +329,6 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - Setup and routine guidance use explicit owner submission through the memory-isolated AI path. Inventory stays local in the existing private preferences store.
 - This increment does not scan networks, discover devices, pair, control devices, send device commands, store credentials or run unattended automations. It is a safe planning/inventory foundation, not a full smart-device integration.
 - **Status:** code added on `feature/m16-smart-home-studio-3pack`; CI/build and target-device verification pending.
+
+
+**B11 verification update (2026-11-22):** corrected final code head `d289065be47bc1fef289dc9b8d112ec345345940` passed GitHub Actions run #659 (`45047777962`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763894323`, SHA-256 `f0118febd3e755b3c3f797bd3f3b99b2aa205e4357214c51e3717491645bebe3`. Initial runs #653–#658 failed on a routine-dialog builder-chain syntax error; corrected in the passing head. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #37 is open and unmerged.
