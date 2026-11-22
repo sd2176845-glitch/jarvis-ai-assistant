@@ -276,3 +276,6 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - Uses HTTPS GET, bounded timeouts and response-size cap; no API key or new Android permission.
 - Weather and holiday datasets are provider-dependent and must not be represented as guaranteed forecasts or exhaustive official calendars.
 - **Status:** code added on `feature/m06-live-info-3pack`; CI/build and target-device verification pending.
+
+
+**B06 verification update (2026-11-22):** code/documentation head `7b2c1c1e88fc299d36af3e198a29449e1f0146c0` passed GitHub Actions run #572 (`45045389085`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763293374`, SHA-256 `6648c8850934b605c00b918a49b579eb4ab317ab45a9d39ca31d62b954391e28`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #28 is open and unmerged.
