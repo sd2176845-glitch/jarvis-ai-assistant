@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m19-practical-intelligence-3pack` (stacked on M18 Simulation & Engineering Intelligence / PR #39; JARVIS only).
+- Branch: `feature/m01-owner-privacy-studio-3pack` (stacked on M19 Personal & Practical Intelligence / PR #40; JARVIS only).
 - Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
 - Parent draft PR: #39 — M18 Simulation & Engineering Intelligence. New M19 batch is to be opened as draft PR #40 against `feature/m18-virtual-engineering-studio-3pack`.
 - `main` has not been changed or merged by this work; Even remains untouched.
@@ -490,3 +490,28 @@
 - **CI/build:** corrected code head `9bd9ea41ccd237911ea86e133787b4d6bbe84f27` passed GitHub Actions run #701 (`45050181584`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764908613`; SHA-256 `dcac5e8d711b92ac0a88c7154b93d496c0610b297c50681f4a2c7e88d48c68af`. Intermediate run #700 failed because the vehicle form helper lacked an Activity parameter; this was corrected in the passing head. Earlier documentation-only runs #697–#699 passed.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify local record CRUD/restart/corrupt-data behavior, AI confirmation/cancel, and offline/server errors.
 - **Merge policy:** keep stacked on PR #39; do not merge into PR #39 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B15 — M01 Owner Privacy Studio (2026-11-22)
+
+**Branch:** `feature/m01-owner-privacy-studio-3pack`, stacked on M19 / PR #40. Draft PR is to target `feature/m19-practical-intelligence-3pack`; this batch is separate and unmerged.
+
+### Feature 1 — Permission & Access Review
+- **Code-present:** read-only status summary for microphone, contacts, phone state, direct calling, SMS receipt, Android notifications (where runtime permission applies), display-over-other-apps and JARVIS accessibility service.
+- **Controls:** links to Android App Info and Accessibility settings. The screen never requests, grants, revokes or changes permissions.
+- **Boundary:** status display only; not a security certification or proof that a feature is safe/necessary.
+
+### Feature 2 — Local Data Inventory
+- **Code-present:** counts/lengths only for saved notes, recent AI context, structured tasks, manual workflows, owner-created timeline, knowledge graph, idea versions and vehicle service records; reports whether the encrypted legacy archive file exists.
+- **Privacy:** does not display or export the underlying content. Malformed JSON is labelled unreadable rather than falsely reported as empty. Existing stores are reused; no new store or background collection.
+
+### Feature 3 — Sanitized Privacy Summary Export
+- **Code-present:** owner-triggered Android share chooser for permission states and aggregate counts only. The export explicitly excludes note/conversation contents, contacts, calls, SMS, credentials and device identifiers.
+- **Confirmation:** owner reviews the disclosure and chooses Continue before Android's share chooser opens. No automatic upload or recipient selection.
+
+### Implementation and verification
+- **Files:** `OwnerPrivacyStudio.java`, `OwnerPrivacyRules.java`, `OwnerPrivacyRulesTest.java`, and the existing `MainActivity.showPrivacyOptions()` entry upgraded in place. No duplicate Command Center entry, no new Android permission, no new storage key, no network request.
+- **Automated tests:** three focused JUnit tests cover permission-state wording, JSON inventory counts/corrupt-data handling, and sanitized export boundaries.
+- **CI/build:** pending for this branch; do not mark build or tests as passed until workflow completes.
+- **Physical device:** pending on Poco M4 Pro 4G. Verify permission status accuracy, Android settings handoffs, all known inventory counts, corrupt JSON handling, share chooser cancel/selection, and confirm no private content appears in exported text.
+- **Merge policy:** keep stacked on PR #40; do not merge into PR #40 or `main` without owner approval. JARVIS only; Even untouched.
