@@ -195,4 +195,4 @@ This table records only changes actually made on this development branch. It doe
 - Added a visible owner-invoked foreground stop control that cancels the foreground speech-recognition session and stops TTS playback.
 - This foreground stop control does not stop the separate background wake-word service; its existing independent stop control remains authoritative.
 - No new Android permission, background monitoring behavior, or external data collection was added.
-- **Validation:** CI and target Poco M4 Pro 4G testing for the implementation commit are pending. Do not mark verified until both applicable checks pass.
+- **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` passed (run `45038787391`; debug APK artifact `14760812400`). Target Poco M4 Pro 4G testing remains pending. Do not mark device-verified until actual tests pass.
