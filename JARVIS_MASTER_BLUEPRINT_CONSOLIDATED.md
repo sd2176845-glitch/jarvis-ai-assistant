@@ -204,3 +204,11 @@ The existing Tasks & reminders hub is being upgraded in place with a local struc
 
 ## M08 implementation update — Manual Workflow Studio
 The existing Command Center now includes a Workflow Studio foundation. Owners can create a named checklist (up to 12 steps), mark steps complete, save progress, reset a checklist and delete it. The workflow records use a dedicated local preference key and do not duplicate the M07 task list or notes. This first increment is deliberately manual-only: no background triggers, autonomous execution, cross-app actions, calls/messages or device-setting changes. Code is present on the feature branch. CI passed on runs #479 and #480; run #480 uploaded debug artifact `14761207706`. Target-device verification remains pending.
+
+
+### M09 implementation progress — Personal Memory Vault foundation
+- **Code-present on feature branch:** Command Center now opens an owner-controlled vault over the existing local notes and recent AI conversation stores.
+- Review and correction use the existing notes store; export uses Android's explicit share chooser; notes deletion and recent-conversation clearing are separate, confirmed actions.
+- No parallel memory database, background capture, or automatic retention of new information was added.
+- **Not yet implemented:** timestamped Digital Time Machine timeline, provenance/knowledge graph, versioned idea evolution and encrypted legacy archive.
+- **Validation:** source commit 7eef4d7a66f4cdc2c436997fa5d81cbe69a5b441; CI and device verification pending.
