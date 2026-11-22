@@ -403,5 +403,5 @@
 - Inventory stays local in the existing private preferences store. No new permission, background collection, network discovery, credentials, device control or API key in APK.
 - Existing **Connected systems** menu remains unchanged; it still opens Android Wi-Fi/Bluetooth/location settings and common apps. Smart Home Studio is a separate planner/inventory layer, not a replacement for those settings shortcuts.
 - **Implementation files:** `SmartHomeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed after correction on final code head `d289065be47bc1fef289dc9b8d112ec345345940`; GitHub Actions run #659 (`45047777962`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763894323`, SHA-256 `f0118febd3e755b3c3f797bd3f3b99b2aa205e4357214c51e3717491645bebe3`. Initial runs #653–#658 failed on a routine-dialog builder-chain syntax error; the final semicolon/parenthesis correction is included in the passing head. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #36; do not merge to parent PR #36 or `main` without owner approval.
