@@ -7,9 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m18-virtual-engineering-studio-3pack` (stacked on M17 Connectivity Intelligence / PR #38; JARVIS only).
+- Branch: `feature/m19-practical-intelligence-3pack` (stacked on M18 Simulation & Engineering Intelligence / PR #39; JARVIS only).
 - Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
-- Parent draft PR: #38 — M17 Connectivity Intelligence. New M18 batch is to be opened as draft PR #39 against `feature/m17-connectivity-intelligence-3pack`.
+- Parent draft PR: #39 — M18 Simulation & Engineering Intelligence. New M19 batch is to be opened as draft PR #40 against `feature/m18-virtual-engineering-studio-3pack`.
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
@@ -461,3 +461,32 @@
 - **CI/build:** code head `1f8057a55e1d96ac9f362bc47703a16621d45438` passed GitHub Actions run #686 (`45049538625`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764423492`; SHA-256 `f3b9fb59f768acce6a75b54ea7da088cffae4b0d2be6812b87de3b6ec9b4c00e`. Later documentation-only commits are running the same workflow; record their final outcome separately.
 - **Physical device:** pending on Poco M4 Pro 4G. Confirm Command Center navigation, category selection, prompt preview/confirmation/cancel, response display, and backend/offline handling.
 - **Merge policy:** keep stacked on PR #38; do not merge into PR #38 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B14 — M19 Personal & Practical Intelligence (three distinct capabilities; 2026-11-22)
+
+**Branch:** `feature/m19-practical-intelligence-3pack`, stacked on M18 Simulation & Engineering Intelligence / PR #39. Draft PR #40 is intended to target `feature/m18-virtual-engineering-studio-3pack`; this batch is separate and unmerged.
+
+### Feature 1 — Emergency Readiness Planner
+- **Code-present:** owner selects Flood, Cyclone/severe storm, Heatwave, Earthquake or General emergency, then enters optional city/district context and general household needs. JARVIS returns a general preparedness checklist and communication/check-in plan.
+- **Honesty/safety:** not a live alert, forecast, evacuation order or official emergency instruction. It points users to current local authorities and relevant NDMA/IMD guidance, avoids invented links/phone numbers, and does not encourage entering floodwater, damaged buildings or risky rescues. For immediate danger in India it points to 112.
+- **Acceptance checks:** all hazard categories; optional area omitted; empty/overlong brief; current-alert hallucination guard; unsafe rescue redirection; cancel/confirm and offline/server failure.
+
+### Feature 2 — Legal Document Explainer
+- **Code-present:** owner pastes a selected excerpt (maximum 4,000 characters); JARVIS explains visible terms, dates, obligations, ambiguities and questions to ask a qualified legal professional.
+- **Privacy:** explicit disclosure/confirmation; instructs owner to redact names, addresses, phone/ID numbers, signatures and account details. Uses memory-isolated `JarvisAiClient.askStandalone`; does not save the excerpt in notes or recent conversation memory.
+- **Honesty boundary:** plain-language information only, not legal advice. Does not invent missing clauses, laws, citations, deadlines or jurisdiction-specific conclusions.
+- **Acceptance checks:** clear/ambiguous excerpt; missing context; 4,000-character cap; redaction notice; verify no memory persistence; legal-advice boundary; cancel/offline handling.
+
+### Feature 3 — Vehicle Maintenance Log
+- **Code-present:** owner can add, view/remove and clear up to 50 local service records with a vehicle nickname, service date label, optional digits-only odometer reading and short maintenance summary.
+- **Anti-duplication:** uses one dedicated local key `vehicle_service_log_v1`; it is a service-history log, not a second task list or reminder scheduler. Any future due-date reminders should reuse M07 tasks.
+- **Privacy:** no registration number, VIN, insurance details, credentials or personal identifiers requested; records remain in existing private `jarvis_preferences` storage. No cloud sync, background collection or new permission.
+- **Acceptance checks:** add/list/remove/clear; 50-record cap; required fields; odometer validation; app-restart persistence; malformed-data preservation; storage failure.
+
+### Implementation and verification
+- **Files:** `PracticalIntelligenceStudio.java` (new), `PracticalIntelligenceRules.java` (pure prompts/validation), `PracticalIntelligenceRulesTest.java` (three focused JUnit tests), and `MainActivity.java` (one Command Center entry).
+- **Automated tests:** separate tests cover emergency-planning honesty/safety, legal explanation boundaries, and vehicle-record validation. Inherits CI's `gradle testDebugUnitTest` before `gradle assembleDebug`.
+- **CI status:** pending for this batch; do not claim tests/build passed until the M19 branch workflow completes.
+- **Physical device:** pending on Poco M4 Pro 4G. Verify local record CRUD/restart/corrupt-data behavior, AI confirmation/cancel, and offline/server errors.
+- **Merge policy:** keep stacked on PR #39; do not merge into PR #39 or `main` without owner approval. JARVIS only; Even untouched.
