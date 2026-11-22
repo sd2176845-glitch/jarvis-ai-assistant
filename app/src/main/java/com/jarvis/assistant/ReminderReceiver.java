@@ -20,6 +20,8 @@ public class ReminderReceiver extends BroadcastReceiver {
         String title = intent == null ? null : intent.getStringExtra(EXTRA_TITLE);
         if (title == null || title.trim().isEmpty()) title = "Your scheduled reminder";
         int id = intent == null ? 2100 : intent.getIntExtra(EXTRA_ID, 2100);
+        // A delivered one-time reminder is no longer pending restoration.
+        ReminderStore.remove(context, id);
 
         NotificationManager manager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
