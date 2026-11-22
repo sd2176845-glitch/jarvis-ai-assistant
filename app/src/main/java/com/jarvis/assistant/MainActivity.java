@@ -682,21 +682,74 @@ public class MainActivity extends Activity {
                     title.setSingleLine(true);
                     title.setText(item.optString("title", ""));
                     title.setHint("Task title");
-                    new AlertDialog.Builder(this).setTitle("Edit task title")
-                            .setMessage("Category, priority, due date and completion state will be preserved.")
-                            .setView(title)
+
+                    String[] categories = {"Personal", "Work", "Study", "Home", "Health", "Other"};
+                    String[] priorities = {"Low", "Normal", "High", "Urgent"};
+                    android.widget.Spinner category = new android.widget.Spinner(this);
+                    android.widget.ArrayAdapter<String> categoryAdapter = new android.widget.ArrayAdapter<>(
+                            this, android.R.layout.simple_spinner_item, categories);
+                    categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    category.setAdapter(categoryAdapter);
+                    android.widget.Spinner priority = new android.widget.Spinner(this);
+                    android.widget.ArrayAdapter<String> priorityAdapter = new android.widget.ArrayAdapter<>(
+                            this, android.R.layout.simple_spinner_item, priorities);
+                    priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    priority.setAdapter(priorityAdapter);
+                    for (int n = 0; n < categories.length; n++) {
+                        if (categories[n].equals(item.optString("category", "Personal"))) category.setSelection(n);
+                    }
+                    for (int n = 0; n < priorities.length; n++) {
+                        if (priorities[n].equals(item.optString("priority", "Normal"))) priority.setSelection(n);
+                    }
+
+                    java.util.Calendar due = java.util.Calendar.getInstance();
+                    final String[] dueDate = {item.optString("due_date", "")};
+                    Button dueButton = new Button(this);
+                    dueButton.setText(dueDate[0].isEmpty() ? "SET OPTIONAL DUE DATE" : "DUE: " + dueDate[0]);
+                    dueButton.setOnClickListener(v -> new android.app.DatePickerDialog(this,
+                            (view, year, month, day) -> {
+                                dueDate[0] = String.format(java.util.Locale.US, "%04d-%02d-%02d", year, month + 1, day);
+                                dueButton.setText("DUE: " + dueDate[0]);
+                            }, due.get(java.util.Calendar.YEAR), due.get(java.util.Calendar.MONTH),
+                            due.get(java.util.Calendar.DAY_OF_MONTH)).show());
+                    Button clearDue = new Button(this);
+                    clearDue.setText("CLEAR DUE DATE");
+                    clearDue.setOnClickListener(v -> {
+                        dueDate[0] = "";
+                        dueButton.setText("SET OPTIONAL DUE DATE");
+                    });
+
+                    LinearLayout form = new LinearLayout(this);
+                    form.setOrientation(LinearLayout.VERTICAL);
+                    form.setPadding(24, 8, 24, 8);
+                    form.addView(title);
+                    form.addView(category);
+                    form.addView(priority);
+                    form.addView(dueButton);
+                    form.addView(clearDue);
+                    new AlertDialog.Builder(this).setTitle("Edit task details")
+                            .setMessage("Existing completion status and history will be preserved.")
+                            .setView(form)
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton("Save", (d, w) -> {
                                 String value = title.getText().toString().trim();
-                                if (!B21TaskRules.isValidTitle(value)) {
-                                    status.setText("TASK TITLE REQUIRED • MAXIMUM 120 CHARACTERS");
+                                String categoryValue = categories[category.getSelectedItemPosition()];
+                                String priorityValue = priorities[priority.getSelectedItemPosition()];
+                                if (!B21TaskRules.isValidTitle(value)
+                                        || !B21TaskRules.isValidCategory(categoryValue)
+                                        || !B21TaskRules.isValidPriority(priorityValue)
+                                        || !B21TaskRules.isValidDueDate(dueDate[0])) {
+                                    status.setText("TASK DETAILS ARE INVALID • NOTHING SAVED");
                                     return;
                                 }
                                 try {
                                     item.put("title", value);
+                                    item.put("category", categoryValue);
+                                    item.put("priority", priorityValue);
+                                    item.put("due_date", dueDate[0]);
                                     item.put("updated_at", System.currentTimeMillis());
                                     saveStructuredTasks(tasks);
-                                    status.setText("TASK UPDATED");
+                                    status.setText("TASK DETAILS UPDATED");
                                     showStructuredTaskManager();
                                 } catch (org.json.JSONException e) {
                                     status.setText("TASK COULD NOT BE UPDATED");
