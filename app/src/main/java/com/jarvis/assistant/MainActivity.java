@@ -417,7 +417,10 @@ public class MainActivity extends Activity {
                                 status.setText("REMINDER SERVICE UNAVAILABLE");
                                 return;
                             }
-                            ReminderStore.save(this, reminderId, title, triggerAt);
+                            if (!ReminderStore.save(this, reminderId, title, triggerAt)) {
+                                status.setText("REMINDER COULD NOT BE SAVED");
+                                return;
+                            }
                             try {
                                 manager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pending);
                             } catch (Exception scheduleError) {
