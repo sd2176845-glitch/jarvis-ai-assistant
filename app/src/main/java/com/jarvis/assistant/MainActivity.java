@@ -2074,10 +2074,26 @@ public class MainActivity extends Activity {
             if (level >= 0 && scale > 0) batteryText = "Battery: " + (level * 100 / scale) + "%";
         }
         String notes = preferences.getString("jarvis_notes", "");
-        String report = "JARVIS • DAILY BRIEFING\n\n" + date + "\n" + batteryText
-                + "\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
-                + "\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
-                + "\n\nLive weather and current news require an internet search.";
+        int dueToday = 0, overdue = 0, urgentOpen = 0;
+        org.json.JSONArray tasks = readStructuredTasks();
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new java.util.Date());
+        if (tasks != null) {
+            for (int i = 0; i < tasks.length(); i++) {
+                org.json.JSONObject item = tasks.optJSONObject(i);
+                if (item == null || item.optBoolean("done", false)) continue;
+                String dueDate = item.optString("due_date", "");
+                if (today.equals(dueDate)) dueToday++;
+                if (B21TaskRules.isOverdue(dueDate, false, System.currentTimeMillis())) overdue++;
+                if ("Urgent".equalsIgnoreCase(item.optString("priority", "Normal"))) urgentOpen++;
+            }
+        }
+        String report = "JARVIS • DAILY BRIEFING\\n\\n" + date + "\\n" + batteryText
+                + "\\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
+                + "\\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
+                + "\\nOpen tasks due today: " + dueToday
+                + "\\nOverdue tasks: " + overdue
+                + "\\nUrgent open tasks: " + urgentOpen
+                + "\\n\\nLive weather and current news require an internet search.";
         transcript.setText(report);
         status.setText("DAILY BRIEFING READY");
         new AlertDialog.Builder(this).setTitle("Daily briefing").setMessage(report)
