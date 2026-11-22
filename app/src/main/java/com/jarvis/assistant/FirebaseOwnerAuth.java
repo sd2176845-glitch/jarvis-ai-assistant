@@ -6,6 +6,7 @@ import android.text.TextUtils;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
@@ -121,12 +122,12 @@ public final class FirebaseOwnerAuth {
     public static void requestPhoneOtp(Activity activity, String phoneNumber,
             PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks) {
         if (!initialize(activity)) {
-            callbacks.onVerificationFailed(new IllegalStateException(
+            callbacks.onVerificationFailed(new FirebaseException(
                     "Firebase is not configured. Follow FIREBASE_OWNER_AUTH_SETUP.md."));
             return;
         }
         if (TextUtils.isEmpty(phoneNumber) || !phoneNumber.matches("^\\+[1-9]\\d{7,14}$")) {
-            callbacks.onVerificationFailed(new IllegalArgumentException(
+            callbacks.onVerificationFailed(new FirebaseException(
                     "Enter a valid phone number with country code, for example +91XXXXXXXXXX."));
             return;
         }
