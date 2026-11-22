@@ -440,7 +440,10 @@ public class MainActivity extends Activity {
             org.json.JSONObject item = tasks.optJSONObject(i);
             labels.add(item == null ? "Untitled task"
                     : (item.optBoolean("done", false) ? "✓  " : "○  ")
-                    + item.optString("title", "Untitled task"));
+                    + item.optString("title", "Untitled task")
+                    + "  •  " + item.optString("priority", "Normal")
+                    + "  •  " + item.optString("category", "Personal")
+                    + (item.optString("due_date", "").isEmpty() ? "" : "  •  Due " + item.optString("due_date")));
         }
         String[] entries = labels.toArray(new String[0]);
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
@@ -473,14 +476,54 @@ public class MainActivity extends Activity {
         EditText input = new EditText(this);
         input.setHint("What needs to be done?");
         input.setSingleLine(true);
+
+        String[] categories = {"Personal", "Work", "Study", "Home", "Health", "Other"};
+        String[] priorities = {"Low", "Normal", "High", "Urgent"};
+        android.widget.Spinner category = new android.widget.Spinner(this);
+        android.widget.ArrayAdapter<String> categoryAdapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, categories);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        category.setAdapter(categoryAdapter);
+
+        android.widget.Spinner priority = new android.widget.Spinner(this);
+        android.widget.ArrayAdapter<String> priorityAdapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, priorities);
+        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        priority.setAdapter(priorityAdapter);
+
+        java.util.Calendar due = java.util.Calendar.getInstance();
+        final String[] dueDate = {""};
+        Button dueButton = new Button(this);
+        dueButton.setText("SET OPTIONAL DUE DATE");
+        dueButton.setOnClickListener(v -> new android.app.DatePickerDialog(this, (view, year, month, day) -> {
+            due.set(year, month, day, 12, 0, 0);
+            dueDate[0] = String.format(java.util.Locale.US, "%04d-%02d-%02d", year, month + 1, day);
+            dueButton.setText("DUE: " + dueDate[0]);
+        }, due.get(java.util.Calendar.YEAR), due.get(java.util.Calendar.MONTH),
+                due.get(java.util.Calendar.DAY_OF_MONTH)).show());
+
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(28, 8, 28, 8);
+        form.addView(input);
+        TextView categoryLabel = new TextView(this);
+        categoryLabel.setText("CATEGORY");
+        form.addView(categoryLabel);
+        form.addView(category);
+        TextView priorityLabel = new TextView(this);
+        priorityLabel.setText("PRIORITY");
+        form.addView(priorityLabel);
+        form.addView(priority);
+        form.addView(dueButton);
+
         new AlertDialog.Builder(this).setTitle("JARVIS • Add task")
-                .setMessage("This task stays in JARVIS private app storage on this phone.")
-                .setView(input)
+                .setMessage("Tasks stay in JARVIS private app storage on this phone.")
+                .setView(form)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save task", (dialog, which) -> {
                     String title = input.getText().toString().trim();
-                    if (title.isEmpty()) {
-                        status.setText("EMPTY TASK NOT SAVED");
+                    if (!B21TaskRules.isValidTitle(title)) {
+                        status.setText("TASK TITLE REQUIRED • MAXIMUM 120 CHARACTERS");
                         return;
                     }
                     org.json.JSONArray tasks = readStructuredTasks();
@@ -488,14 +531,21 @@ public class MainActivity extends Activity {
                         status.setText("TASK DATA COULD NOT BE READ");
                         return;
                     }
+                    if (tasks.length() >= 200) {
+                        status.setText("TASK LIMIT REACHED • COMPLETE OR DELETE OLD TASKS");
+                        return;
+                    }
                     org.json.JSONObject item = new org.json.JSONObject();
                     try {
                         item.put("title", title);
                         item.put("done", false);
                         item.put("created_at", System.currentTimeMillis());
+                        item.put("category", categories[category.getSelectedItemPosition()]);
+                        item.put("priority", priorities[priority.getSelectedItemPosition()]);
+                        item.put("due_date", dueDate[0]);
                         tasks.put(item);
                         saveStructuredTasks(tasks);
-                        status.setText("TASK SAVED ON DEVICE");
+                        status.setText("TASK SAVED • " + item.optString("priority") + " PRIORITY");
                         showStructuredTaskManager();
                     } catch (org.json.JSONException e) {
                         status.setText("TASK COULD NOT BE SAVED");
