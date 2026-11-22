@@ -9,7 +9,7 @@
 ## Current working branch
 - Branch: `feature/m17-connectivity-intelligence-3pack` (stacked directly on the latest M16 Smart Home Studio branch head; JARVIS only).
 - Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
-- New batch: M17 connectivity intelligence; draft PR #38 is to be opened against `feature/m16-smart-home-studio-3pack`.
+- New batch: M17 connectivity intelligence; draft PR #38 is open against `feature/m16-smart-home-studio-3pack` (https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/38).
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
@@ -429,6 +429,6 @@
 ### Implementation and verification
 - **Files:** `ConnectivityIntelligenceStudio.java` (new), `ConnectivityIntelligenceRules.java` (pure formatting/prompt rules), `ConnectivityIntelligenceRulesTest.java` (unit tests), `MainActivity.java` (one Command Center entry), `AndroidManifest.xml` (read-only network-state permission), `app/build.gradle` (JUnit), and `.github/workflows/android.yml` (run unit tests before APK build).
 - **Automated tests:** three focused JUnit tests cover no-network vs unvalidated-network reporting, offline/online capability separation, and the planner's safety/prompt-injection boundaries. CI is configured to run `gradle testDebugUnitTest` before `gradle assembleDebug`.
-- **CI status:** pending for this batch at the time of this tracker update; do not claim the tests/build passed until the new branch run completes.
+- **CI/build:** code head `084c74bab505117a92960969b952d3c1f759207c` passed GitHub Actions run #677 (`45049194572`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764514133`; SHA-256 `77c6330b6d3c2e7f5cd20f7fe78c0aa559dd390b2c90e2926cff98cb2f3dd151`. Later documentation-only commits are running the same workflow; record their final outcome separately.
 - **Physical device:** pending on Poco M4 Pro 4G. Check Wi-Fi/mobile/VPN/no-network states, verify network labels without exposing identifiers, review offline matrix in airplane mode, and test all three planner selections with cancel/confirm and offline/server-failure handling.
 - **Merge policy:** keep stacked on PR #37; do not merge into PR #37 or `main` without owner approval. JARVIS only; Even untouched.
