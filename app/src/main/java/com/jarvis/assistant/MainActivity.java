@@ -1099,6 +1099,26 @@ public class MainActivity extends Activity {
         report.append("Android ").append(android.os.Build.VERSION.RELEASE)
                 .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\\n\\n");
 
+        report.append("HARDWARE COMPATIBILITY SNAPSHOT\\n");
+        report.append("CPU cores exposed to Android: ")
+                .append(Runtime.getRuntime().availableProcessors()).append("\\n");
+        report.append("Android-supported app ABIs: ")
+                .append(HardwareCompatibilityRules.formatAbiList(android.os.Build.SUPPORTED_ABIS)).append("\\n");
+        try {
+            android.app.ActivityManager activityManager = (android.app.ActivityManager)
+                    getSystemService(Context.ACTIVITY_SERVICE);
+            report.append("Low-RAM device flag: ")
+                    .append(activityManager != null && activityManager.isLowRamDevice() ? "Yes" : "No / unavailable")
+                    .append("\\n");
+        } catch (Exception e) {
+            report.append("Low-RAM device flag: unavailable\\n");
+        }
+        android.util.DisplayMetrics display = getResources().getDisplayMetrics();
+        report.append("Display: ").append(display.widthPixels).append(" × ")
+                .append(display.heightPixels).append(" px @ ")
+                .append(display.densityDpi).append(" dpi\\n");
+        report.append("Note: ABI and resource values are Android-reported compatibility hints, not a benchmark or guarantee that every app/game will run.\\n\\n");
+
         report.append("BATTERY\\n");
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) {
