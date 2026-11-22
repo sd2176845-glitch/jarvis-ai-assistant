@@ -312,3 +312,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
+
+
+### M13 — Personal Productivity Studio (Batch B10; implementation status tracked separately)
+- Upgraded the existing structured task list with Project Workspace (project grouping), Priority Matrix (four owner-selected priority labels) and Weekly Review (last-seven-day task creation/current-status summary).
+- Reuses the existing `structured_tasks_v1` JSON records by adding optional `project` and `priority` fields; no parallel task or project database.
+- Weekly Review avoids claiming completion dates because the current task schema does not track completion timestamps.
+- No network request, new permission, background scheduler or automatic task execution.
+- **Status:** code added on `feature/m13-productivity-studio-3pack`; CI/build and target-device verification pending.
