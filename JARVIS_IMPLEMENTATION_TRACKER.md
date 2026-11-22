@@ -512,6 +512,6 @@
 ### Implementation and verification
 - **Files:** `OwnerPrivacyStudio.java`, `OwnerPrivacyRules.java`, `OwnerPrivacyRulesTest.java`, and the existing `MainActivity.showPrivacyOptions()` entry upgraded in place. No duplicate Command Center entry, no new Android permission, no new storage key, no network request.
 - **Automated tests:** three focused JUnit tests cover permission-state wording, JSON inventory counts/corrupt-data handling, and sanitized export boundaries.
-- **CI/build:** pending for this branch; do not mark build or tests as passed until workflow completes.
+- **CI/build:** corrected final head `34941b26529b36519f27bae775d0f85a588443b1` passed GitHub Actions run #711 (`45051230977`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14765930477`. Earlier runs #707–#710 exposed a local JVM test issue from using Android's `org.json` stub; the counter was rewritten as a pure-Java structural check and the final run passed.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify permission status accuracy, Android settings handoffs, all known inventory counts, corrupt JSON handling, share chooser cancel/selection, and confirm no private content appears in exported text.
 - **Merge policy:** keep stacked on PR #40; do not merge into PR #40 or `main` without owner approval. JARVIS only; Even untouched.
