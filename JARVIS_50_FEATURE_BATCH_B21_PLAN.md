@@ -123,3 +123,12 @@ The following are implemented as extensions of existing canonical modules, not s
 - **Communication flow (2 improvements):** editable message preview before messaging-app handoff; contact disambiguation before explicit call confirmation.
 
 **Current B21 code-present count: 18 capability improvements.** This is not 50/50 completion. Remaining items must pass overlap audit and dependency/provider readiness before implementation. All external communication stays owner-confirmed; no background or covert actions are introduced.
+
+
+### Additional B21 ledger entries (19–23)
+
+19. M09 Knowledge Graph provenance labels (owner-entered vs legacy source unknown).
+20. M18 Virtual Experiment Notebook (owner-saved, local, simulation-only, source-verification note).
+21. M11 Creative Project Organizer (local saved drafts; not rendered media).
+22. M10 Image Text Reader (user-selected local OCR, Latin and Devanagari scripts).
+23. OCR recognizer cleanup on success/failure.
