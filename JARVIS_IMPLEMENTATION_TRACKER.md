@@ -348,3 +348,30 @@
 - **Implementation files:** `DataIntelligenceStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on final code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a`; GitHub Actions run #602 (`45046009488`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #30; do not merge to parent PR #30 or `main` without owner approval.
+
+
+## Batch B10 — M13 Personal Productivity Studio (three upgrades to existing task manager; 2026-11-22)
+
+**Branch:** `feature/m13-productivity-studio-3pack`, stacked on M12 Data Intelligence / PR #31. Separate, unmerged batch.
+
+### Feature 1 — Project Workspace
+- **Code-present:** owner assigns existing structured tasks to a project name, views project groups and sees pending/completed counts. Clearing the project name returns the task to Unassigned.
+- **No duplicate store:** project membership is a `project` field on the existing `structured_tasks_v1` task objects. Tasks are not copied or moved into a parallel database.
+- **Acceptance checks:** assign/reassign/clear project, multiple tasks in one project, unassigned tasks, long/empty project name, malformed task data and persistence after app restart.
+
+### Feature 2 — Priority Matrix
+- **Code-present:** owner assigns one of four priority labels to an existing task: Urgent + Important, Important/not urgent, Urgent/lower impact, Low priority.
+- **No duplicate task list:** priority is a `priority` field on the existing task object.
+- **Acceptance checks:** update priority repeatedly, preserve completion/project fields, task deletion behavior and malformed JSON protection.
+
+### Feature 3 — Weekly Review
+- **Code-present:** summarizes tasks created in the last seven days, their current pending/completed state, unassigned count and project-level counts.
+- **Honesty:** it does not claim when a task was completed because the existing schema does not store a completion timestamp.
+- **Acceptance checks:** no tasks, old tasks, tasks created in last seven days, pending/completed counts, unassigned and project grouping.
+
+### Privacy, integration and verification
+- Upgrades existing `structured_tasks_v1` in `jarvis_preferences`; no second task/project database and no change to legacy notes, workflow checklists or reminders.
+- Local-only task data; no network request, new permission, background scheduling or automatic task creation.
+- **Implementation files:** `ProductivityStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on the rebased branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
