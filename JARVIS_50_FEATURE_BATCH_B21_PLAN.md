@@ -144,3 +144,11 @@ The following are implemented as extensions of existing canonical modules, not s
 29. Software Project Notebook (local owner-reviewed drafts; never executed).
 30. Learning Notebook (local owner-saved lessons).
 31. Data Insight Report archive (aggregate-only inputs; raw CSV rows excluded).
+
+
+### Additional B21 ledger entries (32–35)
+
+32. Device-credential re-auth gate for private local studios.
+33. Read-only backend health endpoint check; no credentials or user data transmitted.
+34. Category-selective personal-memory export with preview.
+35. Public Play Store listing handoff from installed-app details, clearly separated from local package update timestamp.
