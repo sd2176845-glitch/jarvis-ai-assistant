@@ -148,7 +148,14 @@ public final class JarvisAiClient {
         Handler main = new Handler(Looper.getMainLooper());
         SharedPreferences memory = appContext.getSharedPreferences("jarvis_ai_memory", Context.MODE_PRIVATE);
         String originalMessage = message == null ? "" : message.trim();
-        String prior = memory.getString("conversation", "");
+        long nowMillis = System.currentTimeMillis();
+        long contextUpdatedAt = memory.getLong("conversation_updated_at", 0L);
+        long contextTtl = 2L * 60L * 60L * 1000L;
+        boolean contextFresh = ConversationContextRules.isFresh(contextUpdatedAt, nowMillis, contextTtl);
+        String prior = contextFresh ? memory.getString("conversation", "") : "";
+        if (!contextFresh && memory.contains("conversation")) {
+            memory.edit().remove("conversation").remove("conversation_updated_at").apply();
+        }
         SharedPreferences appPreferences = appContext.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
         String mode = appPreferences.getString("assistant_mode", "Normal");
         String modeGuidance;
@@ -220,7 +227,8 @@ public final class JarvisAiClient {
                     if (compact.length() > 0) compact.append('\n');
                     compact.append(lines[i]);
                 }
-                memory.edit().putString("conversation", compact.toString()).apply();
+                memory.edit().putString("conversation", compact.toString())
+                        .putLong("conversation_updated_at", System.currentTimeMillis()).apply();
             }
             main.post(() -> {
                 if (callback != null) callback.onReply(result);
