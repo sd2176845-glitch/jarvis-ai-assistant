@@ -417,7 +417,14 @@ public class MainActivity extends Activity {
                                 status.setText("REMINDER SERVICE UNAVAILABLE");
                                 return;
                             }
-                            manager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pending);
+                            ReminderStore.save(this, reminderId, title, triggerAt);
+                            try {
+                                manager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pending);
+                            } catch (Exception scheduleError) {
+                                ReminderStore.remove(this, reminderId);
+                                status.setText("REMINDER COULD NOT BE SCHEDULED");
+                                return;
+                            }
                             status.setText("JARVIS REMINDER SCHEDULED");
                             speak("Reminder set: " + title);
                         }, chosen.get(java.util.Calendar.HOUR_OF_DAY),
