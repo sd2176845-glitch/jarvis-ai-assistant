@@ -18,9 +18,12 @@
 
 ## Validation status
 - Latest feature commit: `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` (Device Resource Intelligence code).
-- Latest blueprint/tracker reference commit before this tracker: `2423da0756f7ce47f3647c2f7ac1cbdb20e18b35`.
-- Android build, unit tests, lint, and Poco M4 Pro 4G physical-device testing must be checked for the current branch head before claiming these batches are verified.
-- Do not claim an APK is ready unless the current commit's CI build and artifact checks pass.
+- GitHub Actions run #453 (`45038456991`) for this exact commit completed successfully on 2026-11-22.
+- Verified CI steps: backend JavaScript syntax checks, Java/Gradle setup, debug APK build, and APK artifact upload.
+- APK artifact: `jarvis-debug-apk`, artifact ID `14759949342`, SHA-256 `a5fbcf01cbdcec9c4796d65765492867b9466add403eba2464206ddc1061c15c`.
+- This workflow run did not show separate Android unit-test or lint steps; do not claim those checks passed.
+- Poco M4 Pro 4G physical-device testing remains pending. Do not mark Voice Studio, Focus Session, or Device Resource Intelligence as device-verified.
+- Do not claim an APK is ready for release; this is a successful CI debug artifact only.
 
 ## Resume procedure
 1. Read this tracker and `JARVIS_MASTER_BLUEPRINT_CONSOLIDATED.md`.
@@ -30,14 +33,16 @@
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
-- Verify current branch CI/build and resolve any compile or test failures, including Device Resource Intelligence.
-- Test Voice Studio and Focus Session on the target Poco M4 Pro 4G.
-- Only after validation, choose the next unimplemented module from the consolidated blueprint.
-
+- Install and test the CI debug APK on the target Poco M4 Pro 4G.
+- Test Voice Studio: available voice listing, voice selection, saved voice after restart, speech-rate and pitch behavior in foreground and background.
+- Test Focus Session: 15/25/45-minute choices, task label, countdown, Stop, and process-lifecycle limitation.
+- Test Device Resource Intelligence: battery values against Android Settings, app-data-volume storage label, RAM values, refresh and error handling.
+- Record physical-device results here before marking any of these modules verified.
+- After the device checks, choose the next unimplemented module from the consolidated blueprint; implement it as a separate batch.
 
 ## Third feature implementation note
 - Device Resource Dashboard uses Android `BatteryManager`, `StatFs`, and `ActivityManager.MemoryInfo` APIs.
 - Storage figure is for the app data volume; it may not equal all user-visible shared storage on every device.
 - Network status is intentionally omitted because the current manifest does not declare `ACCESS_NETWORK_STATE`; no new permission was added.
 - No cleanup, process killing, setting changes, or report upload is performed.
-- **Validation remains pending:** current-head build/CI and target-device checks are required.
+- **Validation:** current-head CI build and artifact upload passed; target-device checks remain pending.
