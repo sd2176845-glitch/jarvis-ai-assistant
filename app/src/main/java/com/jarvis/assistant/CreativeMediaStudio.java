@@ -145,6 +145,8 @@ public final class CreativeMediaStudio {
             }
             org.json.JSONObject item = new org.json.JSONObject();
             item.put("type", type);
+            item.put("project_name", type);
+            item.put("status", "Draft");
             item.put("content", content);
             item.put("created_at", System.currentTimeMillis());
             item.put("status", "Draft • owner-created");
@@ -178,7 +180,8 @@ public final class CreativeMediaStudio {
         for (int i = 0; i < projects.length(); i++) {
             org.json.JSONObject item = projects.optJSONObject(i);
             labels[i] = item == null ? "Unavailable draft"
-                    : item.optString("type", "Creative draft") + " • Draft";
+                    : item.optString("project_name", item.optString("type", "Creative draft"))
+                    + " • " + item.optString("status", "Draft");
         }
         new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
                 .setItems(labels, (dialog, which) -> {
@@ -187,10 +190,50 @@ public final class CreativeMediaStudio {
                         String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",
                                 java.util.Locale.getDefault()).format(
                                 new java.util.Date(item.optLong("created_at", 0L)));
-                        new AlertDialog.Builder(activity).setTitle(item.optString("type", "Creative draft"))
-                                .setMessage("DRAFT • NOT A RENDERED MEDIA FILE\nSaved: " + date + "\n\n"
+                        new AlertDialog.Builder(activity).setTitle(item.optString("project_name", item.optString("type", "Creative draft")))
+                                .setMessage(item.optString("status", "Draft") + " • NOT A RENDERED MEDIA FILE\\nSaved: " + date + "\\n\\n"
                                         + item.optString("content", ""))
-                                .setPositiveButton("Close", null).show();
+                                .setPositiveButton("Mark reviewed", (d, w) -> {
+                                    try {
+                                        item.put("status", "Reviewed");
+                                        prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                        Toast.makeText(activity, "Creative draft marked reviewed.", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Draft status could not be updated.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNeutralButton("Rename", (d, w) -> {
+                                    EditText rename = new EditText(activity);
+                                    rename.setSingleLine(true);
+                                    rename.setText(item.optString("project_name", item.optString("type", "")));
+                                    new AlertDialog.Builder(activity).setTitle("Rename creative project")
+                                            .setView(rename)
+                                            .setNegativeButton("Cancel", null)
+                                            .setPositiveButton("Save", (rd, rw) -> {
+                                                String value = rename.getText().toString().trim();
+                                                if (value.isEmpty() || value.length() > 60) {
+                                                    Toast.makeText(activity, "Use a name between 1 and 60 characters.", Toast.LENGTH_LONG).show();
+                                                    return;
+                                                }
+                                                try {
+                                                    item.put("project_name", value);
+                                                    prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                                    Toast.makeText(activity, "Project renamed.", Toast.LENGTH_SHORT).show();
+                                                } catch (Exception e) {
+                                                    Toast.makeText(activity, "Project could not be renamed.", Toast.LENGTH_LONG).show();
+                                                }
+                                            }).show();
+                                })
+                                .setNegativeButton("Delete", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this creative draft?")
+                                                .setMessage("This removes only the selected draft from this device.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (cd, cw) -> {
+                                                    projects.remove(which);
+                                                    prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                                    Toast.makeText(activity, "Creative draft deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .show();
                     }
                 })
                 .setNegativeButton("Close", null)
