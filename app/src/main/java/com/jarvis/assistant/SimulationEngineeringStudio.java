@@ -119,6 +119,7 @@ public final class SimulationEngineeringStudio {
             item.put("content", content);
             item.put("created_at", System.currentTimeMillis());
             item.put("label", "SIMULATION ONLY");
+            item.put("source_notes", "AI-generated educational content; verify concepts with textbooks or official references.");
             entries.put(item);
             prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
             Toast.makeText(activity, "Saved to this device's virtual notebook.", Toast.LENGTH_SHORT).show();
