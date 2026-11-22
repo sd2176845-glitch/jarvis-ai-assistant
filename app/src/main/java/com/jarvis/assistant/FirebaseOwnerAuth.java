@@ -100,6 +100,22 @@ public final class FirebaseOwnerAuth {
             return;
         }
         AuthCredential credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null);
+        FirebaseUser existing = auth.getCurrentUser();
+        if (existing != null) {
+            existing.reauthenticate(credential).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) result.onSuccess(existing);
+                else result.onError(task.getException() == null ? "Google re-authentication failed." : task.getException().getMessage());
+            });
+            return;
+        }
+        FirebaseUser existing = auth.getCurrentUser();
+        if (existing != null) {
+            existing.reauthenticate(credential).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) result.onSuccess(existing);
+                else result.onError(task.getException() == null ? "Phone re-authentication failed." : task.getException().getMessage());
+            });
+            return;
+        }
         auth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null && task.getResult().getUser() != null) {
                 rememberOwner(context, task.getResult().getUser());
