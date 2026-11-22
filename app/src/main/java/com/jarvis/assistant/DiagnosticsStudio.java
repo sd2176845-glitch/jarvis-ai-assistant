@@ -44,7 +44,7 @@ final class DiagnosticsStudio {
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) showReport(activity, preferences, ttsReady, false);
                     else if (which == 1) showReport(activity, preferences, ttsReady, true);
-                    else if (which == 2) showHistory(activity, preferences);
+                    else if (which == 2) showHistory(activity, preferences, ttsReady);
                     else clearHistory(activity, preferences);
                 })
                 .setNegativeButton("Close", null)
@@ -159,7 +159,7 @@ final class DiagnosticsStudio {
         }
     }
 
-    private static void showHistory(Activity activity, SharedPreferences preferences) {
+    private static void showHistory(Activity activity, SharedPreferences preferences, boolean ttsReady) {
         JSONArray history = readHistory(preferences);
         if (history == null) {
             new AlertDialog.Builder(activity).setTitle("Diagnostic history")
@@ -195,7 +195,7 @@ final class DiagnosticsStudio {
                     }
                 })
                 .setPositiveButton("Clear history", (d, w) -> clearHistory(activity, preferences))
-                .setNegativeButton("Back", (d, w) -> show(activity, preferences, false))
+                .setNegativeButton("Back", (d, w) -> show(activity, preferences, ttsReady))
                 .show();
     }
 
