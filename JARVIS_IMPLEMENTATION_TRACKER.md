@@ -593,3 +593,14 @@
 - **CI/build:** passed on final head `09cfe226988987e7fd79075ea4e95ec3a1de74d4`, GitHub Actions run `45053093326`: backend syntax validation, Android unit tests, debug APK build and APK artifact upload all succeeded. The successful run is attached to this exact code head; earlier intermediate failures are superseded.
 - **Physical device:** pending on Poco M4 Pro 4G; verify available extras and layout; values may vary by manufacturer.
 - **Merge:** draft PR only; do not merge into PR #45 or main without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B21 — Integrated 50-Feature Release (2026-11-22)
+
+- **Branch:** `feature/jarvis-50-feature-megabatch`, created from B20 branch `feature/m17-battery-health-snapshot`.
+- **Scope:** one coordinated batch with 50 candidate capabilities across the canonical M01–M19 owners. Full scope and acceptance gates are in `JARVIS_50_FEATURE_BATCH_B21_PLAN.md`.
+- **Status:** planning/scope lock only at this commit. No B21 Android or backend feature is claimed implemented, built, tested, or verified yet.
+- **Anti-duplication:** candidates must be audited against the existing B20 studios and stores before coding; overlapping items will upgrade the existing owner module rather than create duplicate engines, screens, schedulers, or databases.
+- **Delivery:** one draft PR for the integrated batch after implementation and automated validation. No merge into B20 or main without owner approval.
+- **Device verification:** target Poco M4 Pro 4G remains required for device-dependent capabilities.
+- **Project boundary:** JARVIS only; Even untouched.
