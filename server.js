@@ -8,6 +8,45 @@ const GROQ_ULTRA_MODEL = process.env.GROQ_ULTRA_MODEL || "openai/gpt-oss-120b";
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const WORKER_TIMEOUT_MS = 10_000;
 const SYNTHESIS_TIMEOUT_MS = 9_000;
+const MAX_BODY_BYTES = 100_000;
+const RATE_LIMIT_WINDOW_MS = Math.max(10_000, Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000));
+const RATE_LIMIT_MAX = Math.max(1, Number(process.env.RATE_LIMIT_MAX || 30));
+const ALLOWED_ORIGINS = new Set(
+  String(process.env.CORS_ALLOWED_ORIGINS || "")
+    .split(",").map(value => value.trim()).filter(Boolean)
+);
+const requestCounts = new Map();
+
+function getClientKey(req) {
+  // Render supplies X-Forwarded-For. This is best-effort abuse throttling,
+  // not an authentication boundary; do not use it as proof of user identity.
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return forwarded || req.socket.remoteAddress || "unknown";
+}
+
+function isRateLimited(req) {
+  const now = Date.now();
+  const key = getClientKey(req);
+  const current = requestCounts.get(key);
+  if (!current || now - current.startedAt >= RATE_LIMIT_WINDOW_MS) {
+    requestCounts.set(key, { startedAt: now, count: 1 });
+    return false;
+  }
+  current.count += 1;
+  return current.count > RATE_LIMIT_MAX;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of requestCounts) {
+    if (now - value.startedAt >= RATE_LIMIT_WINDOW_MS) requestCounts.delete(key);
+  }
+}, RATE_LIMIT_WINDOW_MS).unref();
+
+function sendJson(res, status, payload) {
+  res.writeHead(status);
+  res.end(JSON.stringify(payload));
+}
 
 const SYSTEM_PROMPT = [
   "You are JARVIS, a calm, intelligent, caring personal AI assistant inspired by a thoughtful, dependable butler.",
@@ -138,9 +177,21 @@ async function runParallelUltra(prompt) {
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+
+  const origin = req.headers.origin;
+  if (origin) {
+    if (!ALLOWED_ORIGINS.has(origin)) {
+      return sendJson(res, 403, { error: "Origin not allowed" });
+    }
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Max-Age", "600");
   if (req.method === "OPTIONS") { res.writeHead(204); return res.end(); }
 
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
@@ -170,14 +221,23 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method !== "POST" || !["/api/jarvis/chat", "/api/jarvis/understand"].includes(url.pathname)) {
-    res.writeHead(404); return res.end(JSON.stringify({ error: "Not found" }));
+    return sendJson(res, 404, { error: "Not found" });
+  }
+
+  if (!String(req.headers["content-type"] || "").toLowerCase().startsWith("application/json")) {
+    return sendJson(res, 415, { error: "Content-Type must be application/json" });
+  }
+
+  if (isRateLimited(req)) {
+    res.setHeader("Retry-After", String(Math.ceil(RATE_LIMIT_WINDOW_MS / 1000)));
+    return sendJson(res, 429, { error: "Too many requests. Please try again shortly." });
   }
 
   let raw = "";
   try {
     for await (const chunk of req) {
       raw += chunk;
-      if (raw.length > 100_000) { res.writeHead(413); return res.end(JSON.stringify({ error: "Request too large" })); }
+      if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) { res.writeHead(413); return res.end(JSON.stringify({ error: "Request too large" })); }
     }
   } catch {
     res.writeHead(400); return res.end(JSON.stringify({ error: "Could not read request body" }));
