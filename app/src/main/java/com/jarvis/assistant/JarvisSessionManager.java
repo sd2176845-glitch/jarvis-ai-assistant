@@ -32,6 +32,11 @@ public final class JarvisSessionManager {
      * Checks and refreshes an active owner session. A session expires after 15 minutes
      * without an owner-gated interaction. The app still starts in Guest after process restart.
      */
+    /** Backward-compatible context overload used by existing app components. */
+    public static boolean isOwner(Context context) {
+        return isOwner();
+    }
+
     public static synchronized boolean isOwner() {
         if (!ownerSession) return false;
         long now = SystemClock.elapsedRealtime();
