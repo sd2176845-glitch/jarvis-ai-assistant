@@ -181,7 +181,20 @@ final class MemoryExpansionStudio {
                         .setNegativeButton("Cancel", null).setPositiveButton("Delete", (x, y) -> {
                             JSONArray latest = readGraph(prefs);
                             if (latest != null && which < latest.length()) {
+                                JSONObject removed = latest.optJSONObject(which);
+                                String removedNode = removed != null && "node".equals(removed.optString("kind"))
+                                        ? removed.optString("name") : null;
                                 latest.remove(which);
+                                if (removedNode != null) {
+                                    for (int i = latest.length() - 1; i >= 0; i--) {
+                                        JSONObject edge = latest.optJSONObject(i);
+                                        if (edge != null && "link".equals(edge.optString("kind"))
+                                                && (removedNode.equals(edge.optString("from"))
+                                                || removedNode.equals(edge.optString("to")))) {
+                                            latest.remove(i);
+                                        }
+                                    }
+                                }
                                 prefs.edit().putString(GRAPH_KEY, latest.toString()).apply();
                                 if (onChanged != null) onChanged.run();
                                 showGraph(activity, prefs, onChanged);
@@ -302,8 +315,15 @@ final class MemoryExpansionStudio {
             File temp = new File(archive.getParentFile(), ARCHIVE_NAME + ".tmp");
             FileOutputStream out = new FileOutputStream(temp);
             try { out.write(encrypted); out.flush(); out.getFD().sync(); } finally { out.close(); }
-            if (archive.exists() && !archive.delete()) throw new Exception("Could not replace previous archive safely.");
-            if (!temp.renameTo(archive)) throw new Exception("Could not finalize archive file.");
+            File backup = new File(archive.getParentFile(), ARCHIVE_NAME + ".bak");
+            if (backup.exists() && !backup.delete()) throw new Exception("Could not clear temporary backup.");
+            boolean hadArchive = archive.exists();
+            if (hadArchive && !archive.renameTo(backup)) throw new Exception("Could not stage previous archive safely.");
+            if (!temp.renameTo(archive)) {
+                if (hadArchive) backup.renameTo(archive);
+                throw new Exception("Could not finalize archive file.");
+            }
+            if (backup.exists()) backup.delete();
             toast(activity, "Encrypted archive created on this device.");
         } catch (Exception e) {
             toast(activity, "Archive creation failed. Existing memory was not changed.");
