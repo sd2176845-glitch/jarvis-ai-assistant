@@ -41,17 +41,9 @@ public class CallControlAccessibilityService extends AccessibilityService {
         try {
             CharSequence activePackage = root.getPackageName();
             String packageName = activePackage == null ? "" : activePackage.toString();
-            if (!isSupportedCallUi(packageName)) return;
+            if (!CallControlRules.isSupportedCallUi(packageName)) return;
             clickInTree(root, labels);
         } finally { root.recycle(); }
-    }
-
-    private boolean isSupportedCallUi(String packageName) {
-        if (packageName == null) return false;
-        return "com.google.android.dialer".equals(packageName)
-                || "com.android.dialer".equals(packageName)
-                || "com.android.incallui".equals(packageName)
-                || "com.android.phone".equals(packageName);
     }
 
     private boolean clickInTree(AccessibilityNodeInfo node, String[] labels) {
