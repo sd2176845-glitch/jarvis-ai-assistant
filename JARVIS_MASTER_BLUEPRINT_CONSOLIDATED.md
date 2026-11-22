@@ -171,3 +171,12 @@ This consolidated architecture is a new reviewable baseline. The existing `JARVI
 | M02 — Core Voice, Conversation & Human Intelligence: Voice Studio | Added to `MainActivity`: installed offline TTS voice selection where exposed by Android, saved speech-speed presets (calm/normal/energetic), saved pitch presets (lower/normal/higher), and persistence through app preferences. | **Code added; Android build and device testing still required.** Voice availability and labels depend on the installed TTS engine. No guarantee that both male and female voices are installed. |
 
 This table records only changes actually made on this development branch. It does not imply that the other modules are implemented.
+
+
+## Latest implementation batch — Focus & Productivity Session
+
+- **Code-present:** Added an owner-invoked Focus & Productivity Session entry to the Android Command Center.
+- Supports a task label and 15-, 25-, or 45-minute countdown blocks, with a visible remaining-time display and an explicit Stop session control.
+- The timer does not block apps, calls, or notifications and does not collect app-usage data. It runs only while the JARVIS process remains alive; process termination ends the in-memory timer.
+- **Validation status:** Android build, unit tests, and Poco M4 Pro 4G device testing are still pending. Do not treat this feature as verified or production-ready.
+- **Project boundary:** JARVIS only; the separate Even project is untouched.
