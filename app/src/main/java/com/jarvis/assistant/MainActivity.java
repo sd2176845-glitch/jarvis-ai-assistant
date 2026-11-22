@@ -1633,23 +1633,8 @@ public class MainActivity extends Activity {
     }
 
     private void showPrivacyOptions() {
-        String mic = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
-        String contacts = checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
-        String notes = preferences.getString("jarvis_notes", "");
-        String report = "PRIVACY & PERMISSIONS\n\nMicrophone: " + mic
-                + "\nContacts: " + contacts
-                + "\nLocal notes: " + (notes.isEmpty() ? "empty" : "saved")
-                + "\n\nBackground listening is controlled separately. Use STOP BACKGROUND LISTENING to stop it. Notes and recent AI conversation are stored locally; clearing AI memory does not clear notes.";
-        new AlertDialog.Builder(this).setTitle("Privacy controls").setMessage(report)
-                .setPositiveButton("App settings", (d, w) -> {
-                    try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                            android.net.Uri.parse("package:" + getPackageName()))); }
-                    catch (Exception e) { status.setText("OPEN ANDROID APP SETTINGS"); }
-                })
-                .setNeutralButton("Clear notes", (d, w) -> {
-                    preferences.edit().remove("jarvis_notes").apply();
-                    status.setText("LOCAL NOTES CLEARED");
-                }).setNegativeButton("Close", null).show();
+        // Upgrade the existing privacy entry in place; do not add a duplicate menu item.
+        OwnerPrivacyStudio.show(this, preferences);
     }
 
     private void showModeSelector() {
