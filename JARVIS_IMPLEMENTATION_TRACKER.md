@@ -186,7 +186,7 @@
 
 ## Batch B04 — M04 Universal App Intelligence (three independent read-only capabilities; 2026-11-22)
 
-**Branch:** `feature/m04-app-intelligence-3pack`, stacked on the M03 Language Studio branch / PR #25. Separate, unmerged batch.
+**Branch:** `feature/m04-app-intelligence-3pack`, stacked on the M03 Language Studio branch / PR #25. Draft PR #26: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/26. Separate, unmerged batch.
 
 ### Feature 1 — Installed App Catalogue
 - **Code-present:** lists apps Android exposes through the launcher intent, deduplicates by package name and sorts by visible app label. The catalogue does not launch apps; existing app-launch behavior remains owned by M05.
@@ -204,6 +204,6 @@
 - Uses Android launcher-intent package visibility through a matching `<queries>` declaration; no `QUERY_ALL_PACKAGES` or new runtime permission.
 - Reads public PackageManager metadata only. No app-private files, screen contents, usage history, contacts, network scan, app launch, settings change or upload.
 - **Implementation files:** `AppIntelligenceStudio.java` (new), existing `MainActivity.java` (one Command Center entry), `AndroidManifest.xml` (launcher-intent query declaration).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on code head `7d06870c70630171b69fbd9f6bc3935e6fb88fdc`; GitHub Actions run #553 (`45044836017`) completed backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762504922`, SHA-256 `77eb8572bc40e7e53c22515789486388cba95d9287e3c976ee4ff8387a2d7f65`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Device acceptance:** confirm Android 13 visibility results, catalogue count/labels, app update/uninstall race handling and permission declaration labels.
 - **Merge policy:** do not merge to parent PR #25 or `main` without owner approval.
