@@ -85,9 +85,22 @@ public final class DocumentOcrStudio {
                     preview.setTextIsSelectable(true);
                     preview.setTextSize(15);
                     preview.setPadding(28, 20, 28, 20);
+                    final String extracted = text == null ? "" : text;
                     new AlertDialog.Builder(activity).setTitle("PDF OCR • Page 1")
                             .setMessage("LOCAL RESULT • FIRST PAGE ONLY")
-                            .setView(preview).setPositiveButton("Close", null).show();
+                            .setView(preview)
+                            .setPositiveButton("Close", null)
+                            .setNeutralButton("Explain with AI", (dialog, which) ->
+                                    new AlertDialog.Builder(activity).setTitle("Send extracted text to JARVIS AI?")
+                                            .setMessage("Only the extracted first-page text will be sent to the configured JARVIS AI backend. Review it for private information first. The PDF itself is not sent.")
+                                            .setNegativeButton("Cancel", null)
+                                            .setPositiveButton("Send text", (d, w) ->
+                                                    JarvisAiClient.askStandalone(activity,
+                                                            OcrPromptRules.explanationPrompt(extracted), reply -> {
+                                                                if (activity.isFinishing() || activity.isDestroyed()) return;
+                                                                new AlertDialog.Builder(activity).setTitle("JARVIS • Text explanation")
+                                                                        .setMessage(reply).setPositiveButton("Close", null).show();
+                                                            })).show()).show();
                 })
                 .addOnFailureListener(error -> {
                     recognizer.close();
