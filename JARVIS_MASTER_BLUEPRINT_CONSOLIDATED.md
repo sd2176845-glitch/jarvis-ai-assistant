@@ -180,3 +180,11 @@ This table records only changes actually made on this development branch. It doe
 - The timer does not block apps, calls, or notifications and does not collect app-usage data. It runs only while the JARVIS process remains alive; process termination ends the in-memory timer.
 - **Validation status:** Android build, unit tests, and Poco M4 Pro 4G device testing are still pending. Do not treat this feature as verified or production-ready.
 - **Project boundary:** JARVIS only; the separate Even project is untouched.
+
+
+### M17 — Device Resource Intelligence Dashboard (code-present; verification pending)
+- Added a Command Center dashboard for device model/Android version, battery percentage and power connection state, app-data-volume storage total/available/used estimate, and RAM total/available/low-memory state.
+- Uses Android public read-only APIs (`BatteryManager`, `StatFs`, `ActivityManager.MemoryInfo`). No new manifest permissions are requested.
+- No app killing, memory clearing, settings changes, network inspection, or report upload.
+- Storage is specifically the app data volume and may differ from total shared/user-visible storage. Network status is not shown because `ACCESS_NETWORK_STATE` is not currently declared.
+- **Status:** code-present on the feature branch; build, CI, and Poco M4 Pro 4G device verification are pending.
