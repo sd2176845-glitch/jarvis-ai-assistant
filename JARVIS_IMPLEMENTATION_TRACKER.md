@@ -16,7 +16,7 @@
 2. **Focus & Productivity Session** — code-present: owner-started 15/25/45-minute focus countdown, task label, visible timer, and Stop control. It does not block apps or notifications and only runs while the JARVIS process remains alive.
 
 ## Validation status
-- Latest feature commit: `7bbd783b62b04d2139d5056eba70653e399681d1` (Focus Session code).
+- Latest feature commit: `020e9b26a75da3f0435bfdc5f2c800df75aa08cd` (Focus Session code).
 - Latest blueprint/tracker reference commit before this tracker: `2423da0756f7ce47f3647c2f7ac1cbdb20e18b35`.
 - Android build, unit tests, lint, and Poco M4 Pro 4G physical-device testing must be checked for the current branch head before claiming these batches are verified.
 - Do not claim an APK is ready unless the current commit's CI build and artifact checks pass.
