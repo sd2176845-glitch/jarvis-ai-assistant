@@ -7,9 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m17-connectivity-intelligence-3pack` (stacked directly on the latest M16 Smart Home Studio branch head; JARVIS only).
+- Branch: `feature/m18-virtual-engineering-studio-3pack` (stacked on M17 Connectivity Intelligence / PR #38; JARVIS only).
 - Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
-- New batch: M17 connectivity intelligence; draft PR #38 is open against `feature/m16-smart-home-studio-3pack` (https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/38).
+- Parent draft PR: #38 — M17 Connectivity Intelligence. New M18 batch is to be opened as draft PR #39 against `feature/m17-connectivity-intelligence-3pack`.
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
@@ -432,3 +432,32 @@
 - **CI/build:** code head `084c74bab505117a92960969b952d3c1f759207c` passed GitHub Actions run #677 (`45049194572`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764514133`; SHA-256 `77c6330b6d3c2e7f5cd20f7fe78c0aa559dd390b2c90e2926cff98cb2f3dd151`. Later documentation-only commits are running the same workflow; record their final outcome separately.
 - **Physical device:** pending on Poco M4 Pro 4G. Check Wi-Fi/mobile/VPN/no-network states, verify network labels without exposing identifiers, review offline matrix in airplane mode, and test all three planner selections with cancel/confirm and offline/server-failure handling.
 - **Merge policy:** keep stacked on PR #37; do not merge into PR #37 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B13 — M18 Simulation & Engineering Intelligence (three safe virtual tools; 2026-11-22)
+
+**Branch:** `feature/m18-virtual-engineering-studio-3pack`, stacked on M17 Connectivity Intelligence / PR #38. Draft PR #39 is intended to target `feature/m17-connectivity-intelligence-3pack`; this batch is separate and unmerged.
+
+### Feature 1 — Digital World Simulator
+- **Code-present:** owner selects Ecosystem balance, Planetary motion concepts, Water cycle and climate, or Sustainable community resources, then enters a short learning brief. JARVIS returns a text-only conceptual model with variables, possible outcomes, assumptions and limitations.
+- **Safety boundary:** non-violent educational simulation only. No attack/weapon scenarios or real-world control of infrastructure, vehicles or equipment.
+- **Acceptance checks:** all four scenario choices; empty/overlong brief; uncertainty and assumptions; offline/server failure; conflicting or unsafe input redirection.
+
+### Feature 2 — Virtual Experiment Lab
+- **Code-present:** owner selects Physics, Chemistry, Biology, or Earth and space science concepts and enters a learning question. JARVIS returns a hypothesis, variables, conceptual model, expected observations, explanation and limitations.
+- **Safety boundary:** thought experiments and abstract models only; no real-world experiment procedures, hazardous chemicals, heating/electrical steps, biological culturing or dangerous activities.
+- **Acceptance checks:** all subjects; conceptual output structure; empty/overlong brief; uncertainty; unsafe-procedure redirection; offline/server failure.
+
+### Feature 3 — 3D Invention Studio
+- **Code-present:** owner selects benign categories (school/desk organizer, everyday accessibility aid, sustainable household product, educational display model, abstract sculpture) and enters an idea. JARVIS returns a text-only concept brief with purpose, form, non-critical dimensions, accessible features, safe everyday materials and sustainability notes.
+- **Scope:** no CAD/3D file generation or manufacturing-ready instructions.
+- **Safety boundary:** no weapons, harmful devices, surveillance tools, bypass equipment or dangerous fabrication/assembly steps.
+- **Acceptance checks:** all categories; accessibility/sustainability coverage; empty/overlong brief; unsafe concept redirection; explicit send confirmation and offline/server failure.
+
+### Privacy, implementation and verification
+- **Files:** `SimulationEngineeringStudio.java` (new), `SimulationEngineeringRules.java` (pure prompt builders), `SimulationEngineeringRulesTest.java` (three focused JUnit tests), and `MainActivity.java` (one Command Center entry).
+- Uses the existing memory-isolated `JarvisAiClient.askStandalone` only after owner confirmation. Only the entered topic and selected category are sent. No new permission, persistent store, background process, physical device control or API key in APK.
+- **Automated tests:** three separate JUnit tests cover non-violent conceptual simulation, exclusion of hazardous real-world experiment procedures, and benign non-manufacturing-ready design boundaries. The inherited M17 CI workflow runs `gradle testDebugUnitTest` before `gradle assembleDebug`.
+- **CI status:** pending for this batch; do not claim tests/build passed until the M18 branch workflow completes.
+- **Physical device:** pending on Poco M4 Pro 4G. Confirm Command Center navigation, category selection, prompt preview/confirmation/cancel, response display, and backend/offline handling.
+- **Merge policy:** keep stacked on PR #38; do not merge into PR #38 or `main` without owner approval. JARVIS only; Even untouched.
