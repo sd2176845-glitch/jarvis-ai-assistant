@@ -11,17 +11,30 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions;
 
 /** Owner-selected image OCR. Processing stays on-device; extracted text is not saved or uploaded. */
 public final class ImageOcrStudio {
     public static final int REQUEST_IMAGE = 7314;
 
+    private static boolean useDevanagari;
+
     private ImageOcrStudio() { }
 
     public static void chooseImage(Activity activity) {
+        String[] scripts = {"Latin script", "Devanagari script • Hindi"};
+        new AlertDialog.Builder(activity).setTitle("Choose text script")
+                .setMessage("OCR runs locally on this phone. Bengali and other scripts are not currently supported by this reader.")
+                .setItems(scripts, (dialog, which) -> {
+                    useDevanagari = which == 1;
+                    openImagePicker(activity);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private static void openImagePicker(Activity activity) {
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Image text reader")
-                .setMessage("Choose one image. Text recognition runs on this phone. JARVIS will not upload or save the image or extracted text.")
+                .setMessage("Choose one image. JARVIS will not upload or save the image or extracted text.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Choose image", (d, w) -> {
                     Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -45,8 +58,10 @@ public final class ImageOcrStudio {
         Uri uri = data.getData();
         try {
             InputImage image = InputImage.fromFilePath(activity, uri);
-            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                    .process(image)
+            com.google.mlkit.vision.text.TextRecognizer recognizer = useDevanagari
+                    ? TextRecognition.getClient(new DevanagariTextRecognizerOptions.Builder().build())
+                    : TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+            recognizer.process(image)
                     .addOnSuccessListener(result -> showPreview(activity, result))
                     .addOnFailureListener(error ->
                             Toast.makeText(activity, "Could not read text from this image.", Toast.LENGTH_LONG).show());
