@@ -210,5 +210,6 @@ The existing Command Center now includes a Workflow Studio foundation. Owners ca
 - **Code-present on feature branch:** Command Center now opens an owner-controlled vault over the existing local notes and recent AI conversation stores.
 - Review and correction use the existing notes store; export uses Android's explicit share chooser; notes deletion and recent-conversation clearing are separate, confirmed actions.
 - No parallel memory database, background capture, or automatic retention of new information was added.
-- **Not yet implemented:** timestamped Digital Time Machine timeline, provenance/knowledge graph, versioned idea evolution and encrypted legacy archive.
-- **Validation:** source commit 7eef4d7a66f4cdc2c436997fa5d81cbe69a5b441; CI and device verification pending.
+- **Code-present:** owner-created Personal Timeline is now implemented within the existing vault. It stores manually entered milestones/events with creation timestamps, supports list/detail/individual delete, and is included in the existing owner-triggered export. It uses the existing JARVIS preferences store; no second memory database or background capture is added.
+- **Still planned:** provenance/knowledge graph, versioned idea evolution and encrypted legacy archive.
+- **Validation:** timeline code commit 5296fabe1d3670201dffeb72801bfc219f4f86c8 passed GitHub Actions run #495 (45040755446), including backend syntax validation, Gradle debug APK build and artifact upload 14761891383. Poco M4 Pro 4G device testing remains pending; no separate unit-test/lint steps were run.

@@ -86,3 +86,13 @@
 - Owners can edit/correct the existing notes, export the displayed notes and recent conversation through the Android share chooser, delete notes with confirmation, or clear recent conversation context separately. Tasks and workflow checklists are not changed.
 - **Scope boundary:** this is the review/edit/export/delete foundation. A timestamped event timeline, knowledge graph, versioned idea history and encrypted archive are not yet implemented.
 - **Validation:** source commit 7eef4d7a66f4cdc2c436997fa5d81cbe69a5b441; current-head GitHub Actions build and artifact validation pending. Poco M4 Pro 4G device verification pending.
+
+
+## M09 — Owner-Created Personal Timeline (2026-11-22)
+- **Code-present:** extended the existing Personal Memory Vault with a manually curated timeline. The owner can add a milestone/event title and optional details; JARVIS records the creation timestamp, lists entries, opens entry details, and deletes an individually selected entry after confirmation.
+- Timeline data uses the existing jarvis_preferences SharedPreferences store (memory_timeline_v1); it does not create a second memory database or modify notes, tasks, or recent conversation context.
+- Entries are never captured automatically. Export now includes the owner-created timeline alongside existing notes and recent conversation context.
+- **Implementation commit:** 5296fabe1d3670201dffeb72801bfc219f4f86c8.
+- **CI:** GitHub Actions run #495 (45040755446) passed backend syntax validation, Gradle debug APK build, and artifact upload. Artifact 14761891383; SHA-256 93c16f0cbfe5dfca2da02e855a13c43672d9b5904225cda413d102e2feb2e3f2.
+- **Not verified:** Android unit tests/lint were not separate steps in this workflow; Poco M4 Pro 4G physical-device testing remains pending. Do not mark M09 or the earlier features device-verified.
+- **Next gate:** test timeline add/list/detail/delete/export on the Poco, including empty/corrupt data handling. Then choose the next separate unimplemented sub-feature from the consolidated blueprint. Keep all work on this feature branch; do not merge without owner approval.
