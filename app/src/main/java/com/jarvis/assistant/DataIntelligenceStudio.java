@@ -74,7 +74,7 @@ public final class DataIntelligenceStudio {
                     }
                     try {
                         Dataset data = parse(csv);
-                        if (mode == 0) showResult(activity, title, profile(data));
+                        if (mode == 0) showResult(activity, title, profile(data, true));
                         else if (mode == 1) showResult(activity, title, quality(data));
                         else createAiReport(activity, status, transcript, data);
                     } catch (IllegalArgumentException e) {
@@ -105,7 +105,10 @@ public final class DataIntelligenceStudio {
             } else if (c == '\n') {
                 row.add(cell.toString());
                 cell.setLength(0);
-                if (!isBlankRow(row)) rows.add(new ArrayList<>(row));
+                if (!isBlankRow(row)) {
+                    if (row.size() > MAX_COLUMNS) throw new IllegalArgumentException("A CSV row exceeds the 50-column limit.");
+                    rows.add(new ArrayList<>(row));
+                }
                 row.clear();
                 if (rows.size() > MAX_ROWS) throw new IllegalArgumentException("Dataset exceeds the 1,000-row limit.");
             } else if (c != '\r') {
@@ -115,7 +118,10 @@ public final class DataIntelligenceStudio {
         if (quoted) throw new IllegalArgumentException("A quoted CSV field was not closed. Check quotation marks.");
         if (cell.length() > 0 || !row.isEmpty()) {
             row.add(cell.toString());
-            if (!isBlankRow(row)) rows.add(new ArrayList<>(row));
+            if (!isBlankRow(row)) {
+                if (row.size() > MAX_COLUMNS) throw new IllegalArgumentException("A CSV row exceeds the 50-column limit.");
+                rows.add(new ArrayList<>(row));
+            }
         }
         if (rows.isEmpty()) throw new IllegalArgumentException("No CSV rows were found.");
         if (rows.get(0).size() > MAX_COLUMNS) throw new IllegalArgumentException("Dataset exceeds the 50-column limit.");
@@ -129,12 +135,12 @@ public final class DataIntelligenceStudio {
         return true;
     }
 
-    private static String profile(Dataset data) {
+    private static String profile(Dataset data, boolean includeHeaderNames) {
         StringBuilder out = new StringBuilder("DATASET PROFILE\nRows: ")
                 .append(data.dataRows()).append("\nColumns: ").append(data.columns()).append("\n\n");
         for (int col = 0; col < data.columns(); col++) {
-            String name = data.headers.get(col).trim();
-            if (name.isEmpty()) name = "(unnamed column " + (col + 1) + ")";
+            String name = includeHeaderNames ? data.headers.get(col).trim() : "Column " + (col + 1);
+            if (includeHeaderNames && name.isEmpty()) name = "(unnamed column " + (col + 1) + ")";
             int present = 0, numeric = 0;
             double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY, sum = 0;
             for (int r = 1; r < data.rows.size(); r++) {
@@ -175,7 +181,7 @@ public final class DataIntelligenceStudio {
         for (int i = 0; i < data.headers.size(); i++) {
             String h = data.headers.get(i).trim().toLowerCase(Locale.ROOT);
             if (h.isEmpty()) warnings.add("Column " + (i + 1) + " has an empty header.");
-            else if (!seenHeaders.add(h)) warnings.add("Duplicate header: " + data.headers.get(i));
+            else if (!seenHeaders.add(h)) warnings.add("Duplicate header at column " + (i + 1) + ".");
         }
         for (int r = 1; r < data.rows.size(); r++) {
             List<String> cells = data.rows.get(r);
@@ -207,7 +213,7 @@ public final class DataIntelligenceStudio {
     }
 
     private static void createAiReport(Activity activity, TextView status, TextView transcript, Dataset data) {
-        String summary = profile(data);
+        String summary = profile(data, false);
         String qualitySummary = quality(data);
         String aggregate = summary + "\n\n" + qualitySummary;
         new AlertDialog.Builder(activity).setTitle("Review AI report input")
