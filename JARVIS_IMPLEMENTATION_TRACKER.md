@@ -402,5 +402,5 @@
 - Uses existing `JarvisAiClient.askStandalone`; only the manually entered creative brief and selected format are sent after explicit confirmation. No saved conversation, notes or contacts are attached.
 - No new Android permission, persistent creative archive, background capture, media-rendering claim or API key in APK.
 - **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pre-rebase code head `afe6b1066ea8a0d201199d1553d78cdcb5000e33` passed GitHub Actions run #630 (`45046535915`); final rebased-head build pending. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on rebased code/documentation head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14`; GitHub Actions run #636 (`45046654060`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #33; do not merge to parent PR #33 or `main` without owner approval.
