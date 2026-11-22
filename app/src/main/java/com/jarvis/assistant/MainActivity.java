@@ -1007,7 +1007,7 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Personal Memory Vault")
                 .setView(scroll)
-                .setPositiveButton("Export", (d, w) -> exportPersonalMemory())
+                .setPositiveButton("Export selected", (d, w) -> showMemoryExportOptions())
                 .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
                 .setNeutralButton("Close", null)
                 .show();
@@ -1197,6 +1197,70 @@ public class MainActivity extends Activity {
                     getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().remove("conversation").apply();
                     status.setText("RECENT CONVERSATION CONTEXT CLEARED");
                     showPersonalMemoryVault();
+                }).show();
+    }
+
+    private void showMemoryExportOptions() {
+        String[] options = {"Saved notes", "Owner-created timeline", "Recent AI conversation context"};
+        boolean[] selected = {true, false, false};
+        new AlertDialog.Builder(this).setTitle("Choose memory to export")
+                .setMessage("Only the categories you select will be included. A preview appears before the Android share sheet.")
+                .setMultiChoiceItems(options, selected, (dialog, which, checked) -> selected[which] = checked)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Preview selected", (dialog, which) -> {
+                    if (!selected[0] && !selected[1] && !selected[2]) {
+                        status.setText("NO MEMORY CATEGORIES SELECTED");
+                        return;
+                    }
+                    StringBuilder export = new StringBuilder("JARVIS SELECTED MEMORY EXPORT\\n\\n");
+                    if (selected[0]) {
+                        String notes = getSavedNotes();
+                        export.append("SAVED NOTES\\n").append(notes.isEmpty() ? "(none)" : notes).append("\\n\\n");
+                    }
+                    if (selected[1]) {
+                        org.json.JSONArray timeline = readPersonalTimeline();
+                        export.append("OWNER-CREATED TIMELINE\\n");
+                        if (timeline == null || timeline.length() == 0) export.append("(none)\\n");
+                        else {
+                            for (int i = 0; i < timeline.length(); i++) {
+                                org.json.JSONObject item = timeline.optJSONObject(i);
+                                if (item == null) continue;
+                                export.append(item.optString("title", "Untitled entry"))
+                                        .append(" • ").append(item.optLong("createdAt", 0L))
+                                        .append("\\n").append(item.optString("detail", "")).append("\\n\\n");
+                            }
+                        }
+                    }
+                    if (selected[2]) {
+                        String conversation = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE)
+                                .getString("conversation", "");
+                        export.append("RECENT AI CONVERSATION CONTEXT\\n")
+                                .append(conversation.isEmpty() ? "(none)" : conversation).append("\\n\\n");
+                    }
+                    export.append("Selected categories only • exported by owner from this device.");
+                    String preview = export.toString();
+                    ScrollView scroll = new ScrollView(this);
+                    TextView content = new TextView(this);
+                    content.setText(preview);
+                    content.setTextIsSelectable(true);
+                    content.setPadding(28, 20, 28, 20);
+                    scroll.addView(content);
+                    new AlertDialog.Builder(this).setTitle("Review export preview")
+                            .setView(scroll)
+                            .setMessage("Check for private information before sharing.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Open share sheet", (d, w) -> {
+                                try {
+                                    Intent share = new Intent(Intent.ACTION_SEND);
+                                    share.setType("text/plain");
+                                    share.putExtra(Intent.EXTRA_SUBJECT, "JARVIS Selected Memory Export");
+                                    share.putExtra(Intent.EXTRA_TEXT, preview);
+                                    startActivity(Intent.createChooser(share, "Review and choose export destination"));
+                                    status.setText("SELECTED MEMORY SHARE SHEET OPENED");
+                                } catch (Exception e) {
+                                    status.setText("EXPORT NOT AVAILABLE");
+                                }
+                            }).show();
                 }).show();
     }
 
