@@ -236,3 +236,33 @@
 - **Implementation files:** `PublicKnowledgeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on final code/documentation head `76877d030adcf36b187bf01e263ce52051b10661`; GitHub Actions run #563 (`45045200384`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #26; do not merge to parent PR #26 or `main` without owner approval.
+
+
+## Batch B06 — M06 Live Information Studio (three independent lookups; 2026-11-22)
+
+**Branch:** `feature/m06-live-info-3pack`, stacked on M05 Public Knowledge / PR #27. Separate, unmerged batch.
+
+### Feature 1 — City Weather
+- **Code-present:** owner enters a city/town name; Open-Meteo geocoding returns up to five matches, the owner selects the intended place, then JARVIS displays current temperature, feels-like temperature, humidity, wind, precipitation, WMO condition, daylight state, local data time and time zone.
+- **Privacy:** manual city entry only; no GPS, background location or location permission.
+- **Provider:** Open-Meteo forecast + geocoding. API docs: https://open-meteo.com/en/docs
+- **Acceptance checks:** ambiguous city selection, no result, weather code mapping, missing optional fields, API error, offline behavior and timestamp/timezone.
+
+### Feature 2 — Currency Converter
+- **Code-present:** owner enters amount and ISO 4217 source/target codes (example: `100 USD INR`). Uses Frankfurter v2 reference rates and displays the returned rate date and calculated amount.
+- **Important limitation:** reference rates are not real-time trading quotes, bank/card rates or guaranteed conversion amounts; spreads and fees may differ.
+- **Provider:** Frankfurter. API docs: https://frankfurter.dev/v1/
+- **Acceptance checks:** INR/USD and reverse pair, unsupported code, same-currency request, invalid/large amount, no rate, provider error and rounding.
+
+### Feature 3 — India Public Holidays
+- **Code-present:** owner enters a year; JARVIS lists India holiday entries, dates, holiday type, national flag and any returned subdivision codes.
+- **Important limitation:** dataset coverage may not include every state, district or local observance. It is not an official complete state holiday calendar; verify important dates with relevant government notifications.
+- **Provider:** Nager.Date public API v4. API docs: https://github.com/nager/Nager.Date/blob/main/doc/examples/rest-api.md
+- **Acceptance checks:** current year, future year, no results, national vs subdivision entries, long list and provider downtime.
+
+### Privacy, platform and verification
+- Each lookup has an explicit confirmation step. Only the manually entered city, amount/currency codes or year is sent. No GPS, contacts, notes, conversation history or background data is attached.
+- HTTPS GET only; bounded connect/read timeouts, response-size cap and malformed/error response handling. No API keys or new Android permissions.
+- **Implementation files:** `LiveInfoStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #27; do not merge to parent PR #27 or `main` without owner approval.
