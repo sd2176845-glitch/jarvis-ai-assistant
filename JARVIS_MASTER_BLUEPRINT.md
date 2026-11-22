@@ -881,3 +881,10 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
+
+
+## Implementation status addendum — M13 Personal Productivity Studio (Batch B10; 2026-11-22)
+- **Project Workspace:** code added; groups existing structured tasks by owner-assigned project label; no duplicate task store; CI/device verification pending.
+- **Priority Matrix:** code added; four priority labels saved on existing task objects; CI/device verification pending.
+- **Weekly Review:** code added; counts tasks created in the last seven days and their current status; does not infer completion dates; CI/device verification pending.
+- Reuses `structured_tasks_v1`; no new permissions or background scheduling.
