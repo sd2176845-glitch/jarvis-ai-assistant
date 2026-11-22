@@ -56,3 +56,11 @@
 - The control deliberately does not stop the independent background `WakeWordService`; that service retains its separate existing Command Center stop action.
 - No new Android permission or external data collection was added.
 - **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` passed (run `45038787391`; artifact `14760812400`). Target-device testing is pending.
+
+
+## M07 — Structured Task Manager
+- **Code-present:** upgraded the existing Tasks & reminders hub; no second notes store or duplicate scheduler was created.
+- Added a separate structured task list in the existing private SharedPreferences store (`structured_tasks_v1`), with add, completion toggle/reopen, and delete actions.
+- Existing legacy notes (`jarvis_notes` / `notes`) are displayed separately and are not migrated, overwritten, or deleted by this feature.
+- Alarm and calendar actions remain Android Clock/Calendar handoffs with user confirmation; M07 does not add background scheduling or external sync.
+- **Validation:** CI/build status pending for the M07 commits. Poco M4 Pro 4G device verification pending. M02 device verification also remains pending; both must be tested on the eventual final APK.
