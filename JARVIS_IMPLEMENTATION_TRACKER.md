@@ -119,8 +119,9 @@
 
 ### Batch validation and safety status
 - **Source commits:** `cc8e73d3a6b8b8c65d9ee7639f2893e8e94dedbc` (DiagnosticsStudio), `21c7b04de1e6b48907ffb95925feff36c7a7b1e1` (existing safety-check integration), and `7c86b2f73fffab58a782bb8c11473c213f6db9dd` (history navigation correction).
-- **CI/build:** pending for this batch; do not claim successful build or APK artifact until the workflow completes.
+- **CI/build:** passed on the current batch head `22efe6293bd5953c5af34d9dab4f806185fb3f8c`. GitHub Actions run #528 (`45043208526`) completed backend syntax validation, Gradle debug APK build, and APK artifact upload successfully. Artifact ID: `14762108881` (`jarvis-debug-apk`). A second push run #527 (`45043204131`) also completed successfully with artifact `14762720811`.
 - **Physical device:** pending on Poco M4 Pro 4G. Do not mark any of the three sub-features device-verified.
+- **Test scope caveat:** workflow did not run separate Android unit-test or lint steps; those checks are not claimed.
 - **Permissions:** no new manifest permission; no hidden monitoring, log collection, private-content access, settings changes, or background work.
 - **Regression:** re-test existing System safety check entry, voice session, M17 resource dashboard, Command Center navigation and app startup.
 - **Merge policy:** keep the batch on its feature branch; do not merge into PR #21 or `main` without owner approval.
