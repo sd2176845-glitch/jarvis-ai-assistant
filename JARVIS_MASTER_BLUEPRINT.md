@@ -891,3 +891,10 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B10 verification update (2026-11-22):** final head `14b77ad900299a9a95c52781463aa0763c11733a` passed GitHub Actions run #648 (`45047351132`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #36 is open and unmerged.
+
+
+## Implementation status addendum — M16 Smart Home Studio (Batch B11; 2026-11-22)
+- **Device Setup Guide:** code added; owner-entered device information produces a cautious official-manual-based checklist; no pairing/control; CI/device verification pending.
+- **Local Room Device Inventory:** code added; manual add/view/remove/clear for up to 30 room/device labels in existing private preferences; no credentials or network identifiers; CI/device verification pending.
+- **Smart Routine Planner:** code added; creates owner-operated checklists only; no hidden or unattended automation and no device commands; CI/device verification pending.
+- No new permissions or background collection. Existing Android settings shortcuts remain unchanged.
