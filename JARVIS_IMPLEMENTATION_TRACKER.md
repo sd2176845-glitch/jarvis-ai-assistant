@@ -63,9 +63,18 @@
 - Added a separate structured task list in the existing private SharedPreferences store (`structured_tasks_v1`), with add, completion toggle/reopen, and delete actions.
 - Existing legacy notes (`jarvis_notes` / `notes`) are displayed separately and are not migrated, overwritten, or deleted by this feature.
 - Alarm and calendar actions remain Android Clock/Calendar handoffs with user confirmation; M07 does not add background scheduling or external sync.
-- **Validation:** CI/build status pending for the M07 commits. Poco M4 Pro 4G device verification pending. M02 device verification also remains pending; both must be tested on the eventual final APK.
+- **Validation:** post-fix GitHub Actions runs #475–#478 passed backend syntax checks, Gradle debug APK build and artifact upload. Latest PR run #478 (run ID `45039428363`, artifact `14760933049`) includes M07. Poco M4 Pro 4G device verification remains pending; M02 and M07 are to be tested on the eventual final APK.
 
 
 ### M07 CI correction note
 - The first M07 workflow run (#470, run ID `45039317458`) failed at Java compilation because the import line contained literal escaped newline characters. The line was corrected in commit `e5474c7476633dc9de490e4bd9e03b74550820f3`.
-- A successful post-fix CI run has not yet been confirmed. Do not download or treat any artifact from the failed run as an M07 build. Target-device testing remains pending.
+- Post-fix CI was subsequently confirmed by runs #475–#478. The latest successful PR artifact is `14760933049` from run #478. Target-device testing remains pending.
+
+
+## M08 — Workflow Automation & Orchestration (safe manual foundation)
+- **Code-present:** added a Workflow Studio entry to the existing Command Center.
+- Owners can create a named checklist with up to 12 steps, open it, tick/untick steps, save progress, reset it, and delete it.
+- Data is stored locally in one dedicated `manual_workflows_v1` preference key. It does not duplicate the existing task list or notes.
+- **Safety boundary:** this first increment is a manual checklist only. It has no background/time/event triggers, no autonomous execution, no cross-app actions, no calls/messages, and no device-setting changes. The user performs each step and records progress.
+- **Validation:** commit `a65f9ba644d2462c63dc7794e137a7046689ee21`; GitHub Actions runs #479 (push) and #480 (pull request) were queued at the time of this tracker update. CI and Poco M4 Pro 4G device verification pending.
+- Keep all changes on `blueprint/advanced-feature-integration`; do not merge to `main`. Final APK download/install remains deferred until the planned feature set is complete.
