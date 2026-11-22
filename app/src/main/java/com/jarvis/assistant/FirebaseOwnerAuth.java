@@ -108,14 +108,6 @@ public final class FirebaseOwnerAuth {
             });
             return;
         }
-        FirebaseUser existing = auth.getCurrentUser();
-        if (existing != null) {
-            existing.reauthenticate(credential).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) result.onSuccess(existing);
-                else result.onError(task.getException() == null ? "Phone re-authentication failed." : task.getException().getMessage());
-            });
-            return;
-        }
         auth.signInWithCredential(credential).addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null && task.getResult().getUser() != null) {
                 rememberOwner(context, task.getResult().getUser());
@@ -150,6 +142,14 @@ public final class FirebaseOwnerAuth {
     public static void verifyPhoneCredential(Context context, PhoneAuthCredential credential, Result result) {
         if (!initialize(context)) {
             result.onError("Firebase is not configured. Follow FIREBASE_OWNER_AUTH_SETUP.md.");
+            return;
+        }
+        FirebaseUser existing = auth.getCurrentUser();
+        if (existing != null) {
+            existing.reauthenticate(credential).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) result.onSuccess(existing);
+                else result.onError(task.getException() == null ? "Phone re-authentication failed." : task.getException().getMessage());
+            });
             return;
         }
         auth.signInWithCredential(credential).addOnCompleteListener(task -> {
