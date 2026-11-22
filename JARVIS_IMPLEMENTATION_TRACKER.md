@@ -7,10 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m13-creative-media-studio-3pack` (stacked on `feature/m12-data-intelligence-3pack`; JARVIS only)
-- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/36
-- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/31; earlier batches remain separately stacked in PRs #21–#30.
-- Latest current branch head: `14b77ad900299a9a95c52781463aa0763c11733a`.
+- Branch: `feature/m16-smart-home-studio-3pack` (stacked on `feature/m13-creative-media-studio-3pack`; JARVIS only)
+- Current draft PR: pending creation after the batch code and tracker update.
+- Parent batch PR: #36 (Creative Media Studio); previous data batch PR #31.
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
@@ -378,3 +377,31 @@
 - **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on final head `14b77ad900299a9a95c52781463aa0763c11733a`; GitHub Actions run #648 (`45047351132`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
+
+
+## Batch B11 — M16 Smart Home Studio (three owner-controlled capabilities; 2026-11-22)
+
+**Branch:** `feature/m16-smart-home-studio-3pack`, stacked on Creative Media Studio / PR #36. Separate, unmerged batch.
+
+### Feature 1 — Device Setup Guide
+- **Code-present:** owner enters device type/brand/model and setup goal. JARVIS generates a cautious setup checklist covering official manufacturer app/manual, compatibility verification, firmware updates, default credential changes, MFA where supported and privacy settings.
+- **Scope:** guidance only; JARVIS does not pair with, scan, access or control devices. Model-specific claims must be verified against official documentation.
+- **Acceptance checks:** vague/clear device details, compatibility uncertainty, firmware/privacy checklist, secret-removal warning and backend failure.
+
+### Feature 2 — Local Room Device Inventory
+- **Code-present:** owner can manually add, view/remove, and clear up to 30 room/device labels in existing private `jarvis_preferences` SharedPreferences under `smart_home_inventory_v1`.
+- **Privacy:** labels only; prompts prohibit storing passwords, Wi-Fi keys, IP/MAC addresses and access codes. No device discovery, network scan or cloud sync.
+- **Acceptance checks:** add/list/remove/clear, 30-item cap, empty state, malformed JSON preservation, storage failure and app restart persistence.
+
+### Feature 3 — Smart Routine Planner
+- **Code-present:** owner selects morning, leaving-home, evening, energy-saving or custom routine and enters a short device/room brief. JARVIS returns an ordered manual checklist, prerequisites, offline fallback and owner-approval points.
+- **Safety boundary:** no hidden automation, unattended access, lock/door control or safety-critical cooking/heating/electrical actions. The routine is not executed and sends no device commands.
+- **Acceptance checks:** every routine type, manual fallback, offline-device case, explicit approval notes and unsafe-action redirection.
+
+### Privacy, integration and verification
+- Uses existing memory-isolated `JarvisAiClient.askStandalone` for setup/routine guidance after explicit confirmation. Only the manually entered brief is sent; no conversation, notes or contacts are attached.
+- Inventory stays local in the existing private preferences store. No new permission, background collection, network discovery, credentials, device control or API key in APK.
+- Existing **Connected systems** menu remains unchanged; it still opens Android Wi-Fi/Bluetooth/location settings and common apps. Smart Home Studio is a separate planner/inventory layer, not a replacement for those settings shortcuts.
+- **Implementation files:** `SmartHomeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #36; do not merge to parent PR #36 or `main` without owner approval.
