@@ -208,7 +208,10 @@ public final class DataIntelligenceStudio {
 
     private static String rowKey(List<String> row) {
         StringBuilder key = new StringBuilder();
-        for (String value : row) key.append(value == null ? "" : value.trim()).append('\u001f');
+        for (String value : row) {
+            String cell = value == null ? "" : value.trim();
+            key.append(cell.length()).append(':').append(cell).append('|');
+        }
         return key.toString();
     }
 
