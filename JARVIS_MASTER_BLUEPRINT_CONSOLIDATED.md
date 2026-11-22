@@ -326,3 +326,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B10 verification update (2026-11-22):** code/documentation head `f82347780326ecdc4a6bcfd10715a9488ba11f77` passed GitHub Actions run #620 (`45046350249`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762974382`, SHA-256 `3186014ea76112d07da2dde3e9595c5c5e70af900a5348522d7c881e12902571`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #33 is open and unmerged.
+
+
+### M15 — Creative Media Studio (Batch B11; implementation status tracked separately)
+- Added Video Script Planner, Storyboard & Shot List, and Presentation Builder.
+- These are text-first planning tools using the existing memory-isolated AI request path. They produce scripts, scene plans and slide outlines; they do not render video/images or create PPTX files.
+- Explicit confirmation before sending the creative brief; no conversation memory, notes or contacts attached, no persistent creative archive or new permission.
+- Original-content, factual-accuracy, likeness-consent and safe-production boundaries are included.
+- **Status:** code rebased on latest M13 parent on `feature/m15-creative-media-3pack`; final rebased CI/build and target-device verification pending.
