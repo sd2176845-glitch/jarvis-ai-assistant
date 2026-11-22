@@ -7,10 +7,11 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m09-memory-expansion-3pack` (stacked on `feature/m14-diagnostics-3pack`; JARVIS only)
-- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/24
-- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/23
-- `main` has not been changed or merged by this work.
+- Branch: `feature/m13-creative-media-studio-3pack` (stacked on `feature/m12-data-intelligence-3pack`; JARVIS only)
+- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/36
+- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/31; earlier batches remain separately stacked in PRs #21–#30.
+- Latest current branch head: `14b77ad900299a9a95c52781463aa0763c11733a`.
+- `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -375,5 +376,5 @@
 - Uses existing memory-isolated `JarvisAiClient.askStandalone`; only the manually entered creative brief and selected format are sent after explicit confirmation.
 - No saved conversation, notes, contacts, clipboard/gallery auto-read, persistent project archive, background collection, new Android permission or API key in APK.
 - **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on final head `14b77ad900299a9a95c52781463aa0763c11733a`; GitHub Actions run #648 (`45047351132`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
