@@ -126,12 +126,26 @@ public final class AppIntelligenceStudio {
                     + "\n\nJARVIS reads public package metadata only. It does not open the app, inspect private files, or change its settings.";
             new AlertDialog.Builder(activity).setTitle("App Details")
                     .setMessage(details).setPositiveButton("Close", null)
-                    .setNeutralButton("Open Play Store listing", (d, w) -> openStoreListing(activity, app.packageName))
+                    .setNeutralButton("Open app", (d, w) -> launchSelectedApp(activity, app.packageName))
+                    .setNegativeButton("Store listing", (d, w) -> openStoreListing(activity, app.packageName))
                     .show();
         } catch (Exception e) {
             new AlertDialog.Builder(activity).setTitle("App Details unavailable")
                     .setMessage("Android did not provide package metadata for " + app.label + ". No app data was changed.")
                     .setPositiveButton("Close", null).show();
+        }
+    }
+
+    private static void launchSelectedApp(Activity activity, String packageName) {
+        try {
+            Intent launch = activity.getPackageManager().getLaunchIntentForPackage(packageName);
+            if (launch == null) {
+                Toast.makeText(activity, "No launch activity is available for this app.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            activity.startActivity(launch);
+        } catch (Exception e) {
+            Toast.makeText(activity, "This app could not be opened from JARVIS.", Toast.LENGTH_LONG).show();
         }
     }
 
