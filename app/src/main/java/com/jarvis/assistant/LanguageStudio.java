@@ -125,9 +125,13 @@ public final class LanguageStudio {
     }
 
     private static void speak(Activity activity, String text, String language) {
-        TextToSpeech speech = new TextToSpeech(activity, result -> {
+        final TextToSpeech[] speechRef = new TextToSpeech[1];
+        speechRef[0] = new TextToSpeech(activity, result -> {
+            TextToSpeech speech = speechRef[0];
+            if (speech == null) return;
             if (result != TextToSpeech.SUCCESS) {
                 Toast.makeText(activity, "Speech output is unavailable on this device.", Toast.LENGTH_SHORT).show();
+                speech.shutdown();
                 return;
             }
             Locale locale = "Hindi".equals(language) ? new Locale("hi", "IN")
