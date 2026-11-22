@@ -593,6 +593,33 @@ public class MainActivity extends Activity {
                 }).show();
     }
 
+    private void showMessageDraftPreview(String draft) {
+        EditText message = new EditText(this);
+        message.setText(draft);
+        message.setMinLines(3);
+        message.setMaxLines(8);
+        message.setGravity(Gravity.TOP | Gravity.START);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Message draft")
+                .setMessage("Review or edit the message. JARVIS will only open your messaging app; it will not send the message.")
+                .setView(message)
+                .setNegativeButton("Cancel", (d, w) -> status.setText("MESSAGE DRAFT CANCELLED"))
+                .setPositiveButton("Review in messaging app", (d, w) -> {
+                    String approvedText = message.getText().toString().trim();
+                    if (approvedText.isEmpty()) {
+                        status.setText("EMPTY MESSAGE • NOTHING OPENED");
+                        return;
+                    }
+                    try {
+                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                        sms.putExtra("sms_body", approvedText);
+                        startActivity(sms);
+                        status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
+                    } catch (Exception e) {
+                        status.setText("MESSAGE APP NOT AVAILABLE");
+                    }
+                }).show();
+    }
+
     private void showTaskSearch() {
         EditText query = new EditText(this);
         query.setSingleLine(true);
@@ -2447,12 +2474,7 @@ public class MainActivity extends Activity {
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
             String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
-            speak("Message draft khol raha hoon. Bhejne se pehle check kar lena.");
-            try {
-                Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
-                sms.putExtra("sms_body", body);
-                startActivity(sms);
-            } catch (Exception e) { transcript.append("\nMessage app nahi khul paayi."); }
+            showMessageDraftPreview(body);
             return;
         } else if (intent.contains("open phone") || intent.contains("dialer kholo") || intent.contains("call screen kholo") || intent.equals("dialer")) {
             speak("Phone dialer khol raha hoon.");
