@@ -12,15 +12,16 @@
 - `main` has not been changed or merged by this work.
 
 ## Latest implementation batches
-1. **Voice Studio** — code-present: installed Android TTS voice selection (where available), speech-rate presets, pitch presets, and saved preferences. Device voice availability varies.
+1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
+2. **Voice Studio** — code-present: installed Android TTS voice selection (where available), speech-rate presets, pitch presets, and saved preferences. Device voice availability varies.
 2. **Focus & Productivity Session** — code-present: owner-started 15/25/45-minute focus countdown, task label, visible timer, and Stop control. It does not block apps or notifications and only runs while the JARVIS process remains alive.
-3. **M17 — Device Resource Intelligence** — code-present: read-only battery, app-data-volume storage, RAM availability, device model, and Android version overview. No new permissions; no automatic cleanup or upload.
+4. **M17 — Device Resource Intelligence** — code-present: read-only battery, app-data-volume storage, RAM availability, device model, and Android version overview. No new permissions; no automatic cleanup or upload.
 
 ## Validation status
-- Latest feature commit: `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` (Device Resource Intelligence code).
-- GitHub Actions run #453 (`45038456991`) for this exact commit completed successfully on 2026-11-22.
+- Latest feature commit: `1881e6f349f1dde673ce0d551da210e69e4c2f02` (M02 Voice Session Feedback & Foreground Stop Control).
+- Previous commit `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` passed GitHub Actions run #453 (`45038456991`). The new voice-session commit has no workflow run reported yet; its CI validation is pending.
 - Verified CI steps: backend JavaScript syntax checks, Java/Gradle setup, debug APK build, and APK artifact upload.
-- APK artifact: `jarvis-debug-apk`, artifact ID `14759949342`, SHA-256 `a5fbcf01cbdcec9c4796d65765492867b9466add403eba2464206ddc1061c15c`.
+- Previous successful commit artifact: `jarvis-debug-apk`, artifact ID `14759949342`, SHA-256 `a5fbcf01cbdcec9c4796d65765492867b9466add403eba2464206ddc1061c15c`. This artifact does not include the new voice-session commit.
 - This workflow run did not show separate Android unit-test or lint steps; do not claim those checks passed.
 - Poco M4 Pro 4G physical-device testing remains pending. Do not mark Voice Studio, Focus Session, or Device Resource Intelligence as device-verified.
 - Do not claim an APK is ready for release; this is a successful CI debug artifact only.
@@ -33,12 +34,13 @@
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
-- Install and test the CI debug APK on the target Poco M4 Pro 4G.
+- Wait for and verify CI build/artifact for commit `1881e6f`; do not install the older artifact as if it contained this feature.
+- Install and test the current-head debug APK on the target Poco M4 Pro 4G.
 - Test Voice Studio: available voice listing, voice selection, saved voice after restart, speech-rate and pitch behavior in foreground and background.
 - Test Focus Session: 15/25/45-minute choices, task label, countdown, Stop, and process-lifecycle limitation.
 - Test Device Resource Intelligence: battery values against Android Settings, app-data-volume storage label, RAM values, refresh and error handling.
 - Record physical-device results here before marking any of these modules verified.
-- After the device checks, choose the next unimplemented module from the consolidated blueprint; implement it as a separate batch.
+- After the voice-session CI and device checks, choose the next unimplemented module from the consolidated blueprint; implement it as a separate batch.
 
 ## Third feature implementation note
 - Device Resource Dashboard uses Android `BatteryManager`, `StatFs`, and `ActivityManager.MemoryInfo` APIs.
@@ -46,3 +48,11 @@
 - Network status is intentionally omitted because the current manifest does not declare `ACCESS_NETWORK_STATE`; no new permission was added.
 - No cleanup, process killing, setting changes, or report upload is performed.
 - **Validation:** current-head CI build and artifact upload passed; target-device checks remain pending.
+
+
+## M02 — Voice Session Feedback & Foreground Stop Control
+- **Code-present:** `MainActivity` now reports speech-recognition states (listening, hearing, processing, no-speech/input-ended), AI thinking/connection, TTS speaking/completion/error, and AI-backend-offline/local-command-ready state.
+- Added a visible **Stop Foreground Voice** control. It cancels the foreground `SpeechRecognizer` session and stops JARVIS TTS output.
+- The control deliberately does not stop the independent background `WakeWordService`; that service retains its separate existing Command Center stop action.
+- No new Android permission or external data collection was added.
+- **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` is pending; target-device testing is pending. The previous CI APK does not contain this change.
