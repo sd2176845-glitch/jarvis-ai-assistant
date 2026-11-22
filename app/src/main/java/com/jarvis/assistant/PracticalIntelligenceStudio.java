@@ -127,11 +127,11 @@ public final class PracticalIntelligenceStudio {
             Toast.makeText(activity, "The local log is limited to " + MAX_RECORDS + " records.", Toast.LENGTH_LONG).show();
             return;
         }
-        EditText vehicle = field("Vehicle nickname (no plate/VIN)");
-        EditText date = field("Service date (e.g. 2026-11-22)");
-        EditText odometer = field("Odometer reading (digits only, optional)");
+        EditText vehicle = field(activity, "Vehicle nickname (no plate/VIN)");
+        EditText date = field(activity, "Service date (e.g. 2026-11-22)");
+        EditText odometer = field(activity, "Odometer reading (digits only, optional)");
         odometer.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        EditText summary = field("Maintenance summary");
+        EditText summary = field(activity, "Maintenance summary");
         summary.setMinLines(2);
         summary.setMaxLines(4);
         LinearLayout form = new LinearLayout(activity);
@@ -175,7 +175,7 @@ public final class PracticalIntelligenceStudio {
                 }).show();
     }
 
-    private static EditText field(String hint) {
+    private static EditText field(Activity activity, String hint) {
         EditText input = new EditText(activity);
         input.setHint(hint);
         input.setSingleLine(true);
