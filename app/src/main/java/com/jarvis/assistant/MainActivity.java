@@ -1204,7 +1204,8 @@ public class MainActivity extends Activity {
                 "Software Development Studio • Architecture / Debug / Code Review",
                 "Data Intelligence Center • CSV Profile / Quality / Insights",
                 "Creative Media Studio • Image / Video / Presentation Plans",
-                "Smart Home Studio • Setup / Inventory / Manual Routines"
+                "Smart Home Studio • Setup / Inventory / Manual Routines",
+                "Connectivity Intelligence • Network / Offline / Satellite"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1256,6 +1257,7 @@ public class MainActivity extends Activity {
                     else if (which == 32) DataIntelligenceStudio.show(MainActivity.this, status, transcript);
                     else if (which == 33) CreativeMediaStudio.show(MainActivity.this, status, transcript);
                     else if (which == 34) SmartHomeStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 35) ConnectivityIntelligenceStudio.show(MainActivity.this, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
