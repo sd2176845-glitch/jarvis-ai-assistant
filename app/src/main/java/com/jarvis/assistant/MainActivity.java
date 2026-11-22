@@ -46,6 +46,7 @@ import java.util.Locale;
 public class MainActivity extends Activity {
     private TextView status, transcript;
     private TextToSpeech tts;
+    private String lastSpokenText = "";
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
@@ -2816,11 +2817,20 @@ public class MainActivity extends Activity {
 
     private void showVoiceAdvancedOptions() {
         new AlertDialog.Builder(this).setTitle("JARVIS • Voice options")
-                .setItems(new String[]{"Speech input language", "Speech style", "Voice pitch"},
+                .setItems(new String[]{"Speech input language", "Speech style", "Voice pitch",
+                                "Repeat last spoken response", "Stop speech output"},
                         (dialog, which) -> {
                             if (which == 0) showSpeechInputLanguageOptions();
                             else if (which == 1) showSpeechStyleOptions();
-                            else showVoicePitchOptions();
+                            else if (which == 2) showVoicePitchOptions();
+                            else if (which == 3) {
+                                if (lastSpokenText == null || lastSpokenText.trim().isEmpty()) {
+                                    status.setText("NO RECENT RESPONSE TO REPEAT");
+                                } else speak(lastSpokenText);
+                            } else {
+                                if (tts != null) tts.stop();
+                                status.setText("SPEECH OUTPUT STOPPED");
+                            }
                         }).setNegativeButton("Close", null).show();
     }
 
@@ -2872,6 +2882,7 @@ public class MainActivity extends Activity {
 
     private void speak(String text) {
         if (tts != null) {
+            lastSpokenText = text == null ? "" : text;
             applySavedVoiceSettings();
             int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
             if (result == TextToSpeech.ERROR) setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK");
