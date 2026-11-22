@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applySavedVoiceSettings();
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
@@ -395,7 +395,8 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "Voice Studio • Voice / Speed / Pitch"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -433,6 +434,7 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) showVoiceSettings();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1491,11 +1493,118 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applySavedVoiceSettings() {
+        if (tts == null) return;
+        String style = preferences.getString("voice_style", "normal");
+        float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
+        float pitch = preferences.getFloat("voice_pitch", 1.0f);
+        tts.setSpeechRate(rate);
+        tts.setPitch(pitch);
+        String savedVoice = preferences.getString("voice_name", "");
+        if (!savedVoice.isEmpty() && android.os.Build.VERSION.SDK_INT >= 21) {
+            try {
+                java.util.Set<android.speech.tts.Voice> voices = tts.getVoices();
+                if (voices != null) {
+                    for (android.speech.tts.Voice voice : voices) {
+                        if (savedVoice.equals(voice.getName())) {
+                            tts.setVoice(voice);
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+    }
+
+    private void showVoiceSettings() {
+        if (tts == null || !tts.isSpeaking() && !tts.getDefaultEngine().isEmpty()) {
+            // The voice engine may still be initializing; the picker safely reports that state.
+        }
+        if (tts == null) {
+            status.setText("VOICE ENGINE IS NOT READY");
+            return;
+        }
+
+        java.util.ArrayList<android.speech.tts.Voice> available = new java.util.ArrayList<>();
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
+            try {
+                java.util.Set<android.speech.tts.Voice> voices = tts.getVoices();
+                if (voices != null) {
+                    for (android.speech.tts.Voice voice : voices) {
+                        if (voice != null && !voice.isNetworkConnectionRequired()) available.add(voice);
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+
+        java.util.Collections.sort(available, (a, b) ->
+                a.getLocale().toLanguageTag().compareToIgnoreCase(b.getLocale().toLanguageTag()));
+        String[] labels = new String[available.size()];
+        int selected = -1;
+        String saved = preferences.getString("voice_name", "");
+        for (int i = 0; i < available.size(); i++) {
+            android.speech.tts.Voice voice = available.get(i);
+            labels[i] = voice.getName() + " • " + voice.getLocale().toLanguageTag();
+            if (voice.getName().equals(saved)) selected = i;
+        }
+
+        String voiceSummary = labels.length == 0
+                ? "No additional offline voices are currently listed by the phone's speech engine. You can still change speech speed and pitch."
+                : "Choose an installed offline voice. Names and language tags are shown as supplied by Android; male/female availability depends on the installed TTS engine.";
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Voice Studio")
+                .setMessage(voiceSummary)
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> {
+                    android.speech.tts.Voice chosen = available.get(which);
+                    int result = tts.setVoice(chosen);
+                    if (result == TextToSpeech.SUCCESS) {
+                        preferences.edit().putString("voice_name", chosen.getName()).apply();
+                        status.setText("VOICE SELECTED • " + chosen.getLocale().toLanguageTag());
+                        speak("Voice settings updated. This is my selected voice.");
+                    } else {
+                        status.setText("VOICE COULD NOT BE SELECTED");
+                    }
+                    dialog.dismiss();
+                })
+                .setPositiveButton("Speech style", (dialog, which) -> showSpeechStyleOptions())
+                .setNeutralButton("Pitch", (dialog, which) -> showVoicePitchOptions())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showSpeechStyleOptions() {
+        String[] styles = {"Calm", "Normal", "Energetic"};
+        String current = preferences.getString("voice_style", "normal");
+        int selected = "calm".equals(current) ? 0 : ("energetic".equals(current) ? 2 : 1);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Speech speed")
+                .setSingleChoiceItems(styles, selected, (dialog, which) -> {
+                    String value = which == 0 ? "calm" : (which == 2 ? "energetic" : "normal");
+                    preferences.edit().putString("voice_style", value).apply();
+                    applySavedVoiceSettings();
+                    status.setText("SPEECH STYLE • " + styles[which].toUpperCase(Locale.ROOT));
+                    dialog.dismiss();
+                    speak("Speech style updated.");
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void showVoicePitchOptions() {
+        String[] pitches = {"Lower", "Normal", "Higher"};
+        float current = preferences.getFloat("voice_pitch", 1.0f);
+        int selected = current < 0.95f ? 0 : (current > 1.05f ? 2 : 1);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Voice pitch")
+                .setSingleChoiceItems(pitches, selected, (dialog, which) -> {
+                    float value = which == 0 ? 0.88f : (which == 2 ? 1.12f : 1.0f);
+                    preferences.edit().putFloat("voice_pitch", value).apply();
+                    applySavedVoiceSettings();
+                    status.setText("VOICE PITCH • " + pitches[which].toUpperCase(Locale.ROOT));
+                    dialog.dismiss();
+                    speak("Voice pitch updated.");
+                }).setNegativeButton("Cancel", null).show();
+    }
+
     private void speak(String text) {
         if (tts != null) {
-            String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
+            applySavedVoiceSettings();
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
         }
     }
