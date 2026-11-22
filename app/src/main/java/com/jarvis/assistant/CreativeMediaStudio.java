@@ -18,14 +18,16 @@ public final class CreativeMediaStudio {
         String[] tools = {
                 "Image Concept Builder • original image prompt",
                 "Video Storyboard Studio • scenes / narration / captions",
-                "Presentation Planner • slide outline / speaker notes"
+                "Presentation Planner • slide outline / speaker notes",
+                "Creative Project Organizer • saved drafts"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Creative Media Studio")
                 .setItems(tools, (dialog, which) -> {
                     if (which == 0) imageConcept(activity, status, transcript);
                     else if (which == 1) videoStoryboard(activity, status, transcript);
-                    else presentationPlanner(activity, status, transcript);
+                    else if (which == 2) presentationPlanner(activity, status, transcript);
+                    else showProjects(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -122,8 +124,84 @@ public final class CreativeMediaStudio {
                         status.setText(label);
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + label)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save draft", (resultDialog, resultWhich) ->
+                                        saveProject(activity, label, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static final String PROJECTS_KEY = "creative_projects_v1";
+
+    private static void saveProject(Activity activity, String type, String content) {
+        try {
+            android.content.SharedPreferences prefs = activity.getSharedPreferences(
+                    "jarvis_preferences", Activity.MODE_PRIVATE);
+            org.json.JSONArray projects = new org.json.JSONArray(prefs.getString(PROJECTS_KEY, "[]"));
+            if (projects.length() >= 30) {
+                Toast.makeText(activity, "Project list is full. Review or delete old drafts first.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            org.json.JSONObject item = new org.json.JSONObject();
+            item.put("type", type);
+            item.put("content", content);
+            item.put("created_at", System.currentTimeMillis());
+            item.put("status", "Draft • owner-created");
+            projects.put(item);
+            prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+            Toast.makeText(activity, "Creative draft saved on this device.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Draft could not be saved.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showProjects(Activity activity) {
+        android.content.SharedPreferences prefs = activity.getSharedPreferences(
+                "jarvis_preferences", Activity.MODE_PRIVATE);
+        org.json.JSONArray projects;
+        try {
+            projects = new org.json.JSONArray(prefs.getString(PROJECTS_KEY, "[]"));
+        } catch (Exception e) {
+            new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                    .setMessage("Saved drafts could not be read. Nothing was changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        if (projects.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                    .setMessage("No drafts saved yet. Generate a creative plan and choose Save draft.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        String[] labels = new String[projects.length()];
+        for (int i = 0; i < projects.length(); i++) {
+            org.json.JSONObject item = projects.optJSONObject(i);
+            labels[i] = item == null ? "Unavailable draft"
+                    : item.optString("type", "Creative draft") + " • Draft";
+        }
+        new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                .setItems(labels, (dialog, which) -> {
+                    org.json.JSONObject item = projects.optJSONObject(which);
+                    if (item != null) {
+                        String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",
+                                java.util.Locale.getDefault()).format(
+                                new java.util.Date(item.optLong("created_at", 0L)));
+                        new AlertDialog.Builder(activity).setTitle(item.optString("type", "Creative draft"))
+                                .setMessage("DRAFT • NOT A RENDERED MEDIA FILE\nSaved: " + date + "\n\n"
+                                        + item.optString("content", ""))
+                                .setPositiveButton("Close", null).show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Delete all", (dialog, which) ->
+                        new AlertDialog.Builder(activity).setTitle("Delete all creative drafts?")
+                                .setMessage("This removes only the saved drafts stored by JARVIS on this device.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete", (d, w) -> {
+                                    prefs.edit().remove(PROJECTS_KEY).apply();
+                                    Toast.makeText(activity, "Creative drafts cleared.", Toast.LENGTH_SHORT).show();
+                                }).show())
+                .show();
     }
 }
