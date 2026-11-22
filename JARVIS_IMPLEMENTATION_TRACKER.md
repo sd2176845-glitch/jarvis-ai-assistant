@@ -7,8 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m14-diagnostics-3pack` (based on `blueprint/advanced-feature-integration` at PR #21 head)
-- Draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/21
+- Branch: `feature/m09-memory-expansion-3pack` (stacked on `feature/m14-diagnostics-3pack`; JARVIS only)
+- Current draft PR: to be created after this batch's source and documentation commits.
+- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/23
 - `main` has not been changed or merged by this work.
 
 ## Latest implementation batches
@@ -84,7 +85,7 @@
 - **Code-present:** added a Personal Memory & Knowledge Vault entry to the existing Command Center.
 - The vault reviews the existing local notes (notes / jarvis_notes) and recent AI conversation context (jarvis_ai_memory); it does not create a second memory database or silently collect new data.
 - Owners can edit/correct the existing notes, export the displayed notes and recent conversation through the Android share chooser, delete notes with confirmation, or clear recent conversation context separately. Tasks and workflow checklists are not changed.
-- **Scope boundary:** this is the review/edit/export/delete foundation. A timestamped event timeline, knowledge graph, versioned idea history and encrypted archive are not yet implemented.
+- **Scope boundary:** this is the review/edit/export/delete foundation. At the time of this original foundation entry, the timeline, knowledge graph, versioned idea history and encrypted archive were not yet implemented; subsequent batch records below track their implementation.
 - **Validation:** source commit 7eef4d7a66f4cdc2c436997fa5d81cbe69a5b441; current-head GitHub Actions build and artifact validation pending. Poco M4 Pro 4G device verification pending.
 
 
@@ -125,3 +126,32 @@
 - **Permissions:** no new manifest permission; no hidden monitoring, log collection, private-content access, settings changes, or background work.
 - **Regression:** re-test existing System safety check entry, voice session, M17 resource dashboard, Command Center navigation and app startup.
 - **Merge policy:** keep the batch on its feature branch; do not merge into PR #21 or `main` without owner approval.
+
+
+## Batch B02 — M09 Memory Expansion (three independent sub-features; 2026-11-22)
+
+**Branch:** `feature/m09-memory-expansion-3pack`, based on the latest M14 batch branch head `66365fb4ef54db8cf6f0ec6c2c72e1f003ca8f09`. This is a stacked feature branch; no merge to parent PR or `main`.
+
+### Feature 1 — Owner-Curated Knowledge Graph
+- **Code-present:** added Knowledge Graph entry inside the existing Personal Memory Vault. Owner can create named nodes, add typed relationships between two existing nodes, review graph items and delete selected items. Deleting a node also removes its linked relationships.
+- Uses one new key in the existing private JARVIS preferences store (`memory_graph_v1`); no separate database, automatic inference, contact scraping or background capture.
+- **Acceptance checks:** add two nodes; connect them; review nodes/edge; delete a node and verify linked edges disappear; verify malformed JSON is not overwritten.
+
+### Feature 2 — Idea Evolution / Versioned Notes
+- **Code-present:** owner can explicitly snapshot the current saved notes, review up to 20 versions, preview a selected version and restore it to the existing notes keys after confirmation.
+- Uses the existing private preferences store (`idea_versions_v1`). No automatic snapshots or parallel current-notes store.
+- **Acceptance checks:** save multiple versions; verify timestamps/content; confirm cap of 20; restore a selected version; cancel restore; verify corrupt history is preserved and reported.
+
+### Feature 3 — Encrypted Digital Legacy Archive
+- **Code-present:** owner can create/replace an encrypted local snapshot of saved notes, owner-created timeline, knowledge graph and idea-version history. Uses AES-GCM with an Android Keystore device-bound key and an app-private file. Includes authenticated decrypt/verification preview and confirmed archive deletion.
+- Recent conversation text, contacts, messages and call data are excluded. No new Android permission, cloud upload, background collection or automatic backup.
+- **Portability limitation:** the key is device-bound. This is an on-device encrypted archive, not a portable password-protected export; loss of app data/Keystore key can make the archive unrecoverable.
+- **Acceptance checks:** create archive; verify authentication/decryption; replace existing archive and verify fallback behavior; corrupt/tamper test must fail closed; delete archive and confirm source notes/timeline/graph/versions remain intact.
+
+### Batch validation and safety status
+- **Implementation files:** `MemoryExpansionStudio.java` (new) and existing `MainActivity.java` (one entry added inside the existing vault).
+- **Permissions:** no manifest permission added. Uses Android Keystore and app-private storage only.
+- **CI/build:** pending for this batch; do not claim build success until the current branch head workflow completes.
+- **Unit tests/lint:** not yet run as separate tasks; no claim of passing.
+- **Physical device:** pending on Poco M4 Pro 4G. Verify API 23+ Keystore AES-GCM support, create/verify/replace/delete archive, graph CRUD and idea-version restore.
+- **Merge:** keep stacked on parent PR #23 until reviewed; do not merge to parent or `main` without owner approval.
