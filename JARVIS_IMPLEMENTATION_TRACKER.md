@@ -234,5 +234,5 @@
 - Each lookup is separately selected and requires a confirmation before sending the entered value. Only the entered country name/code, six-digit PIN or English word is sent; no contacts, notes, conversation history, precise location or background data is attached.
 - HTTPS GET only; bounded connect/read timeouts; response size capped; HTTP and malformed-response errors handled. No API keys or new Android permissions.
 - **Implementation files:** `PublicKnowledgeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch until GitHub Actions completes. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on final code/documentation head `76877d030adcf36b187bf01e263ce52051b10661`; GitHub Actions run #563 (`45045200384`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #26; do not merge to parent PR #26 or `main` without owner approval.
