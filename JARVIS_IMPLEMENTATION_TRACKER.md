@@ -590,6 +590,6 @@
 - **Anti-duplication:** upgrades the existing battery panel; no second battery page, background monitor, periodic polling, alerts or scheduler.
 - **Privacy/safety:** reads only the existing battery-changed broadcast snapshot; no additional permission, upload or data persistence.
 - **Automated tests:** three JUnit tests cover charging-state mapping, health labels and temperature formatting.
-- **CI/build:** pending; do not mark as passed until unit tests, debug APK build and artifact upload complete.
+- **CI/build:** passed on final head `09cfe226988987e7fd79075ea4e95ec3a1de74d4`, GitHub Actions run `45053093326`: backend syntax validation, Android unit tests, debug APK build and APK artifact upload all succeeded. The successful run is attached to this exact code head; earlier intermediate failures are superseded.
 - **Physical device:** pending on Poco M4 Pro 4G; verify available extras and layout; values may vary by manufacturer.
 - **Merge:** draft PR only; do not merge into PR #45 or main without owner approval. JARVIS only; Even untouched.
