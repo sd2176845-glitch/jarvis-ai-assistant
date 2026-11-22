@@ -348,3 +348,32 @@
 - **Implementation files:** `DataIntelligenceStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on final code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a`; GitHub Actions run #602 (`45046009488`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #30; do not merge to parent PR #30 or `main` without owner approval.
+
+
+## Batch B10 — M13 Creative Media Studio (three independent owner-invoked planners; 2026-11-22)
+
+**Branch:** `feature/m13-creative-media-studio-3pack`, stacked on M12 Data Intelligence Center / PR #31. Separate, unmerged batch.
+
+### Feature 1 — Image Concept Builder
+- **Code-present:** owner selects square, portrait 9:16 or landscape 16:9 format and enters a short brief. JARVIS produces an original image-generation prompt, composition/framing, lighting/color direction and accessibility alt text.
+- **Scope:** text prompt only; this Android module does not generate or save an image file.
+- **Safety/copyright:** no imitation of living artists or reproduction of copyrighted characters, logos or existing artwork; no sexualized content, graphic violence, deceptive identity documents or harmful body ideals.
+- **Acceptance checks:** each aspect ratio, brief cap/empty input, original-concept request, safe-content redirection and accurate prompt-only disclosure.
+
+### Feature 2 — Video Storyboard Studio
+- **Code-present:** owner selects 15/30/60/90 seconds and enters a concept/audience brief. JARVIS returns a scene-by-scene plan with approximate timing, visual direction, camera movement, narration/dialogue, captions, transitions and shot checklist.
+- **Scope:** storyboard text only; no video rendering or audio generation.
+- **Safety/copyright:** age-appropriate, non-graphic, original wording; no song lyrics, copyrighted scripts or imitation of a specific living creator.
+- **Acceptance checks:** all duration choices, coherent timing, empty/overlong brief, scene structure and safe original output.
+
+### Feature 3 — Presentation Planner
+- **Code-present:** owner selects 5/8/10/12 slides and enters topic, audience and purpose. JARVIS returns slide titles, key bullets, suggested visuals, speaker notes and a conclusion.
+- **Scope:** outline text only; no PowerPoint/PDF file generation. The output is instructed to flag facts needing verification and not invent sources/statistics.
+- **Acceptance checks:** all slide counts, audience adaptation, fact-check flags, empty/overlong brief and no invented citations.
+
+### Privacy, integration and verification
+- Uses existing memory-isolated `JarvisAiClient.askStandalone`; only the manually entered creative brief and selected format are sent after explicit confirmation.
+- No saved conversation, notes, contacts, clipboard/gallery auto-read, persistent project archive, background collection, new Android permission or API key in APK.
+- **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
