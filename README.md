@@ -24,7 +24,7 @@ This is an early implementation, not a complete movie-style JARVIS. A feature be
 - Background listening uses Android speech recognition in a foreground service; continuous listening, screen-off behavior, and language availability depend on Android, the speech provider, and Poco/MIUI battery settings.
 - AI chat needs internet and a healthy backend. The live backend was not verified by this repository build.
 - Web and weather features currently open browser search pages; they are not native, source-aware live-data integrations.
-- The reminder hub opens Android Clock; it does not schedule JARVIS-owned reminder notifications.
+- The reminder hub now supports one-time JARVIS-owned reminders using Android AlarmManager and a local notification receiver. Delivery is inexact/Doze-sensitive, notifications depend on Android notification permission/settings, and scheduled reminders are not restored after a device reboot yet.
 - The vision option opens the camera or Google Lens; there is no in-app image-understanding pipeline yet.
 - Notes and recent chat history are local. Long-term editable preferences, structured task management, and a full offline AI fallback are not complete.
 - Actual installation, calls, SMS announcements, accessibility controls, background listening, and the UI still need a device test on the target Poco phone.
