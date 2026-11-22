@@ -312,3 +312,10 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
+
+
+### M13 — Creative Media Studio (Batch B10; implementation status tracked separately)
+- Added Image Concept Builder (original image prompt + alt text), Video Storyboard Studio (timed scenes, narration and captions), and Presentation Planner (slide outline and speaker notes).
+- These are text-planning tools only; no media files are rendered or saved. Each requires a manually entered brief and explicit pre-send confirmation via the memory-isolated AI request path.
+- Copyright/safety boundaries require original age-appropriate concepts, no living-artist imitation, copyrighted lyrics/scripts/characters, graphic violence or harmful body ideals. Presentation output must flag facts for verification and avoid invented sources.
+- **Status:** code added on `feature/m13-creative-media-studio-3pack`; CI/build and target-device verification pending.
