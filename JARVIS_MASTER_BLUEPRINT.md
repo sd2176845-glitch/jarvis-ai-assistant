@@ -838,3 +838,6 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - **India PIN Code Lookup:** code added; six-digit PIN returns multiple post offices and branch/delivery/district/state details; uses the community-maintained PostalPincode.in API; informational only; CI/device verification pending.
 - **English Dictionary:** code added; owner-entered English word returns available phonetics, definitions and examples from dictionaryapi.dev; CI/device verification pending.
 - All three require explicit confirmation before each HTTPS lookup and send only the selected input. No personal memory or contacts are attached. No API key or new Android permission.
+
+
+**B05 verification update (2026-11-22):** final head `76877d030adcf36b187bf01e263ce52051b10661` passed GitHub Actions run #563 (`45045200384`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #27 is open and unmerged.
