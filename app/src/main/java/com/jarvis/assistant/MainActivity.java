@@ -459,7 +459,7 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) showVoiceSettings();
-                    else if (which == 22) showSmartNotificationIntelligence();\n                    else if (which == 22) showSmartNotificationIntelligence();
+                    else if (which == 22) showSmartNotificationIntelligence();
                 }).setNegativeButton("Close", null).show();
     }
 
