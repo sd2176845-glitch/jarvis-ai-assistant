@@ -19,9 +19,9 @@
 
 ## Validation status
 - Latest feature commit: `1881e6f349f1dde673ce0d551da210e69e4c2f02` (M02 Voice Session Feedback & Foreground Stop Control).
-- Previous commit `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` passed GitHub Actions run #453 (`45038456991`). The new voice-session commit has no workflow run reported yet; its CI validation is pending.
+- Previous commit `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` passed GitHub Actions run #453 (`45038456991`). The M02 voice-session commit passed GitHub Actions run #460 (`45038787391`): backend JavaScript checks, Gradle debug APK build, and APK artifact upload all completed successfully.
 - Verified CI steps: backend JavaScript syntax checks, Java/Gradle setup, debug APK build, and APK artifact upload.
-- Previous successful commit artifact: `jarvis-debug-apk`, artifact ID `14759949342`, SHA-256 `a5fbcf01cbdcec9c4796d65765492867b9466add403eba2464206ddc1061c15c`. This artifact does not include the new voice-session commit.
+- Previous successful commit artifact: `jarvis-debug-apk`, artifact ID `14759949342`, SHA-256 `a5fbcf01cbdcec9c4796d65765492867b9466add403eba2464206ddc1061c15c`. The M02 artifact for commit `1881e6f` is artifact ID `14760812400`, SHA-256 `b2c4bbb5eec1e44b5cf073269dbe2afb3f21c33440c914d6789f8adec26a7132`.
 - This workflow run did not show separate Android unit-test or lint steps; do not claim those checks passed.
 - Poco M4 Pro 4G physical-device testing remains pending. Do not mark Voice Studio, Focus Session, or Device Resource Intelligence as device-verified.
 - Do not claim an APK is ready for release; this is a successful CI debug artifact only.
@@ -34,7 +34,7 @@
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
-- Wait for and verify CI build/artifact for commit `1881e6f`; do not install the older artifact as if it contained this feature.
+- CI build/artifact for commit `1881e6f` is verified successful (run `45038787391`, artifact `14760812400`). Install this exact artifact; do not use the older artifact as if it contained M02.
 - Install and test the current-head debug APK on the target Poco M4 Pro 4G.
 - Test Voice Studio: available voice listing, voice selection, saved voice after restart, speech-rate and pitch behavior in foreground and background.
 - Test Focus Session: 15/25/45-minute choices, task label, countdown, Stop, and process-lifecycle limitation.
@@ -55,4 +55,4 @@
 - Added a visible **Stop Foreground Voice** control. It cancels the foreground `SpeechRecognizer` session and stops JARVIS TTS output.
 - The control deliberately does not stop the independent background `WakeWordService`; that service retains its separate existing Command Center stop action.
 - No new Android permission or external data collection was added.
-- **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` is pending; target-device testing is pending. The previous CI APK does not contain this change.
+- **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` passed (run `45038787391`; artifact `14760812400`). Target-device testing is pending.
