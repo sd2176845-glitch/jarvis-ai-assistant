@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
         getWindow().setStatusBarColor(bg);
         getWindow().setNavigationBarColor(bg);
         preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        migrateLegacyMemoryToVault();
         buildInterface();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
@@ -89,6 +90,28 @@ public class MainActivity extends Activity {
                 public void onPartialResults(Bundle partialResults) {}
                 public void onEvent(int eventType, Bundle params) {}
             });
+        }
+    }
+
+    private void migrateLegacyMemoryToVault() {
+        SharedPreferences legacyAi = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE);
+        migrateOneLegacyValue("notes", "notes");
+        migrateOneLegacyValue("jarvis_notes", "jarvis_notes");
+        migrateOneLegacyValue("conversation", "conversation", legacyAi);
+    }
+
+    private void migrateOneLegacyValue(String oldKey, String secureKey) {
+        migrateOneLegacyValue(oldKey, secureKey, preferences);
+    }
+
+    private void migrateOneLegacyValue(String oldKey, String secureKey, SharedPreferences source) {
+        if (source.contains(oldKey)) {
+            String value = source.getString(oldKey, "");
+            if (value != null && !value.isEmpty()
+                    && SecureMemoryStore.getString(this, secureKey, "").isEmpty()) {
+                SecureMemoryStore.putString(this, secureKey, value);
+            }
+            source.edit().remove(oldKey).apply();
         }
     }
 
@@ -418,6 +441,7 @@ public class MainActivity extends Activity {
                                 .setNegativeButton("Cancel", null)
                                 .setPositiveButton("Clear", (d, w) -> {
                                     getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().clear().apply();
+                                    SecureMemoryStore.remove(MainActivity.this, "conversation");
                                     status.setText("AI MEMORY CLEARED");
                                     transcript.setText("JARVIS memory cleared.");
                                 }).show();
@@ -711,8 +735,8 @@ public class MainActivity extends Activity {
     }
 
     private String getSavedNotes() {
-        String voiceNotes = preferences.getString("notes", "");
-        String panelNotes = preferences.getString("jarvis_notes", "");
+        String voiceNotes = SecureMemoryStore.getString(this, "notes", "");
+        String panelNotes = SecureMemoryStore.getString(this, "jarvis_notes", "");
         if (voiceNotes.isEmpty()) return panelNotes;
         if (panelNotes.isEmpty() || panelNotes.equals(voiceNotes)) return voiceNotes;
         return voiceNotes + "\n" + panelNotes;
@@ -738,7 +762,8 @@ public class MainActivity extends Activity {
                 .setView(panel)
                 .setNegativeButton("Close", null)
                 .setNeutralButton("Clear notes", (d, w) -> {
-                    preferences.edit().remove("jarvis_notes").remove("notes").apply();
+                    SecureMemoryStore.remove(this, "jarvis_notes");
+                    SecureMemoryStore.remove(this, "notes");
                     status.setText("LOCAL NOTES CLEARED");
                 })
                 .setPositiveButton("Save note", (d, w) -> {
@@ -746,7 +771,8 @@ public class MainActivity extends Activity {
                     if (note.isEmpty()) { status.setText("EMPTY NOTE NOT SAVED"); return; }
                     String old = getSavedNotes();
                     String combined = old.isEmpty() ? note : old + "\n• " + note;
-                    preferences.edit().putString("jarvis_notes", combined).putString("notes", combined).apply();
+                    SecureMemoryStore.putString(this, "jarvis_notes", combined);
+                    SecureMemoryStore.putString(this, "notes", combined);
                     transcript.setText("JARVIS • SAVED NOTES\n\n" + combined);
                     status.setText("NOTE SAVED ON DEVICE");
                 }).show();
@@ -763,7 +789,7 @@ public class MainActivity extends Activity {
             int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             if (level >= 0 && scale > 0) batteryText = "Battery: " + (level * 100 / scale) + "%";
         }
-        String notes = preferences.getString("jarvis_notes", "");
+        String notes = SecureMemoryStore.getString(this, "jarvis_notes", "");
         String report = "JARVIS • DAILY BRIEFING\n\n" + date + "\n" + batteryText
                 + "\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
                 + "\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
@@ -807,11 +833,11 @@ public class MainActivity extends Activity {
     private void showPrivacyOptions() {
         String mic = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
         String contacts = checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED ? "Granted" : "Not granted";
-        String notes = preferences.getString("jarvis_notes", "");
+        String notes = SecureMemoryStore.getString(this, "jarvis_notes", "");
         String report = "PRIVACY & PERMISSIONS\n\nMicrophone: " + mic
                 + "\nContacts: " + contacts
                 + "\nLocal notes: " + (notes.isEmpty() ? "empty" : "saved")
-                + "\n\nBackground listening is controlled separately. Use STOP BACKGROUND LISTENING to stop it. Notes and recent AI conversation are stored locally; clearing AI memory does not clear notes.";
+                + "\n\nBackground listening is controlled separately. Use STOP BACKGROUND LISTENING to stop it. Notes and recent AI conversation are encrypted locally with an Android Keystore key; clearing AI memory does not clear notes.";
         new AlertDialog.Builder(this).setTitle("Privacy controls").setMessage(report)
                 .setPositiveButton("App settings", (d, w) -> {
                     try { startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -819,7 +845,7 @@ public class MainActivity extends Activity {
                     catch (Exception e) { status.setText("OPEN ANDROID APP SETTINGS"); }
                 })
                 .setNeutralButton("Clear notes", (d, w) -> {
-                    preferences.edit().remove("jarvis_notes").apply();
+                    SecureMemoryStore.remove(this, "jarvis_notes");
                     status.setText("LOCAL NOTES CLEARED");
                 }).setNegativeButton("Close", null).show();
     }
@@ -1025,7 +1051,7 @@ public class MainActivity extends Activity {
             if (note.isEmpty()) {
                 replyAndShow(original, "Batao kya yaad rakhna hai.");
             } else {
-                String old = preferences.getString("notes", "");
+                String old = SecureMemoryStore.getString(this, "notes", "");
                 String updated = old.isEmpty() ? note : old + "\n" + note;
                 String[] notes = updated.split("\n");
                 StringBuilder kept = new StringBuilder();
@@ -1034,13 +1060,13 @@ public class MainActivity extends Activity {
                     if (kept.length() > 0) kept.append("\n");
                     kept.append(notes[i]);
                 }
-                preferences.edit().putString("notes", kept.toString()).apply();
+                SecureMemoryStore.putString(this, "notes", kept.toString());
                 replyAndShow(original, "Theek hai, maine ye baat is phone par local memory mein save kar li.");
             }
             return;
         }
         if (intent.contains("what do you remember") || intent.contains("meri memory") || intent.contains("kya yaad hai")) {
-            String notes = preferences.getString("notes", "");
+            String notes = SecureMemoryStore.getString(this, "notes", "");
             replyAndShow(original, notes.isEmpty() ? "Abhi koi saved note nahi hai. Kaho: remember that, phir apni baat." : "Tumhari saved notes: " + notes.replace("\n", ". "));
             return;
         }
@@ -1049,7 +1075,8 @@ public class MainActivity extends Activity {
                     .setMessage("Saved notes on this phone will be deleted. Emergency contact and voice style settings will stay.")
                     .setNegativeButton("Cancel", (d, w) -> {})
                     .setPositiveButton("Clear notes", (d, w) -> {
-                        preferences.edit().remove("notes").remove("jarvis_notes").apply();
+                        SecureMemoryStore.remove(this, "notes");
+                        SecureMemoryStore.remove(this, "jarvis_notes");
                         replyAndShow(original, "Saved notes clear kar diye.");
                     }).show();
             return;
