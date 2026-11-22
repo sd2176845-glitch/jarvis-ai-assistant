@@ -62,9 +62,14 @@ public final class ImageOcrStudio {
                     ? TextRecognition.getClient(new DevanagariTextRecognizerOptions.Builder().build())
                     : TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
             recognizer.process(image)
-                    .addOnSuccessListener(result -> showPreview(activity, result))
-                    .addOnFailureListener(error ->
-                            Toast.makeText(activity, "Could not read text from this image.", Toast.LENGTH_LONG).show());
+                    .addOnSuccessListener(result -> {
+                        recognizer.close();
+                        showPreview(activity, result);
+                    })
+                    .addOnFailureListener(error -> {
+                        recognizer.close();
+                        Toast.makeText(activity, "Could not read text from this image.", Toast.LENGTH_LONG).show();
+                    });
         } catch (Exception e) {
             Toast.makeText(activity, "Selected image could not be opened.", Toast.LENGTH_LONG).show();
         }
