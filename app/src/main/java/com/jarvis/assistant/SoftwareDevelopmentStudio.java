@@ -18,13 +18,15 @@ public final class SoftwareDevelopmentStudio {
         String[] options = {
                 "Project Architect • requirements and structure",
                 "Bug & Error Explainer • diagnose pasted error",
-                "Code Quality Review • review pasted code"
+                "Code Quality Review • review pasted code",
+                "Software Project Notebook • saved plans"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Software Development Studio")
                 .setItems(options, (d, which) -> {
                     if (which == 0) projectArchitect(activity, status, transcript);
                     else if (which == 1) bugExplainer(activity, status, transcript);
-                    else codeReview(activity, status, transcript);
+                    else if (which == 2) codeReview(activity, status, transcript);
+                    else showSavedPlans(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -114,8 +116,80 @@ public final class SoftwareDevelopmentStudio {
                         status.setText(label);
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + label)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save plan", (resultDialog, resultWhich) ->
+                                        savePlan(activity, label, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static final String PLANS_KEY = "software_project_plans_v1";
+
+    private static void savePlan(Activity activity, String type, String content) {
+        try {
+            android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+            org.json.JSONArray plans = new org.json.JSONArray(prefs.getString(PLANS_KEY, "[]"));
+            if (plans.length() >= 30) {
+                Toast.makeText(activity, "Software plan list is full. Delete old plans first.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            org.json.JSONObject item = new org.json.JSONObject();
+            item.put("type", type);
+            item.put("content", content);
+            item.put("created_at", System.currentTimeMillis());
+            item.put("status", "Draft • owner-reviewed");
+            plans.put(item);
+            prefs.edit().putString(PLANS_KEY, plans.toString()).apply();
+            Toast.makeText(activity, "Software plan saved on this device.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Software plan could not be saved.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showSavedPlans(Activity activity) {
+        android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+        org.json.JSONArray plans;
+        try {
+            plans = new org.json.JSONArray(prefs.getString(PLANS_KEY, "[]"));
+        } catch (Exception e) {
+            new AlertDialog.Builder(activity).setTitle("Software Project Notebook")
+                    .setMessage("Saved plans could not be read. Nothing was changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        if (plans.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Software Project Notebook")
+                    .setMessage("No saved plans yet. Generate a blueprint or review and choose Save plan.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        String[] labels = new String[plans.length()];
+        for (int i = 0; i < plans.length(); i++) {
+            org.json.JSONObject item = plans.optJSONObject(i);
+            labels[i] = item == null ? "Unavailable plan" : item.optString("type", "Software plan");
+        }
+        new AlertDialog.Builder(activity).setTitle("Software Project Notebook")
+                .setItems(labels, (dialog, which) -> {
+                    org.json.JSONObject item = plans.optJSONObject(which);
+                    if (item != null) {
+                        String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+                                .format(new java.util.Date(item.optLong("created_at", 0L)));
+                        new AlertDialog.Builder(activity).setTitle(item.optString("type", "Software plan"))
+                                .setMessage("OWNER-REVIEWED DRAFT • NOT EXECUTED\nSaved: " + date + "\n\n"
+                                        + item.optString("content", ""))
+                                .setPositiveButton("Close", null).show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Delete all", (dialog, which) ->
+                        new AlertDialog.Builder(activity).setTitle("Delete saved software plans?")
+                                .setMessage("This removes only the software plans stored by JARVIS on this device.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete", (d, w) -> {
+                                    prefs.edit().remove(PLANS_KEY).apply();
+                                    Toast.makeText(activity, "Software plans cleared.", Toast.LENGTH_SHORT).show();
+                                }).show())
+                .show();
     }
 }
