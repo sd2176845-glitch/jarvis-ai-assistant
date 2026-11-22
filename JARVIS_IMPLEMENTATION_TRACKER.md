@@ -291,5 +291,5 @@
 - Uses existing `JarvisAiClient.askStandalone`, so it sends only the selected learning choices and topic. Recent conversation memory, saved notes and contacts are not attached or updated.
 - Explicit confirmation before the AI request; topic capped at 300 characters. No new Android permission, persistent learning database, background collection or API key in APK.
 - **Implementation files:** `LearningAcademyStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on code/documentation head `a9cd77178709102a9bc746840f9c6e44b0f496b8`; GitHub Actions run #581 (`45045554373`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763640351`, SHA-256 `648188031f44642066caf26da29fe54d3a14dec55c84095f7468ed01a2672ccf`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #28; do not merge to parent PR #28 or `main` without owner approval.
