@@ -67,7 +67,7 @@ public final class SmartHomeStudio {
                                         + "or safety-critical actions involving heating, cooking or electrical equipment. "
                                         + "This is a suggested checklist only; JARVIS will not execute it or send device commands.",
                                 "SMART ROUTINE PLAN")));
-                }).setNegativeButton("Cancel", null).show();
+                .setNegativeButton("Cancel", null).show();
     }
 
     private static void inventoryMenu(Activity activity) {
