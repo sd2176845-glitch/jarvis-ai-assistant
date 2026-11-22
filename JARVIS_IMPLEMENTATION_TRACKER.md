@@ -665,3 +665,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 31. Data Insight Report archive for locally saved AI narratives generated from aggregate-only CSV statistics; raw CSV rows are not sent.
 
 **B21 code-present improvement count: 31.** Latest CI for the newest notebook/archive changes is pending. Earlier commits have successful CI; physical device verification is still pending.
+
+
+### B21 implementation update — 4 further improvements (32–35)
+
+32. Android device-credential re-authentication gate before private notes, tasks, manual workflows, personal memory and privacy settings; no PIN/password is stored by JARVIS.
+33. Read-only backend health check against the configured JARVIS health endpoint; sends no user content or credentials and clearly distinguishes endpoint health from a full AI-response test.
+34. Selective memory export: choose notes, timeline and/or recent AI context, preview the exact export, then open the Android share sheet.
+35. App details now distinguish local installed-package last-update metadata from an unverified store update comparison, with an owner-invoked Play Store listing handoff.
+
+**B21 code-present improvement count: 35.** CI for the latest auth gate, backend health, export and app-store handoff commits is pending. Earlier commits have successful Actions runs; Poco device verification remains pending.
