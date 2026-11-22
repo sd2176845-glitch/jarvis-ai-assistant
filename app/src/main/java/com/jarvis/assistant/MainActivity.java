@@ -472,10 +472,11 @@ public class MainActivity extends Activity {
                 .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
                 .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
                         .setTitle("JARVIS • Task options")
-                        .setItems(new String[]{"Task overview", "Edit task title", "Delete a task", "Close"}, (d, option) -> {
+                        .setItems(new String[]{"Task overview", "Search tasks", "Edit task title", "Delete a task", "Close"}, (d, option) -> {
                             if (option == 0) showTaskOverview();
-                            else if (option == 1) showEditStructuredTaskDialog();
-                            else if (option == 2) showDeleteStructuredTaskDialog();
+                            else if (option == 1) showTaskSearch();
+                            else if (option == 2) showEditStructuredTaskDialog();
+                            else if (option == 3) showDeleteStructuredTaskDialog();
                         }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
@@ -589,6 +590,43 @@ public class MainActivity extends Activity {
                     } catch (org.json.JSONException e) {
                         status.setText("TASK COULD NOT BE SAVED");
                     }
+                }).show();
+    }
+
+    private void showTaskSearch() {
+        EditText query = new EditText(this);
+        query.setSingleLine(true);
+        query.setHint("Search task titles");
+        new AlertDialog.Builder(this).setTitle("JARVIS • Search tasks")
+                .setMessage("Search is performed only against the task titles saved in this app.")
+                .setView(query)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Search", (d, w) -> {
+                    String term = query.getText().toString().trim().toLowerCase(java.util.Locale.ROOT);
+                    if (term.isEmpty()) {
+                        status.setText("ENTER A SEARCH TERM");
+                        return;
+                    }
+                    org.json.JSONArray tasks = readStructuredTasks();
+                    if (tasks == null) {
+                        status.setText("TASK DATA COULD NOT BE READ");
+                        return;
+                    }
+                    ArrayList<String> matches = new ArrayList<>();
+                    for (int i = 0; i < tasks.length(); i++) {
+                        org.json.JSONObject item = tasks.optJSONObject(i);
+                        if (item == null) continue;
+                        String title = item.optString("title", "Untitled task");
+                        if (title.toLowerCase(java.util.Locale.ROOT).contains(term)) {
+                            matches.add((item.optBoolean("done", false) ? "✓ " : "○ ")
+                                    + title + " • " + item.optString("priority", "Normal"));
+                        }
+                    }
+                    String report = matches.isEmpty() ? "No matching tasks found."
+                            : android.text.TextUtils.join("\n", matches);
+                    new AlertDialog.Builder(this).setTitle("Task search results")
+                            .setMessage(report)
+                            .setPositiveButton("Back", null).show();
                 }).show();
     }
 
