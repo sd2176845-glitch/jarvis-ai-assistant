@@ -154,6 +154,7 @@ public final class LearningAcademyStudio {
             item.put("label", label);
             item.put("content", content);
             item.put("created_at", System.currentTimeMillis());
+            item.put("status", "Not started");
             entries.put(item);
             prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
             Toast.makeText(activity, "Lesson saved on this device.", Toast.LENGTH_SHORT).show();
@@ -182,7 +183,8 @@ public final class LearningAcademyStudio {
         String[] labels = new String[entries.length()];
         for (int i = 0; i < entries.length(); i++) {
             org.json.JSONObject item = entries.optJSONObject(i);
-            labels[i] = item == null ? "Unavailable lesson" : item.optString("label", "Learning lesson");
+            labels[i] = item == null ? "Unavailable lesson" : item.optString("label", "Learning lesson")
+                    + " • " + item.optString("status", "Not started");
         }
         new AlertDialog.Builder(activity).setTitle("Learning Notebook")
                 .setItems(labels, (dialog, which) -> {
@@ -191,9 +193,27 @@ public final class LearningAcademyStudio {
                         String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
                                 .format(new java.util.Date(item.optLong("created_at", 0L)));
                         new AlertDialog.Builder(activity).setTitle(item.optString("label", "Learning lesson"))
-                                .setMessage("OWNER-SAVED LEARNING NOTE\\nSaved: " + date + "\\n\\n"
-                                        + item.optString("content", ""))
-                                .setPositiveButton("Close", null).show();
+                                .setMessage("OWNER-SAVED LEARNING NOTE\\nStatus: " + item.optString("status", "Not started")
+                                        + "\\nSaved: " + date + "\\n\\n" + item.optString("content", ""))
+                                .setPositiveButton("Mark completed", (d, w) -> {
+                                    try {
+                                        item.put("status", "Completed");
+                                        prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
+                                        Toast.makeText(activity, "Lesson marked completed.", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Lesson status could not be updated.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNeutralButton("Delete lesson", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this lesson?")
+                                                .setMessage("This removes only the selected lesson from this device.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (confirm, confirmWhich) -> {
+                                                    entries.remove(which);
+                                                    prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
+                                                    Toast.makeText(activity, "Lesson deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .setNegativeButton("Close", null).show();
                     }
                 })
                 .setNegativeButton("Close", null)
