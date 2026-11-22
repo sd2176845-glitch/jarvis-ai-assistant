@@ -2473,9 +2473,7 @@ public class MainActivity extends Activity {
                 requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
                 replyAndShow(original, "Contact permission allow karo, phir dobara bolo: " + target + " ko call karo.");
             } else {
-                String number = findContactNumber(target);
-                if (number == null) replyAndShow(original, "Contacts mein '" + target + "' nahi mila. Contact ka naam phonebook mein check karo.");
-                else requestOrPlaceCall(number, target);
+                showContactChoices(target, original);
             }
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
@@ -2566,6 +2564,52 @@ public class MainActivity extends Activity {
             if (aiOffline) setVoiceStatus("AI OFFLINE • LOCAL COMMANDS READY");
             replyAndShow(original, reply);
         });
+    }
+
+    private void showContactChoices(String requestedName, String originalCommand) {
+        String queryName = requestedName == null ? "" : requestedName.trim();
+        if (queryName.isEmpty()) {
+            replyAndShow(originalCommand, "Contact ka naam batao. Call abhi nahi ki gayi.");
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> numbers = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            String[] args = new String[]{"%" + queryName + "%"};
+            cursor = getContentResolver().query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    selection, args, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String number = cursor.getString(1);
+                    if (number == null || number.trim().isEmpty()) continue;
+                    labels.add((name == null ? "Unknown contact" : name) + " • " + number);
+                    numbers.add(number);
+                }
+            }
+        } catch (SecurityException e) {
+            replyAndShow(originalCommand, "Contacts access unavailable. No call was placed.");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (numbers.isEmpty()) {
+            replyAndShow(originalCommand, "Contacts mein '" + queryName + "' nahi mila. No call was placed.");
+        } else if (numbers.size() == 1) {
+            requestOrPlaceCall(numbers.get(0), labels.get(0));
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose the correct contact")
+                    .setMessage("Multiple matches found. Select the intended person; the next screen will ask you to confirm the call.")
+                    .setItems(labels.toArray(new String[0]), (dialog, which) ->
+                            requestOrPlaceCall(numbers.get(which), labels.get(which)))
+                    .setNegativeButton("Cancel", (d, w) -> status.setText("CALL CANCELLED"))
+                    .show();
+        }
     }
 
     private String findContactNumber(String requestedName) {
