@@ -111,3 +111,15 @@
 - Review diffs and test output before opening one draft PR.
 - Poco M4 Pro 4G device verification remains mandatory for device-dependent behavior.
 - Do not merge into B20 or main without owner approval.
+
+
+## B21 implementation ledger
+
+The following are implemented as extensions of existing canonical modules, not separate duplicate modules:
+
+- **Task manager (11 improvements):** categories, priority, due dates, completion history, full task-detail editing, overdue detection, task overview, local title search, daily due-date agenda, category filtering, and priority filtering.
+- **Manual workflow studio (2 improvements):** read-only dry-run preview and last-progress-updated timestamp.
+- **Voice controls (3 improvements):** en-IN/hi-IN/bn-IN speech input selection, repeat last spoken response, and stop speech output.
+- **Communication flow (2 improvements):** editable message preview before messaging-app handoff; contact disambiguation before explicit call confirmation.
+
+**Current B21 code-present count: 18 capability improvements.** This is not 50/50 completion. Remaining items must pass overlap audit and dependency/provider readiness before implementation. All external communication stays owner-confirmed; no background or covert actions are introduced.
