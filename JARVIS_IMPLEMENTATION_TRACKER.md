@@ -575,6 +575,21 @@
 - The report clearly labels these as compatibility hints, not performance benchmarks or guarantees. It does not run stress tests, inspect private app data, or change device settings.
 - **Anti-duplication:** upgrades the existing M17 resource dashboard; no second diagnostics page or benchmark engine.
 - **Automated tests:** three pure-Java JUnit tests cover ABI ordering, blank entries and unavailable data.
-- **CI/build:** pending; do not mark as passed until unit tests, debug APK build and artifact upload complete.
+- **CI/build:** passed on final head f58bcfe73483a35e096ee8d71ea24f44484fb599, workflow run #738: backend syntax, Android unit tests, debug APK build and artifact upload all succeeded (artifact 14765789300).
 - **Physical device:** pending on Poco M4 Pro 4G; compare reported ABI/display/resource information with Android settings and check report layout.
 - **Merge:** draft PR only; do not merge into PR #44 or \`main\` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B20 — M17 Battery Health & Charging Snapshot (2026-11-22)
+
+**Branch:** feature/m17-battery-health-snapshot, stacked on M17 Hardware Compatibility / PR #45. Draft PR targets feature/m17-hardware-compatibility-snapshot; unmerged.
+
+### Feature — Read-only battery state details
+- **Code-present:** extends the existing Device Resource Intelligence battery section with Android-reported charging state, battery-health category and temperature.
+- Values are clearly identified as device-reported snapshots, not a battery diagnostic or repair assessment. Missing values are shown as unavailable.
+- **Anti-duplication:** upgrades the existing battery panel; no second battery page, background monitor, periodic polling, alerts or scheduler.
+- **Privacy/safety:** reads only the existing battery-changed broadcast snapshot; no additional permission, upload or data persistence.
+- **Automated tests:** three JUnit tests cover charging-state mapping, health labels and temperature formatting.
+- **CI/build:** pending; do not mark as passed until unit tests, debug APK build and artifact upload complete.
+- **Physical device:** pending on Poco M4 Pro 4G; verify available extras and layout; values may vary by manufacturer.
+- **Merge:** draft PR only; do not merge into PR #45 or main without owner approval. JARVIS only; Even untouched.
