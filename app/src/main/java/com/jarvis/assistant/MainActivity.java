@@ -221,6 +221,7 @@ public class MainActivity extends Activity {
         transcript.setGravity(Gravity.CENTER);
         transcript.setPadding(8, 10, 8, 22);
         root.addView(transcript, new LinearLayout.LayoutParams(-1, -2));
+        DisplayAccessibilityStudio.apply(this, status, transcript);
 
         Button speak = new Button(this);
         speak.setText("◉   ACTIVATE VOICE");
@@ -1207,7 +1208,8 @@ public class MainActivity extends Activity {
                 "Smart Home Studio • Setup / Inventory / Manual Routines",
                 "Connectivity Intelligence • Network / Offline / Satellite",
                 "Simulation & Engineering Studio • Virtual Lab / 3D Design",
-                "Practical Intelligence Suite • Emergency / Legal / Vehicle"
+                "Practical Intelligence Suite • Emergency / Legal / Vehicle",
+                "Display & Accessibility Studio • Text / Contrast"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1262,6 +1264,7 @@ public class MainActivity extends Activity {
                     else if (which == 35) ConnectivityIntelligenceStudio.show(MainActivity.this, status, transcript);
                     else if (which == 36) SimulationEngineeringStudio.show(MainActivity.this, status, transcript);
                     else if (which == 37) PracticalIntelligenceStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 38) DisplayAccessibilityStudio.show(MainActivity.this, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
