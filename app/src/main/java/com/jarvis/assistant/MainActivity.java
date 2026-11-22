@@ -473,13 +473,14 @@ public class MainActivity extends Activity {
                 .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
                 .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
                         .setTitle("JARVIS • Task options")
-                        .setItems(new String[]{"Today's agenda", "Filter by category", "Task overview", "Search tasks", "Edit task details", "Delete a task", "Close"}, (d, option) -> {
+                        .setItems(new String[]{"Today's agenda", "Filter by category", "Filter by priority", "Task overview", "Search tasks", "Edit task details", "Delete a task", "Close"}, (d, option) -> {
                             if (option == 0) showDailyTaskAgenda();
                             else if (option == 1) showTaskCategoryFilter();
-                            else if (option == 2) showTaskOverview();
-                            else if (option == 3) showTaskSearch();
-                            else if (option == 4) showEditStructuredTaskDialog();
-                            else if (option == 5) showDeleteStructuredTaskDialog();
+                            else if (option == 2) showTaskPriorityFilter();
+                            else if (option == 3) showTaskOverview();
+                            else if (option == 4) showTaskSearch();
+                            else if (option == 5) showEditStructuredTaskDialog();
+                            else if (option == 6) showDeleteStructuredTaskDialog();
                         }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
@@ -621,6 +622,33 @@ public class MainActivity extends Activity {
                         status.setText("MESSAGE APP NOT AVAILABLE");
                     }
                 }).show();
+    }
+
+    private void showTaskPriorityFilter() {
+        String[] priorities = {"All priorities", "Low", "Normal", "High", "Urgent"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Filter by priority")
+                .setItems(priorities, (dialog, which) -> {
+                    org.json.JSONArray tasks = readStructuredTasks();
+                    if (tasks == null) {
+                        status.setText("TASK DATA COULD NOT BE READ");
+                        return;
+                    }
+                    ArrayList<String> matches = new ArrayList<>();
+                    for (int i = 0; i < tasks.length(); i++) {
+                        org.json.JSONObject item = tasks.optJSONObject(i);
+                        if (item == null) continue;
+                        String priority = item.optString("priority", "Normal");
+                        if (which == 0 || priorities[which].equals(priority)) {
+                            matches.add((item.optBoolean("done", false) ? "✓ " : "○ ")
+                                    + item.optString("title", "Untitled task")
+                                    + " • " + item.optString("category", "Personal"));
+                        }
+                    }
+                    String report = matches.isEmpty() ? "No tasks at this priority."
+                            : android.text.TextUtils.join("\n", matches);
+                    new AlertDialog.Builder(this).setTitle(priorities[which])
+                            .setMessage(report).setPositiveButton("Back", null).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showTaskCategoryFilter() {
