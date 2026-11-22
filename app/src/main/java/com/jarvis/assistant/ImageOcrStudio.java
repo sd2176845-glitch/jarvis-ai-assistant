@@ -1,0 +1,73 @@
+package com.jarvis.assistant;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.text.Text;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+
+/** Owner-selected image OCR. Processing stays on-device; extracted text is not saved or uploaded. */
+public final class ImageOcrStudio {
+    public static final int REQUEST_IMAGE = 7314;
+
+    private ImageOcrStudio() { }
+
+    public static void chooseImage(Activity activity) {
+        new AlertDialog.Builder(activity)
+                .setTitle("JARVIS • Image text reader")
+                .setMessage("Choose one image. Text recognition runs on this phone. JARVIS will not upload or save the image or extracted text.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Choose image", (d, w) -> {
+                    Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    pick.addCategory(Intent.CATEGORY_OPENABLE);
+                    pick.setType("image/*");
+                    pick.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    try {
+                        activity.startActivityForResult(pick, REQUEST_IMAGE);
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "Image picker is not available.", Toast.LENGTH_LONG).show();
+                    }
+                }).show();
+    }
+
+    public static boolean handleResult(Activity activity, int requestCode, int resultCode, Intent data) {
+        if (requestCode != REQUEST_IMAGE) return false;
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            Toast.makeText(activity, "Image selection cancelled.", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        Uri uri = data.getData();
+        try {
+            InputImage image = InputImage.fromFilePath(activity, uri);
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                    .process(image)
+                    .addOnSuccessListener(result -> showPreview(activity, result))
+                    .addOnFailureListener(error ->
+                            Toast.makeText(activity, "Could not read text from this image.", Toast.LENGTH_LONG).show());
+        } catch (Exception e) {
+            Toast.makeText(activity, "Selected image could not be opened.", Toast.LENGTH_LONG).show();
+        }
+        return true;
+    }
+
+    private static void showPreview(Activity activity, Text result) {
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+        String text = result == null ? "" : result.getText();
+        if (text == null || text.trim().isEmpty()) text = "No readable text was detected.";
+        TextView preview = new TextView(activity);
+        preview.setText(text);
+        preview.setTextIsSelectable(true);
+        preview.setTextSize(15);
+        preview.setPadding(28, 20, 28, 20);
+        new AlertDialog.Builder(activity).setTitle("JARVIS • OCR preview")
+                .setMessage("LOCAL RESULT • REVIEW BEFORE USING")
+                .setView(preview)
+                .setPositiveButton("Close", null).show();
+    }
+}
