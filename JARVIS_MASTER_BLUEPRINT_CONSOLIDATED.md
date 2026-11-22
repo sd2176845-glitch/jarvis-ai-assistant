@@ -265,3 +265,6 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - Each lookup asks for confirmation before sending only the value the owner entered. No contact, notes, conversation, location or background data is attached.
 - HTTPS GET, bounded timeouts and response-size cap; no API keys or new permissions. Public data providers can be unavailable or change response formats; the app reports errors instead of claiming success.
 - **Status:** code added on `feature/m05-public-knowledge-3pack`; CI/build and target-device verification pending. Dictionary scope is English only; PIN data provider is community-maintained and has no production SLA.
+
+
+**B05 verification update (2026-11-22):** final head `76877d030adcf36b187bf01e263ce52051b10661` passed GitHub Actions run #563 (`45045200384`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #27 is open and unmerged.
