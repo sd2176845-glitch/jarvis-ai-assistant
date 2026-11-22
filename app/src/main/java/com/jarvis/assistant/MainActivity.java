@@ -472,9 +472,10 @@ public class MainActivity extends Activity {
                 .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
                 .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
                         .setTitle("JARVIS • Task options")
-                        .setItems(new String[]{"Edit task title", "Delete a task", "Close"}, (d, option) -> {
-                            if (option == 0) showEditStructuredTaskDialog();
-                            else if (option == 1) showDeleteStructuredTaskDialog();
+                        .setItems(new String[]{"Task overview", "Edit task title", "Delete a task", "Close"}, (d, option) -> {
+                            if (option == 0) showTaskOverview();
+                            else if (option == 1) showEditStructuredTaskDialog();
+                            else if (option == 2) showDeleteStructuredTaskDialog();
                         }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
@@ -589,6 +590,39 @@ public class MainActivity extends Activity {
                         status.setText("TASK COULD NOT BE SAVED");
                     }
                 }).show();
+    }
+
+    private void showTaskOverview() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            status.setText("TASK OVERVIEW COULD NOT BE READ");
+            return;
+        }
+        int open = 0, completed = 0, overdue = 0;
+        StringBuilder urgent = new StringBuilder();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            boolean done = item.optBoolean("done", false);
+            if (done) completed++;
+            else {
+                open++;
+                if (B21TaskRules.isOverdue(item.optString("due_date", ""),
+                        false, System.currentTimeMillis())) {
+                    overdue++;
+                    urgent.append("• ").append(item.optString("title", "Untitled task"))
+                            .append(" — ").append(item.optString("due_date", "")).append("\n");
+                }
+            }
+        }
+        String report = "TASK OVERVIEW\n\nOpen: " + open + "\nCompleted: " + completed
+                + "\nOverdue: " + overdue + "\n\n"
+                + (overdue == 0 ? "No overdue tasks." : "OVERDUE TASKS\n" + urgent)
+                + "\nSummary only. Tasks remain stored locally on this device.";
+        new AlertDialog.Builder(this).setTitle("JARVIS • Task overview")
+                .setMessage(report)
+                .setPositiveButton("Back to tasks", (d, w) -> showStructuredTaskManager())
+                .setNegativeButton("Close", null).show();
     }
 
     private void showEditStructuredTaskDialog() {
