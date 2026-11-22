@@ -540,6 +540,98 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    // M09 extends the existing notes and recent-conversation stores; it creates no parallel memory database.
+    private void showPersonalMemoryVault() {
+        String savedNotes = getSavedNotes();
+        SharedPreferences conversationStore = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE);
+        String recentConversation = conversationStore.getString("conversation", "");
+        String summary = "PERSONAL KNOWLEDGE\n"
+                + (savedNotes.isEmpty() ? "No saved notes yet." : savedNotes)
+                + "\n\nRECENT CONVERSATION CONTEXT\n"
+                + (recentConversation.isEmpty() ? "No recent conversation context." : recentConversation)
+                + "\n\nAll information is stored locally in the existing JARVIS stores. Review before exporting.";
+        ScrollView scroll = new ScrollView(this);
+        TextView content = new TextView(this);
+        content.setText(summary);
+        content.setTextColor(Color.WHITE);
+        content.setTextSize(14);
+        content.setPadding(28, 20, 28, 20);
+        scroll.addView(content);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Personal Memory Vault")
+                .setView(scroll)
+                .setPositiveButton("Edit saved notes", (d, w) -> showEditVaultNotes())
+                .setNeutralButton("Export", (d, w) -> exportPersonalMemory())
+                .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
+                .show();
+    }
+
+    private void showEditVaultNotes() {
+        EditText editor = new EditText(this);
+        editor.setHint("Your saved notes and owner-approved knowledge");
+        editor.setMinLines(5);
+        editor.setGravity(Gravity.TOP | Gravity.START);
+        editor.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editor.setText(getSavedNotes());
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Review / correct knowledge")
+                .setMessage("Edit the existing notes store. Saving replaces only the notes text; recent AI conversation is separate.")
+                .setView(editor)
+                .setPositiveButton("Save changes", (d, w) -> {
+                    String updated = editor.getText().toString().trim();
+                    preferences.edit().putString("notes", updated).putString("jarvis_notes", updated).apply();
+                    status.setText("PERSONAL KNOWLEDGE UPDATED ON DEVICE");
+                    showPersonalMemoryVault();
+                })
+                .setNeutralButton("Delete notes", (d, w) -> confirmClearVaultNotes())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void confirmClearVaultNotes() {
+        new AlertDialog.Builder(this).setTitle("Delete saved notes?")
+                .setMessage("This deletes the existing notes only. Recent AI conversation and tasks are kept.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete notes", (d, w) -> {
+                    preferences.edit().remove("notes").remove("jarvis_notes").apply();
+                    status.setText("SAVED NOTES DELETED");
+                    showPersonalMemoryVault();
+                }).show();
+    }
+
+    private void confirmClearRecentContext() {
+        new AlertDialog.Builder(this).setTitle("Clear recent conversation context?")
+                .setMessage("This clears only the recent AI conversation context. Saved notes and tasks are kept.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Clear context", (d, w) -> {
+                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().remove("conversation").apply();
+                    status.setText("RECENT CONVERSATION CONTEXT CLEARED");
+                    showPersonalMemoryVault();
+                }).show();
+    }
+
+    private void exportPersonalMemory() {
+        String notes = getSavedNotes();
+        String conversation = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE)
+                .getString("conversation", "");
+        String export = "JARVIS PERSONAL MEMORY EXPORT\n\nSAVED NOTES\n"
+                + (notes.isEmpty() ? "(none)" : notes)
+                + "\n\nRECENT CONVERSATION CONTEXT\n"
+                + (conversation.isEmpty() ? "(none)" : conversation)
+                + "\n\nExported by owner from this device.";
+        try {
+            Intent share = new Intent(Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.putExtra(Intent.EXTRA_SUBJECT, "JARVIS Personal Memory Export");
+            share.putExtra(Intent.EXTRA_TEXT, export);
+            startActivity(Intent.createChooser(share, "Review and choose where to export"));
+            status.setText("EXPORT SHARE SHEET OPENED");
+        } catch (Exception e) {
+            status.setText("EXPORT NOT AVAILABLE");
+        }
+    }
+
     private void showWorkflowStudio() {
         org.json.JSONArray workflows = readManualWorkflows();
         if (workflows == null) {
@@ -925,7 +1017,8 @@ public class MainActivity extends Activity {
                 "Voice Studio • Voice / Speed / Pitch",
                 "Focus & Productivity Session",
                 "Device Resource Intelligence",
-                "Workflow Studio • Manual checklists"
+                "Workflow Studio • Manual checklists",
+                "Personal Memory & Knowledge Vault"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -967,6 +1060,7 @@ public class MainActivity extends Activity {
                     else if (which == 22) showFocusSession();
                     else if (which == 23) showDeviceResourceDashboard();
                     else if (which == 24) showWorkflowStudio();
+                    else if (which == 25) showPersonalMemoryVault();
                 }).setNegativeButton("Close", null).show();
     }
 
