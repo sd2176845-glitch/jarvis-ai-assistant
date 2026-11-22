@@ -831,3 +831,10 @@ The owner approved the following ten additional concepts for inclusion in the JA
 **Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
 
 All Priority 38 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+
+## Implementation status addendum — M05 Public Knowledge Lookups (Batch B05; 2026-11-22)
+- **Country Information:** code added; owner-entered country name or ISO code; uses countries.dev; CI/device verification pending.
+- **India PIN Code Lookup:** code added; six-digit PIN returns multiple post offices and branch/delivery/district/state details; uses the community-maintained PostalPincode.in API; informational only; CI/device verification pending.
+- **English Dictionary:** code added; owner-entered English word returns available phonetics, definitions and examples from dictionaryapi.dev; CI/device verification pending.
+- All three require explicit confirmation before each HTTPS lookup and send only the selected input. No personal memory or contacts are attached. No API key or new Android permission.
