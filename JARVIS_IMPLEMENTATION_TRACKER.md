@@ -675,3 +675,26 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 35. App details now distinguish local installed-package last-update metadata from an unverified store update comparison, with an owner-invoked Play Store listing handoff.
 
 **B21 code-present improvement count: 35.** CI for the latest auth gate, backend health, export and app-store handoff commits is pending. Earlier commits have successful Actions runs; Poco device verification remains pending.
+
+
+### B21 implementation update — quota reached (36–50)
+
+36. Source-linked Wikipedia topic lookup with provider timestamp and verification caveat.
+37. Local pasted CI/build report viewer that never infers missing tests as passed.
+38. Read-only public GitHub repository overview with input allowlisting and no token/private-repository access.
+39. Guest Mode: private notes, tasks, workflows, memory and privacy exports are hidden until device-credential-authenticated exit.
+40. Recent conversation context expires after two hours; existing Clear AI Memory action remains the manual reset.
+41. Launch selected installed apps from the app catalogue with unavailable-app handling.
+42. Accessibility call controls act only on an allowlisted set of known dialer UI packages; unsupported screens are ignored.
+43. Standard Android media-session key controls with honest “request sent” status.
+44. Learning Notebook lesson completion status.
+45. Individual learning lesson deletion.
+46. Creative project rename/review/individual deletion.
+47. Software plan review status and individual deletion.
+48. Individual data-report sharing and deletion.
+49. PDF OCR script selection supports Latin and Devanagari.
+50. Manual workflow step-completion timestamps/history plus workflow duplication with a fresh unchecked checklist.
+
+**Code-present quota: 50/50 capability improvements added or extended on B21.** This is not a claim of release readiness. Latest commits still require one clean end-to-end CI run (backend syntax, unit tests, debug APK build and artifact upload) and physical Poco M4 Pro 4G verification. Earlier intermediate failures include missing classes before their follow-up commits and a Maven Central HTTP 429 during ML Kit dependency resolution; inspect the final branch-head run before calling the batch CI-passed.
+
+**Release status:** one integrated B21 branch; draft PR not yet opened; no merge performed. No change to Even.
