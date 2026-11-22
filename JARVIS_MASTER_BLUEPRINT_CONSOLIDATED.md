@@ -395,3 +395,9 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Code-present:** owner-entered Bluetooth accessory labels share the existing Smart Home inventory; Android Bluetooth settings are opened only after an explicit tap.
 - **Safety boundary:** no background scanning, identifier collection, automatic pairing, remote control or credentials. Unpairing is performed by the owner in Android settings; removing a label does not unpair the physical accessory.
 - **Validation:** four focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+### M17 — Hardware Compatibility Snapshot (Batch B19; status tracked separately)
+- **Code-present:** extends the existing read-only Device Resource Intelligence report with Android-reported CPU cores, supported app ABIs, low-RAM flag and display metrics.
+- **Boundary:** informational hints only; no benchmarking, stress tests, settings changes or private-data inspection.
+- **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
