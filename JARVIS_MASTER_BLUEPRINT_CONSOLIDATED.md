@@ -376,3 +376,10 @@ Three separate capabilities have been added inside the existing Personal Memory 
 **Files:** `OwnerPrivacyStudio.java`, `OwnerPrivacyRules.java`, `OwnerPrivacyRulesTest.java`, and the existing `MainActivity.showPrivacyOptions()` method upgraded in place. No new permissions, background collection, network requests, data stores or API keys.
 
 **Tests:** three JUnit tests cover permission wording, JSON count/corruption behavior, and content-free export boundaries. Final code head `34941b26529b36519f27bae775d0f85a588443b1` passed GitHub Actions run #711 (`45051230977`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload `14765930477`. Initial CI runs #707–#710 caught an Android `org.json` local-test stub issue; the rule was rewritten in pure Java and the final test/build passed. Poco M4 Pro 4G physical-device verification remains pending. Keep the batch stacked on M19 PR #40; do not merge without owner approval. JARVIS only; Even untouched.
+
+
+## M02 implementation status — Batch B16 (2026-11-22)
+
+**Owner-Reviewed Voice Transcript Correction Gate — code-present; CI and device verification pending.** The existing `understandVoiceCommand()` path is upgraded in place. If the correction endpoint changes recognized words, JARVIS shows the original and suggested wording and waits for the owner to choose corrected text, original text, edited text, or cancel. Unchanged transcripts continue without interruption. Empty edits and cancellation do not execute commands. The transcript is not persisted by this feature.
+
+**Files:** `VoiceTranscriptReviewRules.java`, `VoiceTranscriptReviewRulesTest.java`, and existing `MainActivity.java`. Three focused JUnit tests cover the comparison and fallback rules. No duplicate voice engine, command router, transcript database, new permission, or background capture is introduced. CI pending; Poco M4 Pro 4G testing pending. Draft PR #42 is stacked on M01 PR #41. JARVIS only; Even untouched.
