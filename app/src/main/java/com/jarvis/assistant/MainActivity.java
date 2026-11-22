@@ -452,9 +452,15 @@ public class MainActivity extends Activity {
                     org.json.JSONObject item = tasks.optJSONObject(which);
                     if (item != null) {
                         try {
-                            item.put("done", !item.optBoolean("done", false));
+                            boolean completed = !item.optBoolean("done", false);
+                            item.put("done", completed);
+                            if (completed) {
+                                item.put("completed_at", System.currentTimeMillis());
+                            } else {
+                                item.remove("completed_at");
+                            }
                             saveStructuredTasks(tasks);
-                            status.setText(item.optBoolean("done", false) ? "TASK COMPLETED" : "TASK REOPENED");
+                            status.setText(completed ? "TASK COMPLETED • HISTORY UPDATED" : "TASK REOPENED");
                         } catch (org.json.JSONException e) {
                             status.setText("TASK STATUS COULD NOT BE UPDATED");
                         }
@@ -462,14 +468,44 @@ public class MainActivity extends Activity {
                     showStructuredTaskManager();
                 })
                 .setPositiveButton("Add task", (dialog, which) -> showAddStructuredTaskDialog())
-                .setNeutralButton("Delete task", (dialog, which) -> showDeleteStructuredTaskDialog())
-                .setNegativeButton("Close", null);
+                .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
+                .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
+                        .setTitle("JARVIS • Task options")
+                        .setItems(new String[]{"Delete a task", "Close"}, (d, option) -> {
+                            if (option == 0) showDeleteStructuredTaskDialog();
+                        }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
         } else {
             builder.setMessage("Tap a task to switch its completion status.");
         }
         builder.show();
+    }
+
+    private void showStructuredTaskHistory() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            status.setText("TASK HISTORY COULD NOT BE READ");
+            return;
+        }
+        ArrayList<String> history = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null || !item.optBoolean("done", false)) continue;
+            long completedAt = item.optLong("completed_at", 0L);
+            String when = completedAt > 0L
+                    ? new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault())
+                            .format(new java.util.Date(completedAt))
+                    : "Completed before history tracking";
+            history.add(item.optString("title", "Untitled task") + "\n" + when);
+        }
+        String report = history.isEmpty()
+                ? "No completed tasks yet. Completed tasks will appear here."
+                : android.text.TextUtils.join("\n\n", history);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Completed task history")
+                .setMessage(report)
+                .setPositiveButton("Back to tasks", (d, w) -> showStructuredTaskManager())
+                .setNegativeButton("Close", null).show();
     }
 
     private void showAddStructuredTaskDialog() {
