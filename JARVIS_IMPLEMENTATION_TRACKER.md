@@ -698,3 +698,16 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 **Code-present quota: 50/50 capability improvements added or extended on B21.** This is not a claim of release readiness. Latest commits still require one clean end-to-end CI run (backend syntax, unit tests, debug APK build and artifact upload) and physical Poco M4 Pro 4G verification. Earlier intermediate failures include missing classes before their follow-up commits and a Maven Central HTTP 429 during ML Kit dependency resolution; inspect the final branch-head run before calling the batch CI-passed.
 
 **Release status:** one integrated B21 branch; draft PR not yet opened; no merge performed. No change to Even.
+
+
+### B21 final verification and PR state
+
+- **Branch-head CI:** PASS — run `45058627982`, head `d2b04cf85be5f4a0cad816ed8559ad11c51cfa58`.
+- Backend JavaScript syntax: PASS.
+- Android unit tests: PASS.
+- Debug APK build: PASS.
+- APK artifact upload: PASS — artifact `jarvis-debug-apk`, ID `14768262216`.
+- Draft PR opened: [#47 — B21 integrated 50-feature capability batch](https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/47).
+- PR base is `feature/m17-battery-health-snapshot`; it remains draft, open and unmerged.
+- Poco M4 Pro 4G physical install/functional verification: PENDING.
+- No merge performed. Do not merge without explicit owner approval.
