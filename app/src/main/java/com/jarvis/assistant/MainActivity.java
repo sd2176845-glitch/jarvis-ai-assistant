@@ -1419,10 +1419,18 @@ public class MainActivity extends Activity {
                 .setMultiChoiceItems(labels, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
                 .setPositiveButton("Save progress", (dialog, which) -> {
                     org.json.JSONArray updated = new org.json.JSONArray();
-                    for (boolean value : checked) updated.put(value);
+                    org.json.JSONArray completionTimes = new org.json.JSONArray();
+                    org.json.JSONArray previousTimes = item.optJSONArray("done_at");
+                    long completedNow = System.currentTimeMillis();
+                    for (int step = 0; step < checked.length; step++) {
+                        updated.put(checked[step]);
+                        long previousTime = previousTimes == null ? 0L : previousTimes.optLong(step, 0L);
+                        completionTimes.put(checked[step] ? (previousTime > 0L ? previousTime : completedNow) : 0L);
+                    }
                     try {
                         item.put("done", updated);
-                        item.put("updated_at", System.currentTimeMillis());
+                        item.put("done_at", completionTimes);
+                        item.put("updated_at", completedNow);
                         saveManualWorkflows(workflows);
                         status.setText("WORKFLOW CHECKLIST PROGRESS SAVED");
                     } catch (org.json.JSONException e) {
@@ -1443,10 +1451,13 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("More", (dialog, which) ->
                         new AlertDialog.Builder(this).setTitle("Workflow options")
-                                .setItems(new String[]{"Reset checklist", "Close"}, (d, option) -> {
-                                    if (option == 0) {
+                                .setItems(new String[]{"View step history", "Reset checklist", "Close"}, (d, option) -> {
+                                    if (option == 0) showManualWorkflowHistory(item, steps);
+                                    else if (option == 1) {
                                         try {
                                             item.put("done", new org.json.JSONArray());
+                                            item.put("done_at", new org.json.JSONArray());
+                                            item.put("updated_at", System.currentTimeMillis());
                                             saveManualWorkflows(workflows);
                                             status.setText("WORKFLOW CHECKLIST RESET");
                                         } catch (org.json.JSONException e) {
@@ -1455,6 +1466,24 @@ public class MainActivity extends Activity {
                                         showWorkflowStudio();
                                     }
                                 }).show()).show();
+    }
+
+    private void showManualWorkflowHistory(org.json.JSONObject item, org.json.JSONArray steps) {
+        org.json.JSONArray times = item.optJSONArray("done_at");
+        StringBuilder report = new StringBuilder("STEP COMPLETION HISTORY\\n\\n");
+        java.text.SimpleDateFormat format = new java.text.SimpleDateFormat(
+                "dd MMM yyyy, hh:mm a", java.util.Locale.getDefault());
+        for (int i = 0; i < steps.length(); i++) {
+            long timestamp = times == null ? 0L : times.optLong(i, 0L);
+            report.append(i + 1).append(". ").append(steps.optString(i, "Unavailable step"))
+                    .append("\\n   ")
+                    .append(timestamp > 0L ? "Completed: " + format.format(new java.util.Date(timestamp))
+                            : "Not marked completed")
+                    .append("\\n\\n");
+        }
+        new AlertDialog.Builder(this).setTitle("Workflow step history")
+                .setMessage(report.toString())
+                .setPositiveButton("Close", null).show();
     }
 
     private void showDeleteManualWorkflow() {
