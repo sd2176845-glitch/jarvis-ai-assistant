@@ -346,5 +346,5 @@
 - Local-only parsing; original CSV is not saved. User is warned not to paste passwords, contact details, health/financial identifiers or confidential records.
 - Aggregate AI report uses existing `JarvisAiClient.askStandalone` after explicit confirmation. No new Android permission, persistent dataset store, API key or background collection.
 - **Implementation files:** `DataIntelligenceStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on final code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a`; GitHub Actions run #602 (`45046009488`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #30; do not merge to parent PR #30 or `main` without owner approval.
