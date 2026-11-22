@@ -533,3 +533,18 @@
 - **CI/build:** pending for this branch; do not report as passed until completed.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify unchanged transcripts route normally; changed transcripts show all choices; Use original/correction/Edit work; cancel and empty edit run no command; existing local commands and confirmation flows remain intact.
 - **Merge:** draft PR only; no merge into M01 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B17 — M15 Display & Accessibility Studio (2026-11-22)
+
+**Branch:** `feature/m15-accessibility-display-studio-3pack`, stacked on M02 Voice Transcript Review / PR #42. Draft PR targets `feature/m02-voice-transcript-review-3pack`; unmerged.
+
+### Feature — Owner-controlled readability profiles
+- **Code-present:** adds a single Display & Accessibility Studio entry to the existing Command Center. Owner can choose Standard, Large text, Extra-large text, High contrast, or Reset to standard.
+- Applies app-local text sizing and readable foreground colors to the existing JARVIS status and response text; the selected profile persists in the existing private `jarvis_preferences` store.
+- The profile is applied on app startup and after an owner selection. It does not change Android system font/display settings, alter screen density, hide controls, or add permissions.
+- **Anti-duplication:** extends the existing M15 Command Center and existing status/response views; no duplicate dashboard, settings page, or accessibility service.
+- **Automated tests:** three JUnit tests cover profile sizing, high-contrast selection, and invalid-profile fallback.
+- **Physical device:** pending on Poco M4 Pro 4G. Check all profiles, restart persistence, contrast in sunlight/darkness, text clipping and screen-reader announcements.
+- **CI/build:** pending; do not mark as passed until the workflow completes.
+- **Merge:** draft PR only; no merge into PR #42 or `main` without owner approval. JARVIS only; Even untouched.
