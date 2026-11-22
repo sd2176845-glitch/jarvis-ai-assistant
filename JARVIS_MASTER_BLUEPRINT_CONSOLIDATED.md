@@ -335,3 +335,12 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B11 final documented-head verification:** `eaf5634ca4f8f652e242ba44bec940c9db2e7afe` passed GitHub Actions run #662 (`45047913711`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764123874`, SHA-256 `15e3ed72d5d98969b4eb4fd4981dc1a88eb0cb277e8cdf245eb95f807d19dcec`. No separate unit-test/lint task ran; Poco device verification remains pending.
+
+
+## M17 implementation status — Batch B12 (2026-11-22)
+- **Network Health Snapshot — code-present:** read-only active-network capability summary using Android `ConnectivityManager`/`NetworkCapabilities`; reports transport category, internet capability/validation and metered state. Uses only `ACCESS_NETWORK_STATE`; no SSID/IP/MAC/password reading, scanning, traffic inspection or settings changes.
+- **Offline Capability Matrix — code-present:** static design-level guide separating local foundations from online AI/provider features. It explicitly does not claim to test every feature at runtime.
+- **Connectivity Strategy Planner — code-present:** owner-confirmed Local-only, Hybrid, or Satellite internet/CubeSat educational planning through the existing memory-isolated AI path. It does not configure networks, scan/connect, provide transmission/frequency/interference instructions, or enable unauthorized access.
+- **Tests:** three focused JUnit tests added; CI is configured to run `testDebugUnitTest` before `assembleDebug`. CI result is pending until the new branch workflow completes.
+- **Device verification:** pending on Poco M4 Pro 4G. These capabilities are not marked verified.
+- **Anti-duplication:** this extends M17 beyond the existing M17 battery/storage/RAM dashboard; it does not add a second resource dashboard or modify the separate Even project.
