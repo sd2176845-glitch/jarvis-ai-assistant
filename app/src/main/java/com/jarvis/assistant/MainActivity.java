@@ -448,7 +448,7 @@ public class MainActivity extends Activity {
                     else if (which == 21) JarvisVoiceEngine.showSettings(this, preferences, tts);
                     else if (which == 22) showOwnerSessionOptions();
                     else if (which == 23) showScheduledReminderDialog(false);
-                    else if (which == 24) showScheduledReminderDialog(true);
+                    else if (which == 24) showScheduledLearningHub();
                     else if (which == 25) {
                         if (requireOwner("Personal Media Vault")) {
                             try { startActivity(new Intent(this, MediaVaultActivity.class)); }
@@ -589,6 +589,62 @@ public class MainActivity extends Activity {
                     } catch (Exception e) {
                         status.setText("NO SMS APP AVAILABLE");
                     }
+                }).show();
+    }
+
+    private void showScheduledLearningHub() {
+        if (!requireOwner("Scheduled Learning")) return;
+        String[] actions = {"Add approved RSS source", "Enable / Pause daily refresh", "Refresh now"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Scheduled Learning")
+                .setMessage(JarvisScheduledLearning.summary(this))
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) showAddLearningFeedDialog();
+                    else if (which == 1) {
+                        boolean enable = !JarvisScheduledLearning.isEnabled(this);
+                        if (enable && JarvisScheduledLearning.feedCount(this) == 0) {
+                            status.setText("ADD AN APPROVED RSS SOURCE FIRST");
+                            showAddLearningFeedDialog();
+                            return;
+                        }
+                        JarvisScheduledLearning.setEnabled(this, enable);
+                        status.setText(enable ? "SCHEDULED LEARNING ENABLED" : "SCHEDULED LEARNING PAUSED");
+                        showScheduledLearningHub();
+                    } else if (which == 2) {
+                        if (JarvisScheduledLearning.feedCount(this) == 0) {
+                            status.setText("NO APPROVED SOURCES");
+                            return;
+                        }
+                        if (!JarvisScheduledLearning.isEnabled(this)) {
+                            status.setText("ENABLE SCHEDULED LEARNING FIRST");
+                            return;
+                        }
+                        new Thread(() -> {
+                            JarvisScheduledLearning.refresh(getApplicationContext());
+                            runOnUiThread(() -> showScheduledLearningHub());
+                        }, "jarvis-learning-manual-refresh").start();
+                        status.setText("LEARNING SOURCES REFRESHING");
+                    }
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showAddLearningFeedDialog() {
+        if (!requireOwner("Adding a learning source")) return;
+        EditText url = new EditText(this);
+        url.setSingleLine(true);
+        url.setHint("https://example.org/feed.xml");
+        new AlertDialog.Builder(this).setTitle("Approve an RSS learning source")
+                .setMessage("Only add a feed you trust. JARVIS will fetch it once per day when enabled. Maximum 5 sources; up to 4 new items per source per refresh. HTTPS only.")
+                .setView(url).setNegativeButton("Cancel", null)
+                .setPositiveButton("Review & approve", (d, w) -> {
+                    String value = url.getText().toString().trim();
+                    new AlertDialog.Builder(this).setTitle("Approve this source?")
+                            .setMessage(value + "\\n\\nJARVIS will request this RSS/Atom feed and save titles, links and publication dates. It will not open links or execute downloaded content.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Approve source", (ad, aw) -> {
+                                boolean ok = JarvisScheduledLearning.addApprovedFeed(this, value);
+                                status.setText(ok ? "LEARNING SOURCE APPROVED" : "INVALID SOURCE OR 5-SOURCE LIMIT");
+                                if (ok) showScheduledLearningHub();
+                            }).show();
                 }).show();
     }
 
