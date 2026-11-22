@@ -1016,14 +1016,14 @@ public class MainActivity extends Activity {
                     showWorkflowStudio();
                 })
                 .setNeutralButton("Dry-run preview", (dialog, which) -> {
-                    StringBuilder preview = new StringBuilder("DRY-RUN • NO ACTIONS EXECUTED\n\n");
+                    String[] previewSteps = new String[steps.length()];
                     for (int step = 0; step < steps.length(); step++) {
-                        preview.append(step + 1).append(". ")
-                                .append(steps.optString(step, "Unavailable step")).append("\n");
+                        previewSteps[step] = steps.optString(step, "Unavailable step");
                     }
-                    preview.append("\nThis is a read-only preview of your checklist. JARVIS has not opened apps, sent messages, changed settings or performed any step.");
+                    String preview = B21WorkflowPreviewRules.buildPreview(
+                            item.optString("title", "Untitled workflow"), previewSteps);
                     new AlertDialog.Builder(this).setTitle("Workflow preview")
-                            .setMessage(preview.toString())
+                            .setMessage(preview)
                             .setPositiveButton("Back", null).show();
                 })
                 .setNegativeButton("More", (dialog, which) ->
