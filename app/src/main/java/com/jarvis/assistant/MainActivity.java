@@ -383,6 +383,7 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
+        if (blockPrivateInGuestMode()) return;
         String structured = getStructuredTaskSummary();
         String notes = getSavedNotes();
         String summary = structured;
@@ -971,6 +972,7 @@ public class MainActivity extends Activity {
     // M09 extends the existing notes and recent-conversation stores; it creates no parallel memory database.
     // The timeline is owner-created and stored as one structured key in the existing JARVIS preferences.
     private void showPersonalMemoryVault() {
+        if (blockPrivateInGuestMode()) return;
         String savedNotes = getSavedNotes();
         SharedPreferences conversationStore = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE);
         String recentConversation = conversationStore.getString("conversation", "");
@@ -1201,6 +1203,7 @@ public class MainActivity extends Activity {
     }
 
     private void showMemoryExportOptions() {
+        if (blockPrivateInGuestMode()) return;
         String[] options = {"Saved notes", "Owner-created timeline", "Recent AI conversation context"};
         boolean[] selected = {true, false, false};
         new AlertDialog.Builder(this).setTitle("Choose memory to export")
@@ -1302,6 +1305,7 @@ public class MainActivity extends Activity {
     }
 
     private void showWorkflowStudio() {
+        if (blockPrivateInGuestMode()) return;
         org.json.JSONArray workflows = readManualWorkflows();
         if (workflows == null) {
             new AlertDialog.Builder(this).setTitle("JARVIS • Workflow Studio")
@@ -2099,6 +2103,7 @@ public class MainActivity extends Activity {
     }
 
     private void showNotesDialog() {
+        if (blockPrivateInGuestMode()) return;
         EditText input = new EditText(this);
         input.setHint("Write a note or task");
         input.setMinLines(2);
@@ -2143,9 +2148,10 @@ public class MainActivity extends Activity {
             int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             if (level >= 0 && scale > 0) batteryText = "Battery: " + (level * 100 / scale) + "%";
         }
-        String notes = preferences.getString("jarvis_notes", "");
+        boolean guestMode = isGuestModeEnabled();
+        String notes = guestMode ? "" : preferences.getString("jarvis_notes", "");
         int dueToday = 0, overdue = 0, urgentOpen = 0;
-        org.json.JSONArray tasks = readStructuredTasks();
+        org.json.JSONArray tasks = guestMode ? null : readStructuredTasks();
         String today = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new java.util.Date());
         if (tasks != null) {
             for (int i = 0; i < tasks.length(); i++) {
@@ -2159,10 +2165,11 @@ public class MainActivity extends Activity {
         }
         String report = "JARVIS • DAILY BRIEFING\\n\\n" + date + "\\n" + batteryText
                 + "\\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
-                + "\\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
-                + "\\nOpen tasks due today: " + dueToday
-                + "\\nOverdue tasks: " + overdue
-                + "\\nUrgent open tasks: " + urgentOpen
+                + (guestMode ? "\\nGuest Mode: private notes and task details are hidden."
+                        : "\\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
+                        + "\\nOpen tasks due today: " + dueToday
+                        + "\\nOverdue tasks: " + overdue
+                        + "\\nUrgent open tasks: " + urgentOpen)
                 + "\\n\\nLive weather and current news require an internet search.";
         transcript.setText(report);
         status.setText("DAILY BRIEFING READY");
@@ -2201,8 +2208,17 @@ public class MainActivity extends Activity {
     }
 
     private void showPrivacyOptions() {
+        if (blockPrivateInGuestMode()) return;
         // Upgrade the existing privacy entry in place; require the phone's own credential.
         openPrivateArea(() -> OwnerPrivacyStudio.show(this, preferences));
+    }
+
+    private boolean blockPrivateInGuestMode() {
+        if (!isGuestModeEnabled()) return false;
+        new AlertDialog.Builder(this).setTitle("JARVIS • Guest Mode active")
+                .setMessage("Private information is hidden. The owner must turn off Guest Mode using the Android device lock.")
+                .setPositiveButton("OK", null).show();
+        return true;
     }
 
     private boolean isGuestModeEnabled() {
