@@ -473,6 +473,88 @@ public class MainActivity extends Activity {
         }.start();
     }
 
+
+    /**
+     * Read-only device resource overview. Uses Android public APIs and adds no permissions.
+     */
+    private void showDeviceResourceDashboard() {
+        StringBuilder report = new StringBuilder("JARVIS • DEVICE RESOURCE INTELLIGENCE\\n\\n");
+        report.append("DEVICE\\n");
+        report.append(android.os.Build.MANUFACTURER).append(" ")
+                .append(android.os.Build.MODEL).append("\\n");
+        report.append("Android ").append(android.os.Build.VERSION.RELEASE)
+                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\\n\\n");
+
+        report.append("BATTERY\\n");
+        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery != null) {
+            int level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+            if (level >= 0 && scale > 0) {
+                report.append("Charge: ").append(level * 100 / scale).append("%\\n");
+            } else {
+                report.append("Charge: unavailable\\n");
+            }
+            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Charging / connected to power").append("\\n");
+        } else {
+            report.append("Battery details unavailable\\n");
+        }
+
+        report.append("\\nSTORAGE (APP DATA VOLUME)\\n");
+        try {
+            android.os.StatFs storage = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
+            long totalBytes = storage.getTotalBytes();
+            long freeBytes = storage.getAvailableBytes();
+            report.append("Total: ").append(formatResourceBytes(totalBytes)).append("\\n");
+            report.append("Available: ").append(formatResourceBytes(freeBytes)).append("\\n");
+            if (totalBytes > 0L) {
+                report.append("Used: ").append((totalBytes - freeBytes) * 100L / totalBytes).append("%\\n");
+            }
+        } catch (Exception e) {
+            report.append("Storage details unavailable\\n");
+        }
+
+        report.append("\\nMEMORY (RAM)\\n");
+        try {
+            android.app.ActivityManager manager =
+                    (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager != null) {
+                android.app.ActivityManager.MemoryInfo memory = new android.app.ActivityManager.MemoryInfo();
+                manager.getMemoryInfo(memory);
+                report.append("Total: ").append(formatResourceBytes(memory.totalMem)).append("\\n");
+                report.append("Available: ").append(formatResourceBytes(memory.availMem)).append("\\n");
+                report.append("Low-memory condition: ").append(memory.lowMemory ? "Yes" : "No").append("\\n");
+            } else {
+                report.append("RAM details unavailable\\n");
+            }
+        } catch (Exception e) {
+            report.append("RAM details unavailable\\n");
+        }
+
+        report.append("\\nREAD-ONLY OVERVIEW\\n");
+        report.append("JARVIS only reads the system summaries shown here. It does not clear memory, close apps, change settings, or upload this report.");
+        transcript.setText(report.toString());
+        status.setText("DEVICE RESOURCE OVERVIEW READY");
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Device resources")
+                .setMessage(report.toString())
+                .setPositiveButton("Refresh", (d, w) -> showDeviceResourceDashboard())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private String formatResourceBytes(long bytes) {
+        if (bytes < 0L) return "Unavailable";
+        final double kib = 1024.0;
+        final double mib = kib * 1024.0;
+        final double gib = mib * 1024.0;
+        if (bytes >= gib) return String.format(Locale.getDefault(), "%.2f GB", bytes / gib);
+        if (bytes >= mib) return String.format(Locale.getDefault(), "%.1f MB", bytes / mib);
+        if (bytes >= kib) return String.format(Locale.getDefault(), "%.1f KB", bytes / kib);
+        return bytes + " B";
+    }
+
     private void showCommandCenter() {
         String[] items = {
                 "Hey JARVIS • Background listening",
@@ -497,7 +579,8 @@ public class MainActivity extends Activity {
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
                 "Voice Studio • Voice / Speed / Pitch",
-                "Focus & Productivity Session"
+                "Focus & Productivity Session",
+                "Device Resource Intelligence"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -537,6 +620,7 @@ public class MainActivity extends Activity {
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) showVoiceSettings();
                     else if (which == 22) showFocusSession();
+                    else if (which == 23) showDeviceResourceDashboard();
                 }).setNegativeButton("Close", null).show();
     }
 
