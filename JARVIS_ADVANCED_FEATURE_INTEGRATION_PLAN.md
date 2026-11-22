@@ -78,3 +78,40 @@ If the feature is already covered, extend its existing parent module instead of 
 ## Scope and verification
 
 This addendum is a documentation-level integration plan on a separate Git branch. It does not edit Android source code, remove existing app functionality, merge branches, or claim that any planned capability is implemented. Merge into `main` only after the owner reviews the consolidated blueprint.
+
+
+## Unified implementation sequence — execution contract
+
+The consolidated architecture is the integration target. The implementation must connect the existing studios and shared services into one application; it must not create a parallel second implementation of the same capability.
+
+### Phase A — Establish the integration baseline
+1. Audit the current Android source, backend routes, Gradle configuration, manifest permissions, and existing CI workflow on the active feature branch.
+2. Map every existing class, endpoint, screen, command, and stored-data owner to exactly one canonical module (M01–M19).
+3. Record each item as existing/code-present, partially integrated, planned, platform-dependent, or verified. A class existing in source does not prove its feature is reachable from the app.
+4. Identify duplicate stores, duplicate command handlers, overlapping permissions, repeated network clients, and conflicting feature entry points before changing code.
+
+### Phase B — Shared contracts before broad feature wiring
+1. Define stable module IDs and a single module catalogue/status source for the Command Center.
+2. Use one shared command/intent handoff contract so modules can receive requests and return typed results without depending on MainActivity internals.
+3. Reuse shared services for owner/session checks, consent, storage, network requests, logging, and user-visible confirmation. Do not create a second identity, memory, scheduler, or HTTP stack inside an individual studio.
+4. Keep optional modules isolated behind explicit availability/permission checks. A missing provider or denied permission must not break voice, local notes, or other core functions.
+5. Keep external actions (calls, messages, sharing, account changes, purchases, device actuation, exports) behind a fresh owner-confirmation gate.
+
+### Phase C — Connect existing modules in dependency order
+1. M01 identity/access/privacy and M02 core voice/conversation form the shared trust and interaction foundation.
+2. M07 personal secretary and M09 memory connect through one owner-controlled data layer; M08 orchestrates only approved actions.
+3. M03 research/learning and M04 app knowledge use shared validated data connectors; M05 phone control and M06 communication use explicit action/confirmation contracts.
+4. M13 security and M14 diagnostics consume only authorized, minimized signals and preserve auditability.
+5. M10 vision, M11 creator, M12 development/data, M15 UI, M16 connected ecosystem, M17 connectivity, M18 simulation/engineering, and M19 practical intelligence integrate through the same module and permission contracts.
+6. Existing specialized studios remain submodules/adapters of their canonical owner. Do not re-add their basic feature as a separate standalone module.
+
+### Phase D — Verification gates
+- Compile/build after each coherent integration batch; do not combine unrelated high-risk refactors in one unreviewed change.
+- Add unit/instrumentation tests for module registration, routing, permission denial, unavailable providers, cancellation, duplicate prevention, and confirmation gates.
+- Run backend syntax/tests and Android Gradle checks in CI; record exact run/commit evidence.
+- Test the install and real workflows on the Poco M4 Pro 4G, including offline mode, MIUI background restrictions, app restart, denied permissions, and interrupted workflows.
+- Keep CI success, device verification, and release readiness as separate statuses.
+- Do not merge to main or call the whole product complete merely because the architecture document or module catalogue exists.
+
+### Change-control rule
+Work on a dedicated JARVIS feature branch. Preserve the current main branch and the separate Even project. Each integration batch must state: canonical module(s), existing code reused, new code added, duplicate checks, files changed, build/test evidence, and remaining device checks. The owner reviews the resulting pull request before merge.
