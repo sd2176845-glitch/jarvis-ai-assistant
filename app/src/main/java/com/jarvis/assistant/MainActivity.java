@@ -1628,7 +1628,8 @@ public class MainActivity extends Activity {
                 "Connectivity Intelligence • Network / Offline / Satellite",
                 "Simulation & Engineering Studio • Virtual Lab / 3D Design",
                 "Practical Intelligence Suite • Emergency / Legal / Vehicle",
-                "Display & Accessibility Studio • Text / Contrast"
+                "Display & Accessibility Studio • Text / Contrast",
+                "Image Text Reader • Local OCR"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1684,6 +1685,7 @@ public class MainActivity extends Activity {
                     else if (which == 36) SimulationEngineeringStudio.show(MainActivity.this, status, transcript);
                     else if (which == 37) PracticalIntelligenceStudio.show(MainActivity.this, status, transcript);
                     else if (which == 38) DisplayAccessibilityStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 39) ImageOcrStudio.chooseImage(MainActivity.this);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -2187,6 +2189,12 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             status.setText("COULD NOT START MICROPHONE");
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ImageOcrStudio.handleResult(this, requestCode, resultCode, data);
     }
 
     @Override
