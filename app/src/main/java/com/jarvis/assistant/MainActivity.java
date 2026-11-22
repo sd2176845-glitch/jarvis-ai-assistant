@@ -359,19 +359,73 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
-        String notes = getSavedNotes();
-        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
+        String[] actions = {"Add task / note", "Set JARVIS reminder", "Set Android alarm", "New calendar event"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\n\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
-                .setPositiveButton("Add task", (d, w) -> showNotesDialog())
-                .setNeutralButton("Set alarm", (d, w) -> {
-                    try {
-                        Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
-                        alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
-                        startActivity(alarm);
-                    } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                })
-                .setNegativeButton("New event", (d, w) -> showCalendarEventDraftDialog()).show();
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) showNotesDialog();
+                    else if (which == 1) showCreateReminderDialog();
+                    else if (which == 2) {
+                        try {
+                            Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
+                            alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
+                            startActivity(alarm);
+                        } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
+                    } else showCalendarEventDraftDialog();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showCreateReminderDialog() {
+        EditText titleInput = new EditText(this);
+        titleInput.setHint("Reminder title");
+        titleInput.setSingleLine(true);
+        new AlertDialog.Builder(this).setTitle("JARVIS • New reminder")
+                .setMessage("Choose a future date and time. JARVIS will post a notification; Android battery controls may delay it.")
+                .setView(titleInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Choose date & time", (dialog, which) -> {
+                    String title = titleInput.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("REMINDER TITLE REQUIRED");
+                        return;
+                    }
+                    java.util.Calendar chosen = java.util.Calendar.getInstance();
+                    chosen.add(java.util.Calendar.MINUTE, 5);
+                    new android.app.DatePickerDialog(this, (dateView, year, month, day) -> {
+                        chosen.set(java.util.Calendar.YEAR, year);
+                        chosen.set(java.util.Calendar.MONTH, month);
+                        chosen.set(java.util.Calendar.DAY_OF_MONTH, day);
+                        new android.app.TimePickerDialog(this, (timeView, hour, minute) -> {
+                            chosen.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                            chosen.set(java.util.Calendar.MINUTE, minute);
+                            chosen.set(java.util.Calendar.SECOND, 0);
+                            chosen.set(java.util.Calendar.MILLISECOND, 0);
+                            long triggerAt = chosen.getTimeInMillis();
+                            if (triggerAt <= System.currentTimeMillis()) {
+                                status.setText("CHOOSE A FUTURE TIME");
+                                return;
+                            }
+                            int reminderId = preferences.getInt("reminder_id_counter", 2000) + 1;
+                            preferences.edit().putInt("reminder_id_counter", reminderId).apply();
+                            Intent alarmIntent = new Intent(this, ReminderReceiver.class);
+                            alarmIntent.putExtra(ReminderReceiver.EXTRA_TITLE, title);
+                            alarmIntent.putExtra(ReminderReceiver.EXTRA_ID, reminderId);
+                            android.app.PendingIntent pending = android.app.PendingIntent.getBroadcast(
+                                    this, reminderId, alarmIntent,
+                                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+                            android.app.AlarmManager manager = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+                            if (manager == null) {
+                                status.setText("REMINDER SERVICE UNAVAILABLE");
+                                return;
+                            }
+                            manager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pending);
+                            status.setText("JARVIS REMINDER SCHEDULED");
+                            speak("Reminder set: " + title);
+                        }, chosen.get(java.util.Calendar.HOUR_OF_DAY),
+                                chosen.get(java.util.Calendar.MINUTE), false).show();
+                    }, chosen.get(java.util.Calendar.YEAR),
+                            chosen.get(java.util.Calendar.MONTH),
+                            chosen.get(java.util.Calendar.DAY_OF_MONTH)).show();
+                }).show();
     }
 
     private void showConnectedSystems() {
