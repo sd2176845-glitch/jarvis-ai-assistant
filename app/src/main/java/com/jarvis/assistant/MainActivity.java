@@ -1451,9 +1451,10 @@ public class MainActivity extends Activity {
                 })
                 .setNegativeButton("More", (dialog, which) ->
                         new AlertDialog.Builder(this).setTitle("Workflow options")
-                                .setItems(new String[]{"View step history", "Reset checklist", "Close"}, (d, option) -> {
+                                .setItems(new String[]{"View step history", "Duplicate workflow", "Reset checklist", "Close"}, (d, option) -> {
                                     if (option == 0) showManualWorkflowHistory(item, steps);
-                                    else if (option == 1) {
+                                    else if (option == 1) duplicateManualWorkflow(workflows, item, steps);
+                                    else if (option == 2) {
                                         try {
                                             item.put("done", new org.json.JSONArray());
                                             item.put("done_at", new org.json.JSONArray());
@@ -1466,6 +1467,32 @@ public class MainActivity extends Activity {
                                         showWorkflowStudio();
                                     }
                                 }).show()).show();
+    }
+
+    private void duplicateManualWorkflow(org.json.JSONArray workflows,
+                                         org.json.JSONObject original,
+                                         org.json.JSONArray steps) {
+        if (workflows == null || workflows.length() >= 50) {
+            status.setText("WORKFLOW LIMIT REACHED • NOTHING DUPLICATED");
+            return;
+        }
+        try {
+            org.json.JSONObject copy = new org.json.JSONObject();
+            String title = "Copy of " + original.optString("title", "Workflow");
+            if (title.length() > 60) title = title.substring(0, 60);
+            copy.put("title", title);
+            copy.put("steps", new org.json.JSONArray(steps.toString()));
+            copy.put("done", new org.json.JSONArray());
+            copy.put("done_at", new org.json.JSONArray());
+            copy.put("created_at", System.currentTimeMillis());
+            copy.put("updated_at", System.currentTimeMillis());
+            workflows.put(copy);
+            saveManualWorkflows(workflows);
+            status.setText("WORKFLOW DUPLICATED • NEW CHECKLIST STARTS EMPTY");
+            showWorkflowStudio();
+        } catch (org.json.JSONException e) {
+            status.setText("WORKFLOW COULD NOT BE DUPLICATED");
+        }
     }
 
     private void showManualWorkflowHistory(org.json.JSONObject item, org.json.JSONArray steps) {
