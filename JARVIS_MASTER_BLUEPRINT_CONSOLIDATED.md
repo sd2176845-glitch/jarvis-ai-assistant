@@ -363,3 +363,16 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Tests:** three focused JUnit tests added; inherited CI runs unit tests before APK build. CI result pending for this branch.
 - **Device verification:** pending on Poco M4 Pro 4G.
 - **Anti-duplication:** no second task/reminder store, memory store or smart-home inventory. JARVIS only; Even untouched.
+
+
+## 8. Implementation status addendum — M01 Batch B15 (2026-11-22)
+
+**Owner Privacy Studio — code-present; CI and Poco device verification pending.** This batch upgrades the existing Privacy controls entry rather than creating a duplicate menu module.
+
+1. **Permission & Access Review:** read-only runtime permission and special-access status for microphone, contacts, phone state, calling, SMS receipt, notifications (Android 13+), overlay and JARVIS accessibility. Offers Android settings handoffs; it does not request or alter permissions.
+2. **Local Data Inventory:** reports counts/character lengths only for existing notes, recent AI context, structured tasks, workflows, timeline, knowledge graph, idea versions and vehicle records, plus encrypted archive presence. It does not show underlying content or create a second data store. Malformed JSON is surfaced as unreadable, not empty.
+3. **Sanitized Privacy Summary Export:** explicit owner confirmation followed by Android share chooser; exports permission states and aggregate counts only, excluding private content and identifiers.
+
+**Files:** `OwnerPrivacyStudio.java`, `OwnerPrivacyRules.java`, `OwnerPrivacyRulesTest.java`, and the existing `MainActivity.showPrivacyOptions()` method upgraded in place. No new permissions, background collection, network requests, data stores or API keys.
+
+**Tests:** three JUnit tests cover permission wording, JSON count/corruption behavior, and content-free export boundaries. CI has not yet completed for this branch. Poco M4 Pro 4G physical-device verification remains pending. Keep the batch stacked on M19 PR #40; do not merge without owner approval. JARVIS only; Even untouched.
