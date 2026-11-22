@@ -541,6 +541,7 @@ public class MainActivity extends Activity {
     }
 
     // M09 extends the existing notes and recent-conversation stores; it creates no parallel memory database.
+    // The timeline is owner-created and stored as one structured key in the existing JARVIS preferences.
     private void showPersonalMemoryVault() {
         String savedNotes = getSavedNotes();
         SharedPreferences conversationStore = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE);
@@ -549,21 +550,176 @@ public class MainActivity extends Activity {
                 + (savedNotes.isEmpty() ? "No saved notes yet." : savedNotes)
                 + "\n\nRECENT CONVERSATION CONTEXT\n"
                 + (recentConversation.isEmpty() ? "No recent conversation context." : recentConversation)
-                + "\n\nAll information is stored locally in the existing JARVIS stores. Review before exporting.";
-        ScrollView scroll = new ScrollView(this);
+                + "\n\nTIMELINE\n"
+                + getPersonalTimelineCount() + " owner-created entries"
+                + "\n\nAll information stays in existing on-device JARVIS storage. Review before exporting.";
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
         TextView content = new TextView(this);
         content.setText(summary);
         content.setTextColor(Color.WHITE);
         content.setTextSize(14);
-        content.setPadding(28, 20, 28, 20);
-        scroll.addView(content);
+        content.setPadding(28, 20, 28, 16);
+        panel.addView(content, new LinearLayout.LayoutParams(-1, -2));
+        Button editNotes = new Button(this);
+        editNotes.setText("EDIT SAVED NOTES");
+        editNotes.setOnClickListener(v -> showEditVaultNotes());
+        panel.addView(editNotes, new LinearLayout.LayoutParams(-1, -2));
+        Button timeline = new Button(this);
+        timeline.setText("OPEN PERSONAL TIMELINE");
+        timeline.setOnClickListener(v -> showPersonalTimeline());
+        panel.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(panel);
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Personal Memory Vault")
                 .setView(scroll)
-                .setPositiveButton("Edit saved notes", (d, w) -> showEditVaultNotes())
-                .setNeutralButton("Export", (d, w) -> exportPersonalMemory())
+                .setPositiveButton("Export", (d, w) -> exportPersonalMemory())
                 .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
+                .setNeutralButton("Close", null)
                 .show();
+    }
+
+    private org.json.JSONArray readPersonalTimeline() {
+        try {
+            return new org.json.JSONArray(preferences.getString("memory_timeline_v1", "[]"));
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private int getPersonalTimelineCount() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        return entries == null ? 0 : entries.length();
+    }
+
+    private void savePersonalTimeline(org.json.JSONArray entries) {
+        if (entries != null) {
+            preferences.edit().putString("memory_timeline_v1", entries.toString()).apply();
+        }
+    }
+
+    // Timeline entries are added only when the owner explicitly creates them; no background capture.
+    private void showPersonalTimeline() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        if (entries == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Personal Timeline")
+                    .setMessage("Timeline data could not be read. Existing information has not been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            org.json.JSONObject item = entries.optJSONObject(i);
+            if (item == null) {
+                labels.add("Unavailable entry");
+                continue;
+            }
+            long createdAt = item.optLong("createdAt", 0L);
+            String date = createdAt > 0
+                    ? new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                            .format(new java.util.Date(createdAt))
+                    : "Date unavailable";
+            labels.add(item.optString("title", "Untitled entry") + " • " + date);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Personal Timeline")
+                .setItems(labels.toArray(new String[0]), (d, which) -> {
+                    org.json.JSONObject item = entries.optJSONObject(which);
+                    if (item == null) return;
+                    long createdAt = item.optLong("createdAt", 0L);
+                    String date = createdAt > 0
+                            ? new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                                    .format(new java.util.Date(createdAt))
+                            : "Date unavailable";
+                    new AlertDialog.Builder(this)
+                            .setTitle(item.optString("title", "Timeline entry"))
+                            .setMessage(date + "\n\n" + item.optString("detail", ""))
+                            .setPositiveButton("Close", null).show();
+                })
+                .setPositiveButton("Add entry", (d, w) -> showAddPersonalTimelineEntry())
+                .setNeutralButton("Delete entry", (d, w) -> showDeletePersonalTimelineEntry())
+                .setNegativeButton("Back", (d, w) -> showPersonalMemoryVault())
+                .show();
+    }
+
+    private void showAddPersonalTimelineEntry() {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(24, 8, 24, 8);
+        EditText titleInput = new EditText(this);
+        titleInput.setSingleLine(true);
+        titleInput.setHint("Milestone or event title");
+        form.addView(titleInput, new LinearLayout.LayoutParams(-1, -2));
+        EditText detailInput = new EditText(this);
+        detailInput.setHint("Details (optional)");
+        detailInput.setMinLines(3);
+        detailInput.setGravity(Gravity.TOP | Gravity.START);
+        detailInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        form.addView(detailInput, new LinearLayout.LayoutParams(-1, -2));
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Add timeline entry")
+                .setMessage("Only information you enter here is saved. JARVIS does not collect events in the background.")
+                .setView(form)
+                .setPositiveButton("Save entry", (d, w) -> {
+                    String title = titleInput.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("TIMELINE ENTRY NEEDS A TITLE");
+                        return;
+                    }
+                    org.json.JSONArray entries = readPersonalTimeline();
+                    if (entries == null) {
+                        status.setText("TIMELINE DATA UNAVAILABLE • NOTHING CHANGED");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("detail", detailInput.getText().toString().trim());
+                        item.put("createdAt", System.currentTimeMillis());
+                        entries.put(item);
+                        savePersonalTimeline(entries);
+                        status.setText("TIMELINE ENTRY SAVED ON DEVICE");
+                        showPersonalTimeline();
+                    } catch (org.json.JSONException e) {
+                        status.setText("TIMELINE ENTRY COULD NOT BE SAVED");
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showDeletePersonalTimelineEntry() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        if (entries == null || entries.length() == 0) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Delete timeline entry")
+                    .setMessage("There are no timeline entries to delete.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            org.json.JSONObject item = entries.optJSONObject(i);
+            labels.add(item == null ? "Unavailable entry" : item.optString("title", "Untitled entry"));
+        }
+        new AlertDialog.Builder(this).setTitle("Choose an entry to delete")
+                .setItems(labels.toArray(new String[0]), (d, which) -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Delete this timeline entry?")
+                            .setMessage("Only the selected owner-created entry will be deleted.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete", (confirm, selected) -> {
+                                org.json.JSONArray latest = readPersonalTimeline();
+                                if (latest != null && which < latest.length()) {
+                                    latest.remove(which);
+                                    savePersonalTimeline(latest);
+                                    status.setText("TIMELINE ENTRY DELETED");
+                                    showPersonalTimeline();
+                                }
+                            }).show();
+                })
+                .setNegativeButton("Cancel", null).show();
     }
 
     private void showEditVaultNotes() {
@@ -615,11 +771,27 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String conversation = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE)
                 .getString("conversation", "");
+        org.json.JSONArray timeline = readPersonalTimeline();
+        StringBuilder timelineText = new StringBuilder();
+        if (timeline != null) {
+            for (int i = 0; i < timeline.length(); i++) {
+                org.json.JSONObject item = timeline.optJSONObject(i);
+                if (item == null) continue;
+                timelineText.append(item.optString("title", "Untitled entry"))
+                        .append(" • ")
+                        .append(item.optLong("createdAt", 0L))
+                        .append("\n")
+                        .append(item.optString("detail", ""))
+                        .append("\n\n");
+            }
+        }
         String export = "JARVIS PERSONAL MEMORY EXPORT\n\nSAVED NOTES\n"
                 + (notes.isEmpty() ? "(none)" : notes)
                 + "\n\nRECENT CONVERSATION CONTEXT\n"
                 + (conversation.isEmpty() ? "(none)" : conversation)
-                + "\n\nExported by owner from this device.";
+                + "\n\nOWNER-CREATED TIMELINE\n"
+                + (timelineText.length() == 0 ? "(none)" : timelineText.toString())
+                + "\nExported by owner from this device.";
         try {
             Intent share = new Intent(Intent.ACTION_SEND);
             share.setType("text/plain");
