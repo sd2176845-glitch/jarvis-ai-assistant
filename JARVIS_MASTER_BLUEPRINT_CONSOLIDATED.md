@@ -200,3 +200,7 @@ This table records only changes actually made on this development branch. It doe
 
 ## M07 implementation update — Structured Task Manager
 The existing Tasks & reminders hub is being upgraded in place with a local structured task list: create tasks, mark complete/reopen, and delete. Legacy free-form notes remain intact in their existing keys and are shown separately; no duplicate notes store or scheduler is introduced. This implementation is code-present on the feature branch only. CI and Poco device verification are pending.
+
+
+## M08 implementation update — Manual Workflow Studio
+The existing Command Center now includes a Workflow Studio foundation. Owners can create a named checklist (up to 12 steps), mark steps complete, save progress, reset a checklist and delete it. The workflow records use a dedicated local preference key and do not duplicate the M07 task list or notes. This first increment is deliberately manual-only: no background triggers, autonomous execution, cross-app actions, calls/messages or device-setting changes. Code is present on the feature branch; CI and target-device verification are pending.
