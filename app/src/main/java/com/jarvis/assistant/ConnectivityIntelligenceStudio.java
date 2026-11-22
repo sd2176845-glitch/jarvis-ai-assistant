@@ -50,7 +50,7 @@ public final class ConnectivityIntelligenceStudio {
                 } else {
                     NetworkCapabilities caps = manager.getNetworkCapabilities(active);
                     if (caps == null) {
-                        report = "NETWORK: Active network exists, but capability details are unavailable.";
+                        report = ConnectivityIntelligenceRules.networkSnapshot(true, false, "", false, false, false);
                     } else {
                         StringBuilder transports = new StringBuilder();
                         appendTransport(transports, caps, NetworkCapabilities.TRANSPORT_WIFI, "Wi-Fi");
@@ -61,12 +61,9 @@ public final class ConnectivityIntelligenceStudio {
 
                         boolean internet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
                         boolean validated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
-                        report = "NETWORK TYPE: " + transports
-                                + "\nINTERNET CAPABILITY: " + (internet ? "Reported" : "Not reported")
-                                + "\nVALIDATED INTERNET: " + (validated ? "Yes" : "Not confirmed")
-                                + "\nMETERED: " + (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                                    ? "Not metered (Android report)" : "Metered or unknown")
-                                + "\n\nThis is a read-only Android network snapshot. A connected network does not guarantee that every website or service is reachable. JARVIS does not read Wi-Fi names, IP addresses, passwords or nearby network details.";
+                        report = ConnectivityIntelligenceRules.networkSnapshot(true, true, transports.toString(),
+                                internet, validated,
+                                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED));
                     }
                 }
             }
@@ -88,18 +85,7 @@ public final class ConnectivityIntelligenceStudio {
     }
 
     private static void showOfflineMatrix(Activity activity) {
-        String report =
-                "AVAILABLE LOCALLY (subject to phone permissions and installed apps)\n"
-                + "• Time, date and basic battery information\n"
-                + "• Supported app-opening commands\n"
-                + "• Saved notes, structured tasks and manual checklists\n"
-                + "• Locally saved JARVIS inventory and preferences\n"
-                + "• Speech output when a compatible offline TTS voice is installed\n\n"
-                + "INTERNET REQUIRED\n"
-                + "• Online JARVIS AI conversations and standalone AI studios\n"
-                + "• Public country, PIN-code, dictionary, weather, currency and holiday lookups\n"
-                + "• Any provider-backed research or online learning request\n\n"
-                + "This is a capability guide based on the app's design, not a live test of every feature. Android, app permissions, installed services and provider availability can change what works.";
+        String report = ConnectivityIntelligenceRules.offlineCapabilityMatrix()
         new AlertDialog.Builder(activity).setTitle("Offline Capability Matrix")
                 .setMessage(report).setPositiveButton("Close", null).show();
     }
@@ -144,16 +130,7 @@ public final class ConnectivityIntelligenceStudio {
 
     private static void confirmAndGenerate(Activity activity, TextView status, TextView transcript,
                                            String strategy, String details) {
-        String prompt = "Create a high-level, educational connectivity plan for this selected topic: "
-                + strategy + ". Owner-entered brief: " + details
-                + ". Explain suitable architecture options, compatibility questions, privacy and security principles, "
-                + "reliability limits, power/cost considerations, outage fallback and which claims must be checked "
-                + "against official provider or manufacturer documentation. For satellite/CubeSat topics, explain "
-                + "concepts, legitimate service selection and educational system architecture only. Do not provide "
-                + "radio-transmission procedures, frequencies, interference methods, unauthorized satellite/network "
-                + "access, credential handling, network scanning, security bypasses or covert monitoring. "
-                + "Do not claim to configure, connect, test or purchase anything. Separate known facts from assumptions. "
-                + "Return a concise plan with safe next steps.";
+        String prompt = ConnectivityIntelligenceRules.plannerPrompt(strategy, details)
         new AlertDialog.Builder(activity).setTitle("Send connectivity brief?")
                 .setMessage("Only the brief you entered and the selected topic will be sent to JARVIS AI. Do not include passwords, Wi-Fi keys, account tokens, IP/MAC addresses or private identifiers. This planner will not configure networks or connect to satellite services.")
                 .setNegativeButton("Cancel", null)
