@@ -42,7 +42,7 @@ public final class SoftwareDevelopmentStudio {
                                                 + "Separate required features from optional future improvements. Do not invent credentials or expose secrets. "
                                                 + "Do not design covert surveillance, backdoors, credential theft, malware, unauthorized access or harmful functionality. "
                                                 + "Do not claim files were created or code was executed; return a reviewable plan only.",
-                                        "PROJECT BLUEPRINT READY"))))
+                                        "PROJECT BLUEPRINT READY")))
                 .setNegativeButton("Cancel", null).show();
     }
 
@@ -74,7 +74,7 @@ public final class SoftwareDevelopmentStudio {
                                                 + "Do not execute the code, access external files or invent test results. "
                                                 + "Do not review or improve malware, credential theft, covert surveillance, backdoors, evasion or unauthorized access; "
                                                 + "redirect to benign examples.",
-                                        "CODE REVIEW READY"))))
+                                        "CODE REVIEW READY")))
                 .setNegativeButton("Cancel", null).show();
     }
 
