@@ -300,8 +300,32 @@ public final class DataIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Saved Data Reports")
                 .setItems(labels, (dialog, which) -> {
                     org.json.JSONObject item = reports.optJSONObject(which);
-                    if (item != null) showResult(activity, "Data Insight Report",
-                            "AGGREGATE-ONLY REPORT • REVIEW BEFORE USE\\n\\n" + item.optString("content", ""));
+                    if (item != null) {
+                        String report = "AGGREGATE-ONLY REPORT • REVIEW BEFORE USE\\n\\n" + item.optString("content", "");
+                        new AlertDialog.Builder(activity).setTitle("Data Insight Report")
+                                .setMessage(report)
+                                .setPositiveButton("Share report", (d, w) -> {
+                                    try {
+                                        android.content.Intent share = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                                        share.setType("text/plain");
+                                        share.putExtra(android.content.Intent.EXTRA_SUBJECT, "JARVIS Data Insight Report");
+                                        share.putExtra(android.content.Intent.EXTRA_TEXT, report);
+                                        activity.startActivity(android.content.Intent.createChooser(share, "Review and choose destination"));
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Report sharing is unavailable.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNeutralButton("Delete report", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this report?")
+                                                .setMessage("This removes only the selected locally saved report.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (cd, cw) -> {
+                                                    reports.remove(which);
+                                                    prefs.edit().putString(REPORTS_KEY, reports.toString()).apply();
+                                                    Toast.makeText(activity, "Report deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .setNegativeButton("Close", null).show();
+                    }
                 })
                 .setNegativeButton("Close", null)
                 .setNeutralButton("Delete all", (dialog, which) ->
