@@ -177,7 +177,6 @@ The following modules are approved product decisions and are **planned**, not im
 - [ ] Explain where supported features and settings are located and how they work, using current app/version context where available.
 - [ ] Refresh app knowledge through online research rather than claiming automatic or guaranteed awareness of every new app or update.
 - [ ] Keep app knowledge separate from app-control permissions: knowing an app's features does not grant access to its private data or controls.
-
 ### Priority 10 — Universal Application Control Engine
 - [ ] Open installed apps through supported Android intents and app launch APIs.
 - [ ] Operate supported app features and UI controls only through documented integrations, Android APIs or user-enabled Accessibility Service actions that comply with platform and app rules.
@@ -358,7 +357,6 @@ These entries update the existing Priority 20 decision; they do not create a sec
 ## Audit addendum — 2026-11-19 (recorded ideas, branch-only features and build failures)
 
 ### Recorded ideas cross-check
-
 The screenshot/recording concepts reviewed on 2026-11-19 have been compared against the existing blueprint. Do not create duplicate modules for ideas already represented:
 
 - [x] Human Intelligence 1.0 — covered by Priority 8.
@@ -537,8 +535,7 @@ This approved expansion adds capabilities beyond UI design and core intelligence
 - [ ] **Media intelligence:** analyze only owner-selected image, video, audio or document files using supported on-device or approved backend capabilities. Preview what will be processed and sent, disclose provider/data handling, limit file size and retention, and never silently scan the gallery or microphone recordings.
 - [ ] **Personal finance organizer:** support manually entered expenses, budgets, savings goals and summaries. Do not request banking credentials or perform transfers, purchases or financial transactions; clearly distinguish user-entered figures from verified account data.
 - [ ] **Multilingual language intelligence:** improve Hindi, Hinglish, English and planned Bengali understanding, translation, transcription and speech output according to the language services actually available on the device/backend. Show fallback behavior and do not claim a language is verified until tested.
-- [ ] **Plugin and extension framework:** define a reviewed registry for optional modules with publisher/source identity, declared permissions, compatibility checks, versioning, disable/uninstall controls and isolated failure handling. Require owner approval before installing or granting access; reject unknown code and never allow a plugin to weaken core privacy/security controls.
-- [ ] **Expansion architecture:** use stable, versioned interfaces for future AI providers, apps, services, hardware and storage destinations. Keep integrations modular and optional so a failed or removed connector does not break core voice, notes, offline commands or existing features.
+- [ ] **Plugin and extension framework:** define a reviewed registry for optional modules with publisher/source identity, declared permissions, compatibility checks, versioning, disable/uninstall controls and isolated failure handling. Require owner approval before installing or granting access; reject unknown code and never allow a plugin to weaken core privacy/security controls.- [ ] **Expansion architecture:** use stable, versioned interfaces for future AI providers, apps, services, hardware and storage destinations. Keep integrations modular and optional so a failed or removed connector does not break core voice, notes, offline commands or existing features.
 - [ ] **Acceptance tests:** verify explicit media selection, backup completion and integrity checks, original-file deletion while the vault copy remains readable, separate vault-copy deletion confirmation, restore preview and recovery, encryption/key-loss handling, storage-full/network-interruption behavior, provider disconnect/revoke, sync conflicts, guest-mode isolation, plugin permission denial, unsupported-device handling and regression of existing JARVIS features on the target Poco M4 Pro 4G and any required connected services.
 
 **Important media-retention clarification:** JARVIS cannot recover a photo, video or song after it has been permanently deleted unless a separate copy was successfully backed up beforehand. The intended protection is a verified, independent backup made before deletion—not magical recovery from the phone. Android storage permissions, available space, cloud-account limits, network access and copyright rules apply. These capabilities remain planned until implemented and tested.
@@ -717,7 +714,6 @@ The owner approved the following ten concepts for the JARVIS master blueprint. T
 - [ ] **Scientific Discovery Mode:** provide a research workspace for owner-defined scientific or engineering questions. Search and compare credible publications, distinguish established findings from hypotheses, summarize methods and limitations, and suggest safe, ethical, literature-grounded experiments. Cite sources and dates; do not fabricate studies or present an untested hypothesis as a discovery.
 - [ ] **Reality Check Engine:** add a verification pass for important factual answers and plans. Check claims against available sources, identify contradictions, stale information, unsupported assumptions and missing evidence, then label each conclusion as supported, uncertain or unverified. Reuse Priority 22's live knowledge/evidence engine; never claim independent verification when no source or check was available.
 - [ ] **Modular Expansion & Robotics Interface:** define stable, versioned interfaces for future owner-approved hardware modules, sensors, companion devices and robotics controllers. Require explicit device pairing, authentication, capability discovery, least-privilege permissions, visible connection status, command allowlists, emergency stop and manual override. Begin with read-only telemetry and simulated devices; physical actuation must require risk review and explicit owner authorization. Do not imply that the current Poco app can directly control arbitrary hardware.
-
 **Shared acceptance tests:** verify agent isolation and disagreement handling; hypothetical/real-action separation; idea provenance and deletion; test evidence integrity; microphone consent and offline fallback; decision criteria transparency; camera permission and no background capture; source accuracy and citation freshness; uncertainty labels; hardware authentication, least privilege, simulated-device tests, stop controls and safe failure when a module disconnects.
 
 **Relationship to existing priorities:** Priority 2 retains translation/API foundations; Priority 5 retains vision integrations; Priority 11 retains communication intelligence; Priority 22 retains multi-AI orchestration, decision support, research/evidence and simulation foundations; Priority 27 retains the personal knowledge vault. Priority 33 adds integrated owner-facing experiences on top of those foundations rather than duplicating them.
@@ -791,3 +787,75 @@ The owner requested a dedicated Workflows capability alongside Priorities 0–35
 **Relationship to existing priorities:** Priority 4 remains the command-chain foundation; Priorities 10–11 remain app and communication action layers; Priority 12 remains the orchestration/initiative layer; Priority 17 and 34 remain scheduling/resource foundations; Priority 7 remains diagnostics; Priorities 33–35 remain connected-device and robotics foundations. Priority 36 coordinates these existing capabilities into owner-controlled workflows without duplicating them.
 
 All Priority 36 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+## Decision addition — 2026-11-20 (Local, Global & Hybrid Intelligence and Independent Connectivity)
+
+The owner approved bringing the newly discussed Project ROY technology concepts into the **JARVIS Master Blueprint** as JARVIS capabilities, not as a separate assistant identity. This is a planning decision only: every item below is **planned, not implemented, built, launched or verified**. Reuse existing foundations and avoid duplicating the resource manager (Priority 34), distributed/connected-device network (Priority 35), online research and APIs (Priority 2), orchestration (Priority 22), and workflow engine (Priority 36).
+
+### Priority 37 — Local, Global & Hybrid Intelligence
+
+- [ ] **Local Intelligence Mode:** provide useful offline capabilities through on-device models where feasible, cached public/reference knowledge, local notes and local command handling. Display the knowledge/update date and model limitations; never describe stale cached information as live or current.
+- [ ] **Global Intelligence Mode:** connect to authorized online search, public knowledge sources, scientific publications and supported APIs for current information. Provide source links, dates/freshness labels, uncertainty and source-quality checks; distinguish retrieved facts from JARVIS reasoning and never imply access to the entire internet or private systems.
+- [ ] **Hybrid Intelligence Mode:** route each task between on-device processing and the configured cloud/online services according to capability, connectivity, latency, cost, battery/resource state, data sensitivity and owner preferences. Keep private content local by default where practical, explain when cloud processing is needed, and offer an offline fallback when possible.
+- [ ] **Global Knowledge & Research Engine:** extend the existing web-search, Scientific Discovery Mode and Knowledge Vault foundations to gather, compare and summarize multilingual public information. Preserve citations and publication dates, detect conflicting or stale sources, maintain provenance, and let the owner review what is saved to long-term project knowledge.
+- [ ] **Multilingual Global Understanding:** support Hindi/Hinglish and English first, with planned Bengali and additional language workflows through the existing translation foundation. Clearly identify unsupported languages and preserve source meaning rather than claiming perfect translation.
+- [ ] **Private Independent Wireless Network:** design a local-only network for owner-authorized devices, enabling device discovery, local messaging/chat, file transfer, a private local server and JARVIS-to-device communication without requiring internet access. Use authenticated pairing, encryption, least-privilege access, visible connection status, revocation and secure defaults. Clearly state that a local network does not itself provide internet access.
+- [ ] **Authorized Satellite Connectivity Research:** add a research and compatibility layer for legally available satellite-internet services and approved terminals. Compare provider coverage, service availability, hardware, subscription/usage costs, latency, power needs and applicable Indian licensing/authorization requirements using current official sources. Do not promise free satellite internet or access to retired, inactive or third-party satellites.
+- [ ] **Future Satellite & Space Technology Research:** create an educational engineering roadmap for learning about CubeSats, communications payloads, ground stations and lawful satellite-data services. Keep simulations and concept designs clearly marked as drafts; any radio transmission, frequency use, satellite operation, launch or space activity must go through qualified supervision, provider/owner authorization and applicable regulatory approvals. Do not imply that the current Poco phone can directly control or launch a satellite.
+
+**Shared acceptance tests:** verify offline operation with network disabled; confirm online answers include working source links and freshness metadata; test hybrid routing against privacy, battery, latency and cost settings; verify cloud requests disclose the data being sent; test local-device authentication, encryption, pairing revocation and unauthorized-device rejection; confirm no internet is claimed on a local-only network; and validate satellite-service claims against current official provider and regulatory information.
+
+**Relationship to existing priorities:** Priority 2 remains the online API and web-search foundation; Priority 22 remains AI orchestration and evidence-based decision support; Priority 27 remains the owner-controlled knowledge vault; Priority 34 remains resource and hardware compatibility intelligence; Priority 35 remains distributed and connected-device foundations; Priority 36 remains workflow orchestration. Priority 37 combines these foundations into explicit Local, Global and Hybrid intelligence modes and an owner-controlled independent-connectivity roadmap without duplicating them.
+
+All Priority 37 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+## Decision addition — 2026-11-22 (New Personal & Practical Intelligence Modules)
+
+The owner approved the following ten additional concepts for inclusion in the JARVIS Master Blueprint. These are **planned blueprint items only**; adding them does not mean they are implemented, built, tested or verified. Reuse existing memory, workflow, knowledge, calendar, diagnostics, research and security foundations wherever possible. Do not create duplicate schedulers, knowledge stores, permission systems or automation engines. Keep JARVIS separate from Even.
+
+### Priority 38 — Personal & Practical Intelligence Suite
+
+- [ ] **Life Management Intelligence:** provide an owner-controlled overview of personal responsibilities, important dates, commitments, goals and pending tasks. Link to existing reminders, calendar handoff, workflows and memory rather than creating duplicate stores. Let the owner choose what is recorded, review/edit/delete entries, and keep private information out of notifications and shared views by default.
+- [ ] **Personal Education & Skill Academy:** create structured learning paths for owner-selected subjects and skills, from beginner to advanced. Include lessons, practice activities, progress tracking, revision plans and project-based learning. Cite reliable learning sources where applicable, distinguish generated explanations from authoritative course material, and adapt difficulty using owner feedback without making unsupported claims about mastery.
+- [ ] **Smart Asset & Inventory Intelligence:** maintain an owner-managed catalog of selected household items, electronics, tools and equipment, including model/serial details when voluntarily entered, purchase date, warranty, receipts, manuals and maintenance history. Support reminders through existing scheduling foundations, encrypted/private storage, export and deletion; do not silently scan receipts, documents or surroundings.
+- [ ] **Disaster Preparedness Intelligence:** provide preparedness checklists and practical planning for hazards such as floods, cyclones, earthquakes and severe weather. Prioritize current official local-authority alerts and emergency guidance, show source and timestamp, support an offline emergency-information pack, and avoid presenting predictions or unverified reports as confirmed warnings.
+- [ ] **Vehicle Intelligence System:** track owner-entered vehicle details, service history, maintenance schedules, fuel/expense records, insurance and document renewal dates. Allow reminders through existing scheduling and workflow systems; protect registration and identity details, and do not claim to diagnose mechanical faults without reliable sensor data or qualified inspection.
+- [ ] **Collaborative Intelligence Network:** let the owner invite explicitly authorized people to selected projects, tasks and knowledge spaces with role-based access, clear sharing previews, revocation, audit history and conflict handling. Keep personal memory and private records separate by default; never expose another person's data or grant access merely because a device is on the same network.
+- [ ] **Environmental Intelligence:** present sourced environmental information such as air quality, pollution, UV index and relevant environmental alerts using supported public data providers. Display location scope, units, timestamp, source and uncertainty; request location only when needed and offer manual location selection or a privacy-preserving alternative.
+- [ ] **Legal Document Intelligence:** help the owner organize and understand user-selected contracts, agreements and official documents; extract key dates, parties, obligations and clauses, and identify questions for a qualified legal professional. Preserve document privacy, show the exact source passage for extracted points, distinguish plain-language explanation from legal advice, and never silently upload documents to external services.
+- [ ] **Intelligent Journey Planner:** plan multi-stop journeys using authorized mapping/transit/travel data, route comparisons, estimated duration and costs, document checklists and owner-configured travel reminders. Show data freshness and assumptions, request location only when needed, and require approval before booking, purchasing, sharing location or changing an external reservation.
+- [ ] **Personal Experience Timeline:** create an owner-curated, searchable timeline of selected milestones, achievements, projects and life events. Reuse the Personal Knowledge Vault and Digital Time Machine foundations; make every entry reviewable, editable, exportable and deletable, with opt-in media attachment and strict privacy controls.
+
+**Shared acceptance tests:** verify owner consent and data minimization; review/edit/delete/export for stored records; no duplicate reminder, calendar or memory systems; source and timestamp display for live alerts and environmental/travel data; offline access to explicitly saved emergency information; role-based collaboration and immediate revocation; document extraction traceability and privacy; approval before external bookings or sharing; and clear separation between informational support and professional diagnosis/advice.
+
+**Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
+
+All Priority 38 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+
+## Implementation status ledger — 2026-11-22
+
+This ledger records source-code changes separately from blueprint planning. A code-present entry is not a claim of a successful build, full feature completion, or target-device verification.
+
+### Priority 0 — Owner authentication and account setup
+
+- **Code present on `feature/jarvis-unified-batch`:** local salted PBKDF2 owner PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, and owner-gated private features are present in the integration branch.
+- **Additional hardening added 2026-11-22:** five failed PIN attempts trigger a 60-second lockout; an unlocked Owner session expires after 15 minutes without an owner-gated interaction.
+- **Still pending:** full private-data surface audit, automated tests, build/lint verification for the latest commit, and physical-device verification on Poco M4 Pro 4G.
+- **Status:** Code present — validation and device testing required. Do not mark Priority 0 complete.
+
+### Priority 4 — Scheduled Learning
+
+- **Code present:** a local topic-review reminder can be scheduled through the existing reminder system.
+- **Still pending:** automated refresh from owner-approved sources, source provenance, pause/disable controls, resource limits, learning history and tests.
+- **Status:** Partial — implementation remains pending.
+
+### Priority 7 / 19 — Diagnostics and Auto Repair
+
+- **Code present:** read-only diagnostics for selected Android capabilities and an owner-approved voice-profile repair with backup and rollback.
+- **Still pending:** broader safe repair workflows, backup/rollback coverage for each supported setting, privacy/security review, automated tests and target-device verification.
+- **Status:** Partial — implementation remains pending.
+
+### Validation policy
+
+Do not mark any of the above as verified until the corresponding build/tests pass and target-device checks are recorded. Keep JARVIS separate from Even.
