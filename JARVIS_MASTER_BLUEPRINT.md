@@ -858,3 +858,6 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - **Science Explorer:** code added; four science subject groups, three difficulty levels, conceptual explanation and review questions; no hazardous experiment instructions; CI/device verification pending.
 - **Technology Learning Roadmap:** code added; staged plans for Android, web, AI basics, defensive digital safety and computer-science foundations; CI/device verification pending.
 - All modes use the memory-isolated AI request path and ask before submission; no new permissions or persistent learner history.
+
+
+**B07 verification update (2026-11-22):** code/documentation head `a9cd77178709102a9bc746840f9c6e44b0f496b8` passed GitHub Actions run #581 (`45045554373`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763640351`, SHA-256 `648188031f44642066caf26da29fe54d3a14dec55c84095f7468ed01a2672ccf`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #29 is open and unmerged.
