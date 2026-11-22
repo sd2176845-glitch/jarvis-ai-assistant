@@ -68,7 +68,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
 - [ ] Add user-configurable wake-word/listening preferences only where the selected recognition engine supports them; explain battery and privacy trade-offs and retain a clear manual stop/pause control.
-- [ ] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data.
+- [x] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data (code present — device test needed).
 
 ### Priority 2 — Online intelligence and API integrations
 - [ ] Native weather integration using Open-Meteo; show location, units, timestamp and API errors clearly.
