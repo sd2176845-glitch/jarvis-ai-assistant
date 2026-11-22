@@ -13,15 +13,27 @@ import android.widget.Toast;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions;
 
 import java.io.IOException;
 
 /** Owner-selected PDF first-page OCR. Rendering and recognition stay on-device. */
 public final class DocumentOcrStudio {
     public static final int REQUEST_PDF = 7315;
+    private static boolean useDevanagari;
     private DocumentOcrStudio() { }
 
     public static void choosePdf(Activity activity) {
+        String[] scripts = {"Latin script", "Devanagari script • Hindi"};
+        new AlertDialog.Builder(activity).setTitle("Choose PDF text script")
+                .setMessage("The first page is processed locally. Bengali and other scripts are not currently supported by this PDF reader.")
+                .setItems(scripts, (dialog, which) -> {
+                    useDevanagari = which == 1;
+                    openPdfPicker(activity);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private static void openPdfPicker(Activity activity) {
         new AlertDialog.Builder(activity).setTitle("JARVIS • PDF text reader")
                 .setMessage("Choose a PDF. JARVIS will OCR only the first page on this phone. The document and extracted text are not uploaded or saved.")
                 .setNegativeButton("Cancel", null)
@@ -71,8 +83,9 @@ public final class DocumentOcrStudio {
     }
 
     private static void runOcr(Activity activity, Bitmap bitmap) {
-        com.google.mlkit.vision.text.TextRecognizer recognizer =
-                TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+        com.google.mlkit.vision.text.TextRecognizer recognizer = useDevanagari
+                ? TextRecognition.getClient(new DevanagariTextRecognizerOptions.Builder().build())
+                : TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         recognizer.process(InputImage.fromBitmap(bitmap, 0))
                 .addOnSuccessListener(result -> {
                     recognizer.close();
