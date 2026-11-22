@@ -612,3 +612,31 @@
 - **Validation:** added `B21TaskRules` for title length, allowed category/priority values, and strict optional ISO date validation, with JUnit coverage.
 - **Scope count:** 3 of the 50 planned B21 capabilities have an initial code implementation (task category, priority, due date). The other 47 remain unimplemented or require audit; no claim that the full batch is complete.
 - **CI:** GitHub Actions runs were triggered for the MainActivity change and the new validation/test files; final conclusions are pending. Device testing on Poco M4 Pro 4G is pending.
+
+
+### B21 implementation update — 18 integrated capability improvements
+
+**Implemented on the B21 branch (code-present; latest branch CI/device status tracked separately):**
+
+1. Task categories in the existing structured task store.
+2. Task priority levels in the same store.
+3. Optional task due dates.
+4. Completion timestamps and a completed-task history view.
+5. Owner-controlled task editing for title, category, priority and due date.
+6. Overdue detection and visible overdue labels.
+7. Task overview counts for open, completed and overdue tasks.
+8. Local task-title search.
+9. Daily agenda based on owner-entered due dates.
+10. Category filter.
+11. Priority filter.
+12. Read-only dry-run preview for existing manual workflows.
+13. Last-updated timestamp for manual workflow progress.
+14. Configurable speech-recognition locale: en-IN, hi-IN, bn-IN.
+15. Repeat last spoken response.
+16. Stop speech output without cancelling other app features.
+17. Editable message preview before handing off to the messaging app; JARVIS does not send.
+18. Contact match disambiguation before the existing explicit call confirmation.
+
+**Automated tests added:** task metadata/date validation, overdue detection, workflow preview output, allowlisted speech locales, and message draft validation. CI is triggered per commit; only completed successful runs count as verified. Poco device testing remains pending.
+
+**Scope note:** these are 18 B21 capability improvements/extensions, not a claim that all 50 planned items are complete. Existing B20 capabilities are reused rather than duplicated. Provider-backed sign-in, OCR, and other integrations that require external credentials/dependencies remain gated until their safe configuration and test requirements are established.
