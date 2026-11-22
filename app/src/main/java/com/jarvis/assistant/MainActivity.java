@@ -1517,9 +1517,6 @@ public class MainActivity extends Activity {
     }
 
     private void showVoiceSettings() {
-        if (tts == null || !tts.isSpeaking() && !tts.getDefaultEngine().isEmpty()) {
-            // The voice engine may still be initializing; the picker safely reports that state.
-        }
         if (tts == null) {
             status.setText("VOICE ENGINE IS NOT READY");
             return;
