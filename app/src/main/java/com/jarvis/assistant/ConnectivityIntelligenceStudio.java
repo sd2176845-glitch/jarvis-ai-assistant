@@ -85,7 +85,7 @@ public final class ConnectivityIntelligenceStudio {
     }
 
     private static void showOfflineMatrix(Activity activity) {
-        String report = ConnectivityIntelligenceRules.offlineCapabilityMatrix()
+        String report = ConnectivityIntelligenceRules.offlineCapabilityMatrix();
         new AlertDialog.Builder(activity).setTitle("Offline Capability Matrix")
                 .setMessage(report).setPositiveButton("Close", null).show();
     }
@@ -130,7 +130,7 @@ public final class ConnectivityIntelligenceStudio {
 
     private static void confirmAndGenerate(Activity activity, TextView status, TextView transcript,
                                            String strategy, String details) {
-        String prompt = ConnectivityIntelligenceRules.plannerPrompt(strategy, details)
+        String prompt = ConnectivityIntelligenceRules.plannerPrompt(strategy, details);
         new AlertDialog.Builder(activity).setTitle("Send connectivity brief?")
                 .setMessage("Only the brief you entered and the selected topic will be sent to JARVIS AI. Do not include passwords, Wi-Fi keys, account tokens, IP/MAC addresses or private identifiers. This planner will not configure networks or connect to satellite services.")
                 .setNegativeButton("Cancel", null)
