@@ -23,4 +23,13 @@ public class B21TaskRulesTest {
         assertFalse(B21TaskRules.isValidDueDate("2026-02-30"));
         assertFalse(B21TaskRules.isValidDueDate("23-11-2026"));
     }
+
+    @Test public void overdueIgnoresCompletedTasksAndInvalidDates() {
+        java.util.Calendar past = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
+        past.add(java.util.Calendar.DAY_OF_MONTH, -2);
+        String yesterday = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(past.getTime());
+        assertTrue(B21TaskRules.isOverdue(yesterday, false, System.currentTimeMillis()));
+        assertFalse(B21TaskRules.isOverdue(yesterday, true, System.currentTimeMillis()));
+        assertFalse(B21TaskRules.isOverdue("not-a-date", false, System.currentTimeMillis()));
+    }
 }
