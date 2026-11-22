@@ -407,7 +407,8 @@ public class MainActivity extends Activity {
                 "Personal Media Vault • Backup / Restore",
                 "Creator Studio • Captions / Scripts / Stories",
                 "Auto Repair Kit • Diagnostics",
-                "Communication Engine • Compose SMS draft"
+                "Communication Engine • Compose SMS draft",
+                "Owner Account • Google / Phone OTP"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -457,6 +458,7 @@ public class MainActivity extends Activity {
                     } else if (which == 26) showCreatorStudio();
                     else if (which == 27) showRepairKit();
                     else if (which == 28) showSmsDraftComposer();
+                    else if (which == 29) startActivity(new Intent(MainActivity.this, OwnerAccountActivity.class));
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -469,7 +471,7 @@ public class MainActivity extends Activity {
                     if (which == 0) promptOwnerPin(true);
                     else if (which == 1) promptOwnerPin(false);
                     else {
-                        JarvisSessionManager.enterGuest();
+                        FirebaseOwnerAuth.signOut(this);
                         status.setText("GUEST SESSION • PRIVATE OWNER DATA LOCKED");
                         transcript.setText("JARVIS: Guest session enabled. Owner notes are locked.");
                     }
@@ -1036,6 +1038,13 @@ public class MainActivity extends Activity {
     }
 
     private boolean requireOwner(String feature) {
+        if (FirebaseOwnerAuth.isConfigured(this)
+                && !FirebaseOwnerAuth.isOwnerAuthenticated(this)) {
+            status.setText("OWNER ACCOUNT SIGN-IN REQUIRED");
+            transcript.setText("JARVIS: " + feature + " is private. Sign in from Owner Account first, then unlock the local privacy PIN.");
+            speak("Owner account sign in required.");
+            return false;
+        }
         if (JarvisSessionManager.isOwner(this)) return true;
         status.setText("OWNER ACCESS REQUIRED");
         transcript.setText("JARVIS: " + feature + " is private. Unlock Owner session from Command Center.");

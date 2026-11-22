@@ -53,12 +53,13 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 ## Remaining feature backlog
 
 ### Priority 0 — Owner authentication and account setup
-- [ ] Implement secure owner sign-in with Firebase Authentication, supporting Google sign-in and phone-number OTP after Firebase project configuration; neither sign-in method is implemented yet.
-- [ ] Add an owner profile/session state, sign-out, and safe handling of expired sessions; do not store passwords or OTPs locally.
-- [ ] Restrict owner-only settings and sensitive assistant actions to an authenticated owner; keep emergency access and permission behavior explicit.
-- [ ] Document Firebase Console setup, Android SHA fingerprints, authorized domains, and required configuration without committing service-account files, API secrets, or private credentials.
-- [ ] Add a privacy lock for sensitive screens/actions, with owner re-authentication where appropriate; do not rely on a cosmetic PIN or lock screen as real authentication.
-- [ ] Add a guest mode that hides owner-specific notes, memory, account details and private briefing data; make the transition into and out of guest mode obvious and test that private data cannot leak through voice responses or notifications.
+- [x] Add Firebase Authentication integration for Google sign-in and phone-number OTP; code is present, but Firebase project values, provider enablement, OAuth setup, SMS delivery, and real-device verification remain required.
+- [x] Add Firebase owner identity/profile display, SDK-managed session persistence, sign-out, and provider re-authentication paths; verify expiry/revocation behavior against a configured Firebase project.
+- [x] Connect owner-only feature gates to Firebase owner identity when configured, while retaining the local PIN as a second privacy-lock step; audit every sensitive voice command, notification, and screen for complete coverage.
+- [x] Document Firebase Console setup, Android package/SHA fingerprints, local Gradle properties, provider enablement, and safe configuration handling in `FIREBASE_OWNER_AUTH_SETUP.md`; no service-account files or private credentials are committed.
+- [x] Retain the existing local privacy PIN gate and require Firebase identity plus the local privacy session when Firebase is configured; verify re-authentication and sensitive-screen coverage on device.
+- [x] Connect Guest mode to Firebase sign-out and local owner-session clearing; test that owner notes, memory, account details, and private briefing data cannot leak through voice responses or notifications.
+
 
 ### Priority 1 — Reliability and core voice control
 - [ ] Verify background listening and screen-off operation on the Poco device.

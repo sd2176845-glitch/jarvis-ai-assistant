@@ -6,11 +6,29 @@ android {
     namespace 'com.jarvis.assistant'
     compileSdk 35
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId 'com.jarvis.assistant'
         minSdk 23
         targetSdk 32
         versionCode 1
         versionName '1.0'
+
+        def cfg = { String key -> (project.findProperty(key) ?: '').toString() }
+        buildConfigField 'String', 'FIREBASE_API_KEY', "\"${cfg('JARVIS_FIREBASE_API_KEY')}\""
+        buildConfigField 'String', 'FIREBASE_APP_ID', "\"${cfg('JARVIS_FIREBASE_APP_ID')}\""
+        buildConfigField 'String', 'FIREBASE_PROJECT_ID', "\"${cfg('JARVIS_FIREBASE_PROJECT_ID')}\""
+        buildConfigField 'String', 'FIREBASE_SENDER_ID', "\"${cfg('JARVIS_FIREBASE_SENDER_ID')}\""
+        buildConfigField 'String', 'FIREBASE_WEB_CLIENT_ID', "\"${cfg('JARVIS_FIREBASE_WEB_CLIENT_ID')}\""
     }
+
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 }
