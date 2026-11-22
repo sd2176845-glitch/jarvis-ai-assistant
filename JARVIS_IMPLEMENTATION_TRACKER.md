@@ -264,5 +264,5 @@
 - Each lookup has an explicit confirmation step. Only the manually entered city, amount/currency codes or year is sent. No GPS, contacts, notes, conversation history or background data is attached.
 - HTTPS GET only; bounded connect/read timeouts, response-size cap and malformed/error response handling. No API keys or new Android permissions.
 - **Implementation files:** `LiveInfoStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on this branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed on code/documentation head `7b2c1c1e88fc299d36af3e198a29449e1f0146c0`; GitHub Actions run #572 (`45045389085`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763293374`, SHA-256 `6648c8850934b605c00b918a49b579eb4ab317ab45a9d39ca31d62b954391e28`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #27; do not merge to parent PR #27 or `main` without owner approval.
