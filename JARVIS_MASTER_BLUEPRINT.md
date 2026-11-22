@@ -894,3 +894,10 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B10 verification update (2026-11-22):** code/documentation head `f82347780326ecdc4a6bcfd10715a9488ba11f77` passed GitHub Actions run #620 (`45046350249`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762974382`, SHA-256 `3186014ea76112d07da2dde3e9595c5c5e70af900a5348522d7c881e12902571`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #33 is open and unmerged.
+
+
+## Implementation status addendum — M15 Creative Media Studio (Batch B11; 2026-11-22)
+- **Video Script Planner:** code added; original timed scripts and scene notes; text output only; final rebased CI/device verification pending.
+- **Storyboard & Shot List:** code added; numbered scene/framing/transition plans with accessibility notes; text output only; final rebased CI/device verification pending.
+- **Presentation Builder:** code added; slide outline, bullets, speaker notes and sources-to-verify; text output only; no PPTX generation; final rebased CI/device verification pending.
+- Uses memory-isolated AI request with explicit confirmation; no new permissions or persistent creative archive.
