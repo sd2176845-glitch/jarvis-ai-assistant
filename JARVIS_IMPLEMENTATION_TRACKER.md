@@ -548,3 +548,19 @@
 - **Physical device:** pending on Poco M4 Pro 4G. Check all profiles, restart persistence, contrast in sunlight/darkness, text clipping and screen-reader announcements.
 - **CI/build:** pending; do not mark as passed until the workflow completes.
 - **Merge:** draft PR only; no merge into PR #42 or `main` without owner approval. JARVIS only; Even untouched.
+
+
+## Batch B18 — M16 Authorized Bluetooth Accessory Handoff (2026-11-22)
+
+**Branch:** `feature/m16-authorized-accessory-hub-3pack`, stacked on M15 / PR #43. Draft PR targets `feature/m15-accessibility-display-studio-3pack`; unmerged.
+
+### Feature — Owner-controlled Bluetooth accessory setup
+- **Code-present:** upgrades the existing Smart Home Studio inventory menu with an owner-entered Bluetooth accessory label flow and a direct handoff to Android Bluetooth settings.
+- Bluetooth labels reuse the existing local smart-home inventory and its 30-item limit; no second inventory database or sync service is created.
+- Pairing and unpairing remain in Android's visible system UI. JARVIS does not scan nearby devices, read Bluetooth identifiers, pair/connect, send commands, or access credentials.
+- Removing a Bluetooth label deletes only the local JARVIS label; the UI explains that actual unpairing must be done through Android Bluetooth settings > Forget.
+- **Automated tests:** four pure-Java JUnit tests cover trimmed labels, empty/oversized input and Bluetooth label classification.
+- **Anti-duplication:** extends existing M16 Smart Home Studio and reuses its inventory store, settings handoff conventions and owner-controlled removal flow.
+- **CI/build:** pending; verify tests and debug APK before marking passed.
+- **Physical device:** pending on Poco M4 Pro 4G; verify Bluetooth settings handoff and that no scan/pair request occurs.
+- **Merge:** draft PR only; do not merge into PR #43 or `main` without owner approval. JARVIS only; Even untouched.
