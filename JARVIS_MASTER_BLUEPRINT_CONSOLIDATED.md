@@ -188,3 +188,11 @@ This table records only changes actually made on this development branch. It doe
 - No app killing, memory clearing, settings changes, network inspection, or report upload.
 - Storage is specifically the app data volume and may differ from total shared/user-visible storage. Network status is not shown because `ACCESS_NETWORK_STATE` is not currently declared.
 - **Status:** code-present on the feature branch; build, CI, and Poco M4 Pro 4G device verification are pending.
+
+
+### M02 — Voice Session Feedback & Foreground Stop Control (branch implementation)
+- **Code-present:** The existing voice interface now exposes distinct listening, hearing, speech-processing, thinking/AI-connection, speaking, standby, speech-input failure, TTS failure, and AI-backend-offline/local-command-ready status feedback.
+- Added a visible owner-invoked foreground stop control that cancels the foreground speech-recognition session and stops TTS playback.
+- This foreground stop control does not stop the separate background wake-word service; its existing independent stop control remains authoritative.
+- No new Android permission, background monitoring behavior, or external data collection was added.
+- **Validation:** CI and target Poco M4 Pro 4G testing for the implementation commit are pending. Do not mark verified until both applicable checks pass.
