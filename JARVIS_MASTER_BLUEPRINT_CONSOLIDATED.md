@@ -255,3 +255,13 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B04 verification update (2026-11-22):** code head `7d06870c70630171b69fbd9f6bc3935e6fb88fdc` passed GitHub Actions run #553 (`45044836017`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762504922`, SHA-256 `77eb8572bc40e7e53c22515789486388cba95d9287e3c976ee4ff8387a2d7f65`. No separate unit-test/lint task ran; target-device testing remains pending. Draft PR #26 is open and unmerged.
+
+
+### M05 — Public Knowledge Lookups (Batch B05; implementation status tracked separately)
+- Added three independent owner-invoked, read-only integrations to the existing Command Center:
+  1. Country lookup by name or ISO code via countries.dev.
+  2. India six-digit PIN lookup via PostalPincode.in, showing all returned post offices and clearly labelling the result as informational.
+  3. English dictionary lookup via dictionaryapi.dev.
+- Each lookup asks for confirmation before sending only the value the owner entered. No contact, notes, conversation, location or background data is attached.
+- HTTPS GET, bounded timeouts and response-size cap; no API keys or new permissions. Public data providers can be unavailable or change response formats; the app reports errors instead of claiming success.
+- **Status:** code added on `feature/m05-public-knowledge-3pack`; CI/build and target-device verification pending. Dictionary scope is English only; PIN data provider is community-maintained and has no production SLA.
