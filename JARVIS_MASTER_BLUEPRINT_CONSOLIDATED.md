@@ -196,3 +196,7 @@ This table records only changes actually made on this development branch. It doe
 - This foreground stop control does not stop the separate background wake-word service; its existing independent stop control remains authoritative.
 - No new Android permission, background monitoring behavior, or external data collection was added.
 - **Validation:** CI for commit `1881e6f349f1dde673ce0d551da210e69e4c2f02` passed (run `45038787391`; debug APK artifact `14760812400`). Target Poco M4 Pro 4G testing remains pending. Do not mark device-verified until actual tests pass.
+
+
+## M07 implementation update — Structured Task Manager
+The existing Tasks & reminders hub is being upgraded in place with a local structured task list: create tasks, mark complete/reopen, and delete. Legacy free-form notes remain intact in their existing keys and are shown separately; no duplicate notes store or scheduler is introduced. This implementation is code-present on the feature branch only. CI and Poco device verification are pending.
