@@ -401,3 +401,9 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Code-present:** extends the existing read-only Device Resource Intelligence report with Android-reported CPU cores, supported app ABIs, low-RAM flag and display metrics.
 - **Boundary:** informational hints only; no benchmarking, stress tests, settings changes or private-data inspection.
 - **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+### M17 — Battery Health & Charging Snapshot (Batch B20; status tracked separately)
+- **Code-present:** extends the existing read-only resource dashboard battery section with Android-reported charging state, health category and temperature.
+- **Boundary:** one-shot broadcast snapshot only; no background monitoring, alerts, uploads, persistence or repair diagnosis.
+- **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
