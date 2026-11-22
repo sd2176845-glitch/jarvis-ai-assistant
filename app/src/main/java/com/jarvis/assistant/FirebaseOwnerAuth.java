@@ -4,12 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
@@ -122,12 +121,14 @@ public final class FirebaseOwnerAuth {
     public static void requestPhoneOtp(Activity activity, String phoneNumber,
             PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks) {
         if (!initialize(activity)) {
-            callbacks.onVerificationFailed(new FirebaseException(
+            callbacks.onVerificationFailed(new FirebaseAuthInvalidCredentialsException(
+                    "ERROR_FIREBASE_NOT_CONFIGURED",
                     "Firebase is not configured. Follow FIREBASE_OWNER_AUTH_SETUP.md."));
             return;
         }
         if (TextUtils.isEmpty(phoneNumber) || !phoneNumber.matches("^\\+[1-9]\\d{7,14}$")) {
-            callbacks.onVerificationFailed(new FirebaseException(
+            callbacks.onVerificationFailed(new FirebaseAuthInvalidCredentialsException(
+                    "ERROR_INVALID_PHONE_NUMBER",
                     "Enter a valid phone number with country code, for example +91XXXXXXXXXX."));
             return;
         }
