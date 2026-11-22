@@ -132,3 +132,15 @@ The following are implemented as extensions of existing canonical modules, not s
 21. M11 Creative Project Organizer (local saved drafts; not rendered media).
 22. M10 Image Text Reader (user-selected local OCR, Latin and Devanagari scripts).
 23. OCR recognizer cleanup on success/failure.
+
+
+### Additional B21 ledger entries (24–31)
+
+24. PDF first-page OCR (local render + OCR).
+25. Explicit second-confirmation AI explanation for image OCR text only.
+26. Explicit second-confirmation AI explanation for PDF OCR text only.
+27. Contact-selected addressed SMS draft flow with editable message preview.
+28. Daily briefing includes task due-today/overdue/urgent counts.
+29. Software Project Notebook (local owner-reviewed drafts; never executed).
+30. Learning Notebook (local owner-saved lessons).
+31. Data Insight Report archive (aggregate-only inputs; raw CSV rows excluded).
