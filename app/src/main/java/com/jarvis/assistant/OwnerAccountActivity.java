@@ -16,7 +16,7 @@ import android.widget.Toast;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
@@ -153,7 +153,7 @@ public class OwnerAccountActivity extends Activity {
             @Override public void onVerificationCompleted(PhoneAuthCredential credential) {
                 FirebaseOwnerAuth.verifyPhoneCredential(OwnerAccountActivity.this, credential, authResult());
             }
-            @Override public void onVerificationFailed(Exception e) {
+            @Override public void onVerificationFailed(FirebaseException e) {
                 showError(e.getMessage());
             }
             @Override public void onCodeSent(String id, PhoneAuthProvider.ForceResendingToken token) {
