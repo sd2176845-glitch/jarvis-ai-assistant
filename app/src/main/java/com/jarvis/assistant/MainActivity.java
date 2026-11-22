@@ -473,11 +473,12 @@ public class MainActivity extends Activity {
                 .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
                 .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
                         .setTitle("JARVIS • Task options")
-                        .setItems(new String[]{"Task overview", "Search tasks", "Edit task title", "Delete a task", "Close"}, (d, option) -> {
-                            if (option == 0) showTaskOverview();
-                            else if (option == 1) showTaskSearch();
-                            else if (option == 2) showEditStructuredTaskDialog();
-                            else if (option == 3) showDeleteStructuredTaskDialog();
+                        .setItems(new String[]{"Today's agenda", "Task overview", "Search tasks", "Edit task details", "Delete a task", "Close"}, (d, option) -> {
+                            if (option == 0) showDailyTaskAgenda();
+                            else if (option == 1) showTaskOverview();
+                            else if (option == 2) showTaskSearch();
+                            else if (option == 3) showEditStructuredTaskDialog();
+                            else if (option == 4) showDeleteStructuredTaskDialog();
                         }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
@@ -619,6 +620,34 @@ public class MainActivity extends Activity {
                         status.setText("MESSAGE APP NOT AVAILABLE");
                     }
                 }).show();
+    }
+
+    private void showDailyTaskAgenda() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            status.setText("DAILY AGENDA COULD NOT BE READ");
+            return;
+        }
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(new java.util.Date());
+        ArrayList<String> agenda = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null || item.optBoolean("done", false)) continue;
+            String due = item.optString("due_date", "");
+            boolean overdue = B21TaskRules.isOverdue(due, false, System.currentTimeMillis());
+            if (today.equals(due) || overdue) {
+                agenda.add((overdue ? "OVERDUE • " : "DUE TODAY • ")
+                        + item.optString("title", "Untitled task")
+                        + " • " + item.optString("priority", "Normal"));
+            }
+        }
+        String report = agenda.isEmpty() ? "No tasks are due today or overdue."
+                : android.text.TextUtils.join("\n\n", agenda);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Today's agenda")
+                .setMessage(report + "\n\nBased only on due dates entered in your local task list.")
+                .setPositiveButton("Back to tasks", (d, w) -> showStructuredTaskManager())
+                .setNegativeButton("Close", null).show();
     }
 
     private void showTaskSearch() {
