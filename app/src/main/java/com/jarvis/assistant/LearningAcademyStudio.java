@@ -20,13 +20,15 @@ public final class LearningAcademyStudio {
         String[] tools = {
                 "Coding Tutor • guided lessons and practice",
                 "Science Explorer • clear concept explanations",
-                "Technology Roadmap • step-by-step learning plan"
+                "Technology Roadmap • step-by-step learning plan",
+                "Learning Notebook • saved lessons"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • AI Learning Academy")
                 .setItems(tools, (d, which) -> {
                     if (which == 0) codingTutor(activity, status, transcript);
                     else if (which == 1) scienceExplorer(activity, status, transcript);
-                    else technologyRoadmap(activity, status, transcript);
+                    else if (which == 2) technologyRoadmap(activity, status, transcript);
+                    else showNotebook(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -130,8 +132,79 @@ public final class LearningAcademyStudio {
                         status.setText(label);
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + label)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save lesson", (resultDialog, resultWhich) ->
+                                        saveLesson(activity, label, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static final String NOTEBOOK_KEY = "learning_notebook_v1";
+
+    private static void saveLesson(Activity activity, String label, String content) {
+        try {
+            android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+            org.json.JSONArray entries = new org.json.JSONArray(prefs.getString(NOTEBOOK_KEY, "[]"));
+            if (entries.length() >= 40) {
+                Toast.makeText(activity, "Learning notebook is full. Delete old lessons first.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            org.json.JSONObject item = new org.json.JSONObject();
+            item.put("label", label);
+            item.put("content", content);
+            item.put("created_at", System.currentTimeMillis());
+            entries.put(item);
+            prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
+            Toast.makeText(activity, "Lesson saved on this device.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Lesson could not be saved.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showNotebook(Activity activity) {
+        android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+        org.json.JSONArray entries;
+        try {
+            entries = new org.json.JSONArray(prefs.getString(NOTEBOOK_KEY, "[]"));
+        } catch (Exception e) {
+            new AlertDialog.Builder(activity).setTitle("Learning Notebook")
+                    .setMessage("Saved lessons could not be read. Nothing was changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        if (entries.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Learning Notebook")
+                    .setMessage("No saved lessons yet. Generate a lesson and choose Save lesson.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        String[] labels = new String[entries.length()];
+        for (int i = 0; i < entries.length(); i++) {
+            org.json.JSONObject item = entries.optJSONObject(i);
+            labels[i] = item == null ? "Unavailable lesson" : item.optString("label", "Learning lesson");
+        }
+        new AlertDialog.Builder(activity).setTitle("Learning Notebook")
+                .setItems(labels, (dialog, which) -> {
+                    org.json.JSONObject item = entries.optJSONObject(which);
+                    if (item != null) {
+                        String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                                .format(new java.util.Date(item.optLong("created_at", 0L)));
+                        new AlertDialog.Builder(activity).setTitle(item.optString("label", "Learning lesson"))
+                                .setMessage("OWNER-SAVED LEARNING NOTE\\nSaved: " + date + "\\n\\n"
+                                        + item.optString("content", ""))
+                                .setPositiveButton("Close", null).show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Delete all", (dialog, which) ->
+                        new AlertDialog.Builder(activity).setTitle("Delete saved lessons?")
+                                .setMessage("This removes only the learning notes stored by JARVIS on this device.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete", (d, w) -> {
+                                    prefs.edit().remove(NOTEBOOK_KEY).apply();
+                                    Toast.makeText(activity, "Learning notebook cleared.", Toast.LENGTH_SHORT).show();
+                                }).show())
+                .show();
     }
 }
