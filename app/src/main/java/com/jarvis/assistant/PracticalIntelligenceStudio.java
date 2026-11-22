@@ -101,8 +101,8 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static JSONArray readVehicleLog(Activity activity) {
-        String raw = preferences(activity).getString(VEHICLE_LOG_KEY, "[]");
         try {
+            String raw = preferences(activity).getString(VEHICLE_LOG_KEY, "[]");
             return new JSONArray(raw == null ? "[]" : raw);
         } catch (Exception e) {
             Toast.makeText(activity, "Vehicle log data is invalid; existing data was left unchanged.", Toast.LENGTH_LONG).show();
@@ -176,7 +176,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static EditText field(String hint) {
-        EditText input = new EditText(null);
+        EditText input = new EditText(activity);
         input.setHint(hint);
         input.setSingleLine(true);
         return input;
