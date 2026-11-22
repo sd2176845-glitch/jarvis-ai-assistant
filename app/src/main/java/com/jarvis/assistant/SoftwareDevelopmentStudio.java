@@ -20,7 +20,8 @@ public final class SoftwareDevelopmentStudio {
                 "Bug & Error Explainer • diagnose pasted error",
                 "Code Quality Review • review pasted code",
                 "Software Project Notebook • saved plans",
-                "Build & Test Report Viewer • pasted CI summary"
+                "Build & Test Report Viewer • pasted CI summary",
+                "Public GitHub Repository Overview • read-only"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Software Development Studio")
                 .setItems(options, (d, which) -> {
@@ -28,7 +29,8 @@ public final class SoftwareDevelopmentStudio {
                     else if (which == 1) bugExplainer(activity, status, transcript);
                     else if (which == 2) codeReview(activity, status, transcript);
                     else if (which == 3) showSavedPlans(activity);
-                    else buildReportViewer(activity);
+                    else if (which == 4) buildReportViewer(activity);
+                    else showRepositoryOverview(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -124,6 +126,80 @@ public final class SoftwareDevelopmentStudio {
                                 .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static void showRepositoryOverview(Activity activity) {
+        askText(activity, "Public GitHub Repository Overview",
+                "Enter owner/repository or a github.com/owner/repository URL. Public repositories only.",
+                value -> {
+                    String repo = RepositoryOverviewRules.normalize(value);
+                    if (repo == null) {
+                        new AlertDialog.Builder(activity).setTitle("Invalid repository")
+                                .setMessage("Enter a public GitHub repository as owner/repository. No request was sent.")
+                                .setPositiveButton("Close", null).show();
+                        return;
+                    }
+                    new AlertDialog.Builder(activity).setTitle("Read public repository metadata?")
+                            .setMessage("JARVIS will make a read-only GET request to GitHub's public repository API for " + repo
+                                    + ". No token, private code or account data will be sent. No repository files will be changed.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Continue", (d, w) -> fetchRepositoryOverview(activity, repo))
+                            .show();
+                });
+    }
+
+    private static void fetchRepositoryOverview(Activity activity, String repo) {
+        Toast.makeText(activity, "Reading public repository metadata…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            java.net.HttpURLConnection connection = null;
+            String result;
+            try {
+                java.net.URL url = new java.net.URL("https://api.github.com/repos/" + repo);
+                connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(10000);
+                connection.setRequestProperty("Accept", "application/vnd.github+json");
+                connection.setRequestProperty("User-Agent", "JARVIS-Android-ReadOnly");
+                int code = connection.getResponseCode();
+                if (code == 404) {
+                    result = "Repository not found or not publicly accessible. Private repositories are not accessed.";
+                } else if (code != 200) {
+                    result = "GitHub returned HTTP " + code + ". Try again later.";
+                } else {
+                    java.io.InputStream input = connection.getInputStream();
+                    java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int count;
+                    while ((count = input.read(buffer)) != -1 && bytes.size() < 50000) bytes.write(buffer, 0, count);
+                    input.close();
+                    org.json.JSONObject data = new org.json.JSONObject(bytes.toString("UTF-8"));
+                    org.json.JSONObject license = data.optJSONObject("license");
+                    result = "PUBLIC REPOSITORY OVERVIEW\\n\\n"
+                            + "Name: " + data.optString("full_name", repo) + "\\n"
+                            + "Description: " + data.optString("description", "Not supplied") + "\\n"
+                            + "Default branch: " + data.optString("default_branch", "Not supplied") + "\\n"
+                            + "Visibility: " + data.optString("visibility", "public") + "\\n"
+                            + "Stars: " + data.optInt("stargazers_count", 0) + "\\n"
+                            + "Forks: " + data.optInt("forks_count", 0) + "\\n"
+                            + "Last pushed: " + data.optString("pushed_at", "Not supplied") + "\\n"
+                            + "License: " + (license == null ? "Not listed" : license.optString("name", "Not listed")) + "\\n"
+                            + "Archived: " + data.optBoolean("archived", false) + "\\n\\n"
+                            + "Source: " + data.optString("html_url", "GitHub API") + "\\n"
+                            + "Read-only metadata only. JARVIS did not inspect private files, clone code, run builds or change the repository.";
+                }
+            } catch (Exception e) {
+                result = "Repository metadata could not be retrieved. Check internet access and try again.";
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final String output = result;
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                new AlertDialog.Builder(activity).setTitle("JARVIS • Repository Overview")
+                        .setMessage(output).setPositiveButton("Close", null).show();
+            });
+        }).start();
     }
 
     private static void buildReportViewer(Activity activity) {
