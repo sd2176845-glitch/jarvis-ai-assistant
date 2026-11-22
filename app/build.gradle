@@ -25,9 +25,10 @@ android {
         buildConfigField 'String', 'FIREBASE_WEB_CLIENT_ID', "\"${cfg('JARVIS_FIREBASE_WEB_CLIENT_ID')}\""
     }
 
-    dependencies {
-        implementation platform('com.google.firebase:firebase-bom:33.7.0')
-        implementation 'com.google.firebase:firebase-auth'
-        implementation 'com.google.android.gms:play-services-auth:21.2.0'
-    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 }
