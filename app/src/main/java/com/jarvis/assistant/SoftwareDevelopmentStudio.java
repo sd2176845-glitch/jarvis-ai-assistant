@@ -19,14 +19,16 @@ public final class SoftwareDevelopmentStudio {
                 "Project Architect • requirements and structure",
                 "Bug & Error Explainer • diagnose pasted error",
                 "Code Quality Review • review pasted code",
-                "Software Project Notebook • saved plans"
+                "Software Project Notebook • saved plans",
+                "Build & Test Report Viewer • pasted CI summary"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Software Development Studio")
                 .setItems(options, (d, which) -> {
                     if (which == 0) projectArchitect(activity, status, transcript);
                     else if (which == 1) bugExplainer(activity, status, transcript);
                     else if (which == 2) codeReview(activity, status, transcript);
-                    else showSavedPlans(activity);
+                    else if (which == 3) showSavedPlans(activity);
+                    else buildReportViewer(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -122,6 +124,14 @@ public final class SoftwareDevelopmentStudio {
                                 .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static void buildReportViewer(Activity activity) {
+        askText(activity, "Build & Test Report Viewer",
+                "Paste a short CI/build summary. Remove tokens, secrets and private logs first.",
+                report -> new AlertDialog.Builder(activity).setTitle("Build & Test Summary")
+                        .setMessage(BuildReportRules.summarize(report))
+                        .setPositiveButton("Close", null).show());
     }
 
     private static final String PLANS_KEY = "software_project_plans_v1";
