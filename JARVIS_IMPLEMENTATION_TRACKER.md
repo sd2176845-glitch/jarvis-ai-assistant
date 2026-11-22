@@ -373,5 +373,5 @@
 - Upgrades existing `structured_tasks_v1` in `jarvis_preferences`; no second task/project database and no change to legacy notes, workflow checklists or reminders.
 - Local-only task data; no network request, new permission, background scheduling or automatic task creation.
 - **Implementation files:** `ProductivityStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
-- **CI/build:** pending on the rebased branch. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **CI/build:** passed after rebasing on latest PR #31 head. Code/documentation head `5c6b3929c99aafdfd589d83c0921cdf8a3684a4f` passed GitHub Actions run #615 (`45046258241`): backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764031146`, SHA-256 `ee320e43e1d627326173b5537b151eb7df29dd42b7c118dc2bb4bd3fe2c19582`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
