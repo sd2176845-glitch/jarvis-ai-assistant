@@ -8,7 +8,7 @@
 
 ## Current working branch
 - Branch: `feature/m09-memory-expansion-3pack` (stacked on `feature/m14-diagnostics-3pack`; JARVIS only)
-- Current draft PR: to be created after this batch's source and documentation commits.
+- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/24
 - Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/23
 - `main` has not been changed or merged by this work.
 
