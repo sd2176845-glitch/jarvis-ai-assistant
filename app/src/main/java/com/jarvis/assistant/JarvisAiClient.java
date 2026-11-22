@@ -85,6 +85,62 @@ public final class JarvisAiClient {
         worker.start();
     }
 
+    /**
+     * Sends a single owner-entered prompt without attaching or saving conversation memory.
+     * Used by focused tools that should process only the text the owner explicitly submits.
+     */
+    public static void askStandalone(Context context, String message, Callback callback) {
+        Handler main = new Handler(Looper.getMainLooper());
+        String prompt = message == null ? "" : message.trim();
+        Thread worker = new Thread(() -> {
+            String answer;
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) new URL(ENDPOINT).openConnection();
+                connection.setRequestMethod("POST");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(45000);
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                connection.setRequestProperty("Accept", "application/json");
+                JSONObject body = new JSONObject();
+                body.put("message", prompt);
+                byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8);
+                connection.setFixedLengthStreamingMode(bytes.length);
+                try (OutputStream output = connection.getOutputStream()) {
+                    output.write(bytes);
+                }
+                int status = connection.getResponseCode();
+                InputStream stream = status >= 200 && status < 300
+                        ? connection.getInputStream() : connection.getErrorStream();
+                StringBuilder response = new StringBuilder();
+                if (stream != null) {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) response.append(line);
+                    }
+                }
+                if (status >= 200 && status < 300) {
+                    JSONObject json = new JSONObject(response.toString());
+                    answer = json.optString("reply", json.optString("text", "")).trim();
+                    if (answer.isEmpty()) answer = "JARVIS AI returned an empty response. Please try again.";
+                } else {
+                    answer = "JARVIS AI server returned an error (" + status + "). Please try again later.";
+                }
+            } catch (Exception e) {
+                answer = "JARVIS AI could not connect. Check the internet connection and try again.";
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final String result = answer;
+            main.post(() -> {
+                if (callback != null) callback.onReply(result);
+            });
+        }, "jarvis-ai-standalone-request");
+        worker.start();
+    }
+
     private JarvisAiClient() {}
 
     public static void ask(Context context, String message, Callback callback) {
