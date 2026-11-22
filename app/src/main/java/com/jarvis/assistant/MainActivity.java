@@ -2058,7 +2058,8 @@ public class MainActivity extends Activity {
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            String speechLocale = preferences.getString("speech_input_language", "en-IN");
+            String savedSpeechLocale = preferences.getString("speech_input_language", "en-IN");
+            String speechLocale = B21SpeechLanguageRules.isSupportedLocale(savedSpeechLocale) ? savedSpeechLocale : "en-IN";
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, speechLocale);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, speechLocale);
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to JARVIS");
@@ -2760,7 +2761,8 @@ public class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle("JARVIS • Speech input language")
                 .setMessage("This selects the Android speech-recognition language. Availability depends on the speech service installed on your phone.")
                 .setSingleChoiceItems(labels, selected, (dialog, which) -> {
-                    preferences.edit().putString("speech_input_language", tags[which]).apply();
+                    String selectedLocale = B21SpeechLanguageRules.localeForChoice(which);
+                    preferences.edit().putString("speech_input_language", selectedLocale).apply();
                     status.setText("SPEECH INPUT LANGUAGE • " + labels[which].toUpperCase(Locale.ROOT));
                     dialog.dismiss();
                 }).setNegativeButton("Cancel", null).show();
