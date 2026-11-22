@@ -456,7 +456,7 @@ public class MainActivity extends Activity {
                 "Call & SMS announcements",
                 "Background app opening",
                 "Voice call controls",
-                "System safety check",
+                "Self-diagnostics • Shareable report",
                 "Set emergency contact",
                 "SOS • Emergency options",
                 "Clear AI memory",
@@ -961,18 +961,83 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Extends the original local safety check into an owner-invoked diagnostics
+     * report. It reads app/device capability state only; it does not collect logs,
+     * contacts, messages, notes, location, or upload anything.
+     */
     private void runSafetyCheck() {
-        StringBuilder report = new StringBuilder("JARVIS SAFETY CHECK\n\n");
+        EditText issueInput = new EditText(this);
+        issueInput.setHint("Describe the problem (optional). Do not include passwords, OTPs, phone numbers or private messages.");
+        issueInput.setGravity(Gravity.TOP | Gravity.START);
+        issueInput.setMinLines(3);
+        issueInput.setMaxLines(5);
+        issueInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Self-diagnostics")
+                .setMessage("JARVIS will run read-only checks and prepare a report preview. Nothing is shared unless you choose Share.")
+                .setView(issueInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Run checks", (dialog, which) -> {
+                    String issue = issueInput.getText().toString().trim();
+                    String report = buildDiagnosticsReport(issue);
+                    status.setText("DIAGNOSTIC REPORT READY");
+                    new AlertDialog.Builder(this)
+                            .setTitle("JARVIS • Report preview")
+                            .setMessage(report)
+                            .setPositiveButton("Share report", (d, w) -> {
+                                Intent share = new Intent(Intent.ACTION_SEND);
+                                share.setType("text/plain");
+                                share.putExtra(Intent.EXTRA_SUBJECT, "JARVIS diagnostic report");
+                                share.putExtra(Intent.EXTRA_TEXT, report);
+                                try {
+                                    startActivity(Intent.createChooser(share, "Review and share JARVIS report"));
+                                } catch (Exception e) {
+                                    status.setText("SHARING NOT AVAILABLE");
+                                }
+                            })
+                            .setNegativeButton("Close", null)
+                            .show();
+                }).show();
+    }
+
+    private String buildDiagnosticsReport(String issue) {
+        StringBuilder report = new StringBuilder("JARVIS • SELF-DIAGNOSTIC REPORT\\n");
+        report.append("Reference: ").append(java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT)).append("\\n");
+        report.append("Time: ").append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.getDefault())
+                .format(new java.util.Date())).append("\\n\\n");
+        report.append("DEVICE / APP\\n");
+        report.append("Device: ").append(android.os.Build.MANUFACTURER).append(" ").append(android.os.Build.MODEL).append("\\n");
+        report.append("Android: ").append(android.os.Build.VERSION.RELEASE)
+                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\\n");
+        try {
+            android.content.pm.PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            report.append("App version: ").append(info.versionName == null ? "unknown" : info.versionName)
+                    .append(" (").append(info.versionCode).append(")\\n");
+        } catch (Exception e) {
+            report.append("App version: unavailable\\n");
+        }
+
+        boolean micGranted = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+        boolean notificationsGranted = android.os.Build.VERSION.SDK_INT < 33
+                || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED;
         boolean speechAvailable = SpeechRecognizer.isRecognitionAvailable(this);
-        report.append(speechAvailable ? "✓ Speech recognition available\n" : "! Speech recognition unavailable\n");
-        report.append(tts != null ? "✓ Voice engine initialized\n" : "! Voice engine not initialized\n");
-        report.append(checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                ? "✓ Microphone permission granted\n" : "! Microphone permission not granted\n");
-        report.append("✓ App data remains in Android's private app storage\n");
-        report.append("\nSafe update policy: keep the previous APK until the new build is verified. Install updates only from a trusted source and confirm Android's installer prompt. If a build fails, use the last known working APK.");
-        transcript.setText(report.toString());
-        status.setText("SAFETY CHECK COMPLETE");
-        speak("Safety check complete. Please review the report on screen.");
+        report.append("\\nREAD-ONLY CHECKS\\n");
+        report.append("Speech recognition service: ").append(speechAvailable ? "available" : "not available").append("\\n");
+        report.append("Text-to-Speech initialized: ").append(tts != null ? "yes" : "not initialized").append("\\n");
+        report.append("Microphone permission: ").append(micGranted ? "granted" : "not granted").append("\\n");
+        report.append("Notification permission: ").append(notificationsGranted ? "granted / not required" : "not granted").append("\\n");
+        report.append("Internet permission declared: yes; live connectivity/backend reachability was not tested.\\n");
+        report.append("App data storage: Android app-private storage.\\n");
+
+        if (!issue.isEmpty()) {
+            report.append("\\nOWNER-REPORTED ISSUE\\n").append(issue).append("\\n");
+        }
+        report.append("\\nLIMITATIONS\\n");
+        report.append("This report is a basic local diagnostic snapshot, not a full device scan or proof of root cause. It does not read logs, contacts, SMS, call history, notes, notification contents or precise location. Network/backend reachability and background wake-word reliability require separate tests. Android permissions and battery policies may affect behavior.\\n");
+        report.append("\\nSHARING\\n");
+        report.append("This report stays on this screen until you choose Share. Review it before sending; Android will show the available share targets. JARVIS does not upload it automatically.");
+        return report.toString();
     }
 
     private void enablePhoneEventPermissions() {
