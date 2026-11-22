@@ -211,7 +211,7 @@ The existing Command Center now includes a Workflow Studio foundation. Owners ca
 - Review and correction use the existing notes store; export uses Android's explicit share chooser; notes deletion and recent-conversation clearing are separate, confirmed actions.
 - No parallel memory database, background capture, or automatic retention of new information was added.
 - **Code-present:** owner-created Personal Timeline is now implemented within the existing vault. It stores manually entered milestones/events with creation timestamps, supports list/detail/individual delete, and is included in the existing owner-triggered export. It uses the existing JARVIS preferences store; no second memory database or background capture is added.
-- **Still planned:** provenance/knowledge graph, versioned idea evolution and encrypted legacy archive.
+- **Still planned:** explicit provenance/source attribution and a richer queryable graph view. Owner-created knowledge graph nodes/links, versioned notes and an encrypted on-device legacy archive are tracked in M09 Batch B02 below.
 - **Validation:** timeline code commit 5296fabe1d3670201dffeb72801bfc219f4f86c8 passed GitHub Actions run #495 (45040755446), including backend syntax validation, Gradle debug APK build and artifact upload 14761891383. Poco M4 Pro 4G device testing remains pending; no separate unit-test/lint steps were run.
 
 
@@ -224,3 +224,14 @@ The first M14 implementation batch contains three separately tracked sub-feature
 3. **Local Diagnostic History — code-present, implementation CI passed; device test pending.** Stores at most 10 owner-requested timestamp/pass-count summaries in the existing private JARVIS preferences store. It does not retain report text or personal content; the owner can review or clear it.
 
 **Batch boundary:** no new Android permission, second diagnostics module, background collection, private-content access, automatic repair, or remote upload. **CI build verified:** current batch head `22efe6293bd5953c5af34d9dab4f806185fb3f8c` passed GitHub Actions run #528 (`45043208526`), including backend syntax validation, Gradle debug APK build and artifact upload (`14762108881`). Android unit tests/lint were not separate workflow steps. All three sub-features remain **physical-device test pending** on the Poco M4 Pro 4G.
+
+
+## 8. Implementation status addendum — M09 Batch B02 (2026-11-22)
+
+Three separate capabilities have been added inside the existing Personal Memory Vault:
+
+1. **Owner-Curated Knowledge Graph — code-present; CI pending; device test pending.** Manual nodes and typed links; deleting a node also deletes its linked edges. No automatic profiling or background capture.
+2. **Idea Evolution / Versioned Notes — code-present; CI pending; device test pending.** Owner-triggered snapshots of the existing notes text, capped at 20 versions, with preview and confirmation before restoring to the existing notes store.
+3. **Encrypted Digital Legacy Archive — code-present; CI pending; device test pending.** AES-GCM encrypted local snapshot using an Android Keystore device-bound key. Includes saved notes, owner-created timeline, graph and idea versions; excludes recent conversation, contacts, messages and call data. Owner can create/replace, authenticate/decrypt-verify, and delete. It is not a portable password-protected backup; loss of the device Keystore key can make it unrecoverable.
+
+**Scope:** no new Android permissions, no second memory database, no automatic capture, no background backup, and no remote upload. These three features remain unverified until CI and Poco M4 Pro 4G device checks pass.
