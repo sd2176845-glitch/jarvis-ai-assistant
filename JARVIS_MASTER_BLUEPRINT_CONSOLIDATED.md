@@ -389,3 +389,9 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Code-present:** owner-selectable Standard, Large, Extra-large and High-contrast app-local readability profiles, with reset. Applies to existing JARVIS status and response text and persists in the existing private preferences store.
 - **Boundary:** does not alter Android system settings, screen density, permissions, or background accessibility services.
 - **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+### M16 — Authorized Bluetooth Accessory Handoff (Batch B18; status tracked separately)
+- **Code-present:** owner-entered Bluetooth accessory labels share the existing Smart Home inventory; Android Bluetooth settings are opened only after an explicit tap.
+- **Safety boundary:** no background scanning, identifier collection, automatic pairing, remote control or credentials. Unpairing is performed by the owner in Android settings; removing a label does not unpair the physical accessory.
+- **Validation:** four focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
