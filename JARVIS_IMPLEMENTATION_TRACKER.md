@@ -14,9 +14,10 @@
 ## Latest implementation batches
 1. **Voice Studio** — code-present: installed Android TTS voice selection (where available), speech-rate presets, pitch presets, and saved preferences. Device voice availability varies.
 2. **Focus & Productivity Session** — code-present: owner-started 15/25/45-minute focus countdown, task label, visible timer, and Stop control. It does not block apps or notifications and only runs while the JARVIS process remains alive.
+3. **M17 — Device Resource Intelligence** — code-present: read-only battery, app-data-volume storage, RAM availability, device model, and Android version overview. No new permissions; no automatic cleanup or upload.
 
 ## Validation status
-- Latest feature commit: `020e9b26a75da3f0435bfdc5f2c800df75aa08cd` (Focus Session code).
+- Latest feature commit: `aab57e6bcd0df5844f0aae2ba98e60c8f0c5c239` (Device Resource Intelligence code).
 - Latest blueprint/tracker reference commit before this tracker: `2423da0756f7ce47f3647c2f7ac1cbdb20e18b35`.
 - Android build, unit tests, lint, and Poco M4 Pro 4G physical-device testing must be checked for the current branch head before claiming these batches are verified.
 - Do not claim an APK is ready unless the current commit's CI build and artifact checks pass.
@@ -29,6 +30,14 @@
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
-- Verify current branch CI/build and resolve any compile or test failures.
+- Verify current branch CI/build and resolve any compile or test failures, including Device Resource Intelligence.
 - Test Voice Studio and Focus Session on the target Poco M4 Pro 4G.
 - Only after validation, choose the next unimplemented module from the consolidated blueprint.
+
+
+## Third feature implementation note
+- Device Resource Dashboard uses Android `BatteryManager`, `StatFs`, and `ActivityManager.MemoryInfo` APIs.
+- Storage figure is for the app data volume; it may not equal all user-visible shared storage on every device.
+- Network status is intentionally omitted because the current manifest does not declare `ACCESS_NETWORK_STATE`; no new permission was added.
+- No cleanup, process killing, setting changes, or report upload is performed.
+- **Validation remains pending:** current-head build/CI and target-device checks are required.
