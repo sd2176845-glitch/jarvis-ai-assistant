@@ -1015,17 +1015,31 @@ public class MainActivity extends Activity {
                     }
                     showWorkflowStudio();
                 })
-                .setNeutralButton("Reset checklist", (dialog, which) -> {
-                    try {
-                        item.put("done", new org.json.JSONArray());
-                        saveManualWorkflows(workflows);
-                        status.setText("WORKFLOW CHECKLIST RESET");
-                    } catch (org.json.JSONException e) {
-                        status.setText("WORKFLOW COULD NOT BE RESET");
+                .setNeutralButton("Dry-run preview", (dialog, which) -> {
+                    StringBuilder preview = new StringBuilder("DRY-RUN • NO ACTIONS EXECUTED\n\n");
+                    for (int step = 0; step < steps.length(); step++) {
+                        preview.append(step + 1).append(". ")
+                                .append(steps.optString(step, "Unavailable step")).append("\n");
                     }
-                    showWorkflowStudio();
+                    preview.append("\nThis is a read-only preview of your checklist. JARVIS has not opened apps, sent messages, changed settings or performed any step.");
+                    new AlertDialog.Builder(this).setTitle("Workflow preview")
+                            .setMessage(preview.toString())
+                            .setPositiveButton("Back", null).show();
                 })
-                .setNegativeButton("Close", null).show();
+                .setNegativeButton("More", (dialog, which) ->
+                        new AlertDialog.Builder(this).setTitle("Workflow options")
+                                .setItems(new String[]{"Reset checklist", "Close"}, (d, option) -> {
+                                    if (option == 0) {
+                                        try {
+                                            item.put("done", new org.json.JSONArray());
+                                            saveManualWorkflows(workflows);
+                                            status.setText("WORKFLOW CHECKLIST RESET");
+                                        } catch (org.json.JSONException e) {
+                                            status.setText("WORKFLOW COULD NOT BE RESET");
+                                        }
+                                        showWorkflowStudio();
+                                    }
+                                }).show()).show();
     }
 
     private void showDeleteManualWorkflow() {
