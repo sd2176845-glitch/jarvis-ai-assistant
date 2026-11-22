@@ -1130,7 +1130,17 @@ public class MainActivity extends Activity {
             } else {
                 report.append("Charge: unavailable\\n");
             }
-            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Charging / connected to power").append("\\n");
+            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Connected to power").append("\\n");
+            int batteryStatus = battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            int batteryHealth = battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
+            int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
+            report.append("Charging state: ")
+                    .append(BatterySnapshotRules.chargingState(batteryStatus)).append("\\n");
+            report.append("Battery health (Android report): ")
+                    .append(BatterySnapshotRules.healthLabel(batteryHealth)).append("\\n");
+            report.append("Battery temperature: ")
+                    .append(BatterySnapshotRules.temperatureLabel(temperature)).append("\\n");
+            report.append("Note: These are Android-reported snapshot values, not a battery diagnostic or repair assessment.\\n");
         } else {
             report.append("Battery details unavailable\\n");
         }
