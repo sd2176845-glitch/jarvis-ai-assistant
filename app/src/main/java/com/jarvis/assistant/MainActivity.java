@@ -471,8 +471,9 @@ public class MainActivity extends Activity {
                 .setNeutralButton("Task history", (dialog, which) -> showStructuredTaskHistory())
                 .setNegativeButton("More", (dialog, which) -> new AlertDialog.Builder(this)
                         .setTitle("JARVIS • Task options")
-                        .setItems(new String[]{"Delete a task", "Close"}, (d, option) -> {
-                            if (option == 0) showDeleteStructuredTaskDialog();
+                        .setItems(new String[]{"Edit task title", "Delete a task", "Close"}, (d, option) -> {
+                            if (option == 0) showEditStructuredTaskDialog();
+                            else if (option == 1) showDeleteStructuredTaskDialog();
                         }).show());
         if (entries.length == 0) {
             builder.setMessage("No tasks yet. Tap Add task to create your first one.");
@@ -587,6 +588,48 @@ public class MainActivity extends Activity {
                         status.setText("TASK COULD NOT BE SAVED");
                     }
                 }).show();
+    }
+
+    private void showEditStructuredTaskDialog() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null || tasks.length() == 0) {
+            status.setText(tasks == null ? "TASK DATA COULD NOT BE READ" : "NO TASKS TO EDIT");
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            labels.add(item == null ? "Unavailable task" : item.optString("title", "Untitled task"));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Choose task to edit")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    org.json.JSONObject item = tasks.optJSONObject(which);
+                    if (item == null) return;
+                    EditText title = new EditText(this);
+                    title.setSingleLine(true);
+                    title.setText(item.optString("title", ""));
+                    title.setHint("Task title");
+                    new AlertDialog.Builder(this).setTitle("Edit task title")
+                            .setMessage("Category, priority, due date and completion state will be preserved.")
+                            .setView(title)
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Save", (d, w) -> {
+                                String value = title.getText().toString().trim();
+                                if (!B21TaskRules.isValidTitle(value)) {
+                                    status.setText("TASK TITLE REQUIRED • MAXIMUM 120 CHARACTERS");
+                                    return;
+                                }
+                                try {
+                                    item.put("title", value);
+                                    item.put("updated_at", System.currentTimeMillis());
+                                    saveStructuredTasks(tasks);
+                                    status.setText("TASK UPDATED");
+                                    showStructuredTaskManager();
+                                } catch (org.json.JSONException e) {
+                                    status.setText("TASK COULD NOT BE UPDATED");
+                                }
+                            }).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showDeleteStructuredTaskDialog() {
