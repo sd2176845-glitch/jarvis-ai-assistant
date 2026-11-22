@@ -15,15 +15,17 @@ public final class ReminderStore {
 
     private ReminderStore() { }
 
-    public static void save(Context context, int id, String title, long triggerAtMillis) {
+    public static boolean save(Context context, int id, String title, long triggerAtMillis) {
         try {
             JSONObject record = new JSONObject();
             record.put("id", id);
             record.put("title", title);
             record.put("triggerAt", triggerAtMillis);
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit().putString(String.valueOf(id), record.toString()).commit();
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     public static void remove(Context context, int id) {
