@@ -1807,11 +1807,57 @@ public class MainActivity extends Activity {
         status.setText("UNDERSTANDING YOUR VOICE…");
         transcript.setText("YOU: " + raw + "\n\nJARVIS: Understanding…");
         JarvisAiClient.understandCommand(this, raw, understood -> {
+            if (isFinishing() || isDestroyed()) return;
             status.setText("SYSTEM ONLINE • STANDBY");
-            String safeText = understood == null || understood.trim().isEmpty()
-                    ? raw : understood.trim();
-            handleCommand(safeText);
+            String corrected = VoiceTranscriptReviewRules.safeCorrection(raw, understood);
+            if (VoiceTranscriptReviewRules.requiresReview(raw, corrected)) {
+                showVoiceTranscriptReview(raw, corrected);
+            } else {
+                handleCommand(corrected);
+            }
         });
+    }
+
+    /**
+     * If AI speech correction changes the recognized words, ask the owner before
+     * routing any command. No transcript is persisted by this review dialog.
+     */
+    private void showVoiceTranscriptReview(String original, String corrected) {
+        String message = "I heard:\\n" + original
+                + "\\n\\nSuggested correction:\\n" + corrected
+                + "\\n\\nChoose which wording I should use. No command runs until you choose.";
+        new AlertDialog.Builder(this)
+                .setTitle("Review voice correction")
+                .setMessage(message)
+                .setPositiveButton("Use correction", (dialog, which) -> handleCommand(corrected))
+                .setNegativeButton("Use original", (dialog, which) -> handleCommand(original))
+                .setNeutralButton("Edit text", (dialog, which) -> showVoiceTranscriptEditor(corrected))
+                .setOnCancelListener(dialog -> setVoiceStatus("VOICE REVIEW CANCELLED • STANDBY"))
+                .show();
+    }
+
+    private void showVoiceTranscriptEditor(String suggestedText) {
+        EditText editor = new EditText(this);
+        editor.setText(suggestedText);
+        editor.setSingleLine(false);
+        editor.setMinLines(2);
+        editor.setMaxLines(5);
+        editor.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        new AlertDialog.Builder(this)
+                .setTitle("Edit recognized words")
+                .setMessage("Review the text. JARVIS will use it only after you tap Continue.")
+                .setView(editor)
+                .setPositiveButton("Continue", (dialog, which) -> {
+                    String selected = editor.getText() == null ? "" : editor.getText().toString().trim();
+                    if (selected.isEmpty()) {
+                        setVoiceStatus("EMPTY TRANSCRIPT • COMMAND NOT RUN");
+                        return;
+                    }
+                    handleCommand(selected);
+                })
+                .setNegativeButton("Cancel", (dialog, which) ->
+                        setVoiceStatus("VOICE REVIEW CANCELLED • STANDBY"))
+                .show();
     }
 
     private void handleCommand(String command) {
