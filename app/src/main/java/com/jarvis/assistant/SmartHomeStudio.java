@@ -66,7 +66,7 @@ public final class SmartHomeStudio {
                                         + "Do not create hidden automation, security bypasses, unattended access, locks/door controls, "
                                         + "or safety-critical actions involving heating, cooking or electrical equipment. "
                                         + "This is a suggested checklist only; JARVIS will not execute it or send device commands.",
-                                "SMART ROUTINE PLAN")));
+                                "SMART ROUTINE PLAN")))
                 .setNegativeButton("Cancel", null).show();
     }
 
