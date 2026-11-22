@@ -47,6 +47,8 @@ public class MainActivity extends Activity {
     private TextView status, transcript;
     private TextToSpeech tts;
     private String lastSpokenText = "";
+    private static final int OWNER_AUTH_REQUEST = 7316;
+    private Runnable pendingOwnerAction;
     private SpeechRecognizer recognizer;
     private static final int MIC_PERMISSION_REQUEST = 1001;
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
@@ -1713,11 +1715,11 @@ public class MainActivity extends Activity {
                                     transcript.setText("JARVIS memory cleared.");
                                 }).show();
                     } else if (which == 9) showModeSelector();
-                    else if (which == 10) showNotesDialog();
+                    else if (which == 10) runAfterOwnerAuthentication(() -> showNotesDialog());
                     else if (which == 11) showDailyBriefing();
                     else if (which == 12) showLiveInfoOptions();
                     else if (which == 13) openVisionTools();
-                    else if (which == 14) showTaskAndReminderHub();
+                    else if (which == 14) runAfterOwnerAuthentication(() -> showTaskAndReminderHub());
                     else if (which == 15) showConnectedSystems();
                     else if (which == 16) showPrivacyOptions();
                     else if (which == 17) showScreenTimeOverview();
@@ -1727,8 +1729,8 @@ public class MainActivity extends Activity {
                     else if (which == 21) showVoiceSettings();
                     else if (which == 22) showFocusSession();
                     else if (which == 23) showDeviceResourceDashboard();
-                    else if (which == 24) showWorkflowStudio();
-                    else if (which == 25) showPersonalMemoryVault();
+                    else if (which == 24) runAfterOwnerAuthentication(() -> showWorkflowStudio());
+                    else if (which == 25) runAfterOwnerAuthentication(() -> showPersonalMemoryVault());
                     else if (which == 26) LanguageStudio.show(MainActivity.this, status, transcript);
                     else if (which == 27) AppIntelligenceStudio.show(MainActivity.this);
                     else if (which == 28) PublicKnowledgeStudio.show(MainActivity.this);
@@ -2131,8 +2133,35 @@ public class MainActivity extends Activity {
     }
 
     private void showPrivacyOptions() {
-        // Upgrade the existing privacy entry in place; do not add a duplicate menu item.
-        OwnerPrivacyStudio.show(this, preferences);
+        // Upgrade the existing privacy entry in place; require the phone's own credential.
+        runAfterOwnerAuthentication(() -> OwnerPrivacyStudio.show(this, preferences));
+    }
+
+    private void runAfterOwnerAuthentication(Runnable action) {
+        android.app.KeyguardManager keyguard =
+                (android.app.KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        if (keyguard == null || !keyguard.isDeviceSecure()) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Device lock required")
+                    .setMessage("Set a PIN, pattern or password in Android Security settings before opening private notes, tasks, workflows or memory. JARVIS does not create or store your device PIN.")
+                    .setPositiveButton("Open security settings", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS)); }
+                        catch (Exception e) { status.setText("OPEN ANDROID SETTINGS > SECURITY"); }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Intent confirm = keyguard.createConfirmDeviceCredentialIntent(
+                "Confirm it's you", "Unlock to access private JARVIS data");
+        if (confirm == null) {
+            status.setText("DEVICE AUTHENTICATION IS UNAVAILABLE");
+            return;
+        }
+        pendingOwnerAction = action;
+        try {
+            startActivityForResult(confirm, OWNER_AUTH_REQUEST);
+        } catch (Exception e) {
+            pendingOwnerAction = null;
+            status.setText("COULD NOT OPEN DEVICE AUTHENTICATION");
+        }
     }
 
     private void showModeSelector() {
@@ -2268,6 +2297,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == OWNER_AUTH_REQUEST) {
+            Runnable action = pendingOwnerAction;
+            pendingOwnerAction = null;
+            if (resultCode == RESULT_OK && action != null) {
+                action.run();
+            } else {
+                status.setText("OWNER AUTHENTICATION CANCELLED • PRIVATE DATA NOT OPENED");
+            }
+            return;
+        }
         if (!ImageOcrStudio.handleResult(this, requestCode, resultCode, data)) {
             DocumentOcrStudio.handleResult(this, requestCode, resultCode, data);
         }
