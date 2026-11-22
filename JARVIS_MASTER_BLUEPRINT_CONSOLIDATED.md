@@ -322,3 +322,10 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B10 verification update (2026-11-22):** final head `14b77ad900299a9a95c52781463aa0763c11733a` passed GitHub Actions run #648 (`45047351132`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #36 is open and unmerged.
+
+
+### M16 — Smart Home Studio (Batch B11; implementation status tracked separately)
+- Added Device Setup Guide, Local Room Device Inventory (up to 30 manually entered labels), and Smart Routine Planner.
+- Setup and routine guidance use explicit owner submission through the memory-isolated AI path. Inventory stays local in the existing private preferences store.
+- This increment does not scan networks, discover devices, pair, control devices, send device commands, store credentials or run unattended automations. It is a safe planning/inventory foundation, not a full smart-device integration.
+- **Status:** code added on `feature/m16-smart-home-studio-3pack`; CI/build and target-device verification pending.
