@@ -605,8 +605,8 @@ public class MainActivity extends Activity {
                 .setNegativeButton("Cancel", (d, w) -> status.setText("MESSAGE DRAFT CANCELLED"))
                 .setPositiveButton("Review in messaging app", (d, w) -> {
                     String approvedText = message.getText().toString().trim();
-                    if (approvedText.isEmpty()) {
-                        status.setText("EMPTY MESSAGE • NOTHING OPENED");
+                    if (!B21MessageDraftRules.isValidDraft(approvedText)) {
+                        status.setText("MESSAGE DRAFT INVALID • NOTHING OPENED");
                         return;
                     }
                     try {
