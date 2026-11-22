@@ -34,7 +34,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 ## Work sequence
 ### Priority sprint A — requested items 1–4
 - [x] **1. Natural voice engine — initial implementation:** shared voice profile and Command Center controls integrated; CI build succeeded. Remaining: actual installed voice list/availability and device testing.
-- [x] **2. Owner / Guest Mode — initial implementation:** local salted PBKDF2 PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, owner-only notes guard, and separate owner/guest AI conversation stores. Remaining: full private-data surface audit, rate limiting, session timeout, and on-device tests.
+- [x] **2. Owner / Guest Mode — initial implementation:** local salted PBKDF2 PIN, Guest-by-default app launch, explicit Owner unlock / Guest switch, owner-only notes guard, separate owner/guest AI conversation stores, five-failure PIN lockout (60 seconds), and 15-minute owner-session idle expiry. Remaining: full private-data surface audit, automated tests, build verification, and on-device tests.
 - [x] **3. Reliable background listening — initial code hardening:** duplicate service starts and queued restart callbacks are guarded; visible notification/Stop action and microphone permission checks remain. Remaining: pause/resume UX, error/status visibility and Poco/MIUI device tests.
 - [x] **4. Human Intelligence Engine — initial implementation:** deterministic clarification for incomplete open/call/message/reminder/search requests is wired into local command routing. Broader context and memory-consent tests remain.
 
@@ -60,3 +60,13 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - Media Vault must distinguish a local app-private copy from a verified independent backup. Never imply deleted originals can be recovered without a separate copy.
 - Auto-repair must back up before changes, explain the change, request owner approval, and provide rollback where possible.
 - Scheduled learning may fetch and index approved information but must not modify its own executable code or permissions.
+
+
+## Follow-up implementation — 2026-11-22
+
+- [x] Added owner PIN rate limiting to `JarvisSessionManager`: after five failed PIN attempts, further unlock attempts are blocked for 60 seconds.
+- [x] Added a 15-minute inactivity expiry for an unlocked Owner session; the app continues to start in Guest after process restart.
+- [ ] Run Android unit tests, lint and debug APK build for this commit.
+- [ ] Review all owner-only data/action entry points and verify the session expiry is enforced before every protected operation.
+- [ ] Verify lockout, successful reset, Guest fallback and idle expiry on the target Poco M4 Pro 4G.
+- [ ] Keep these changes marked code-present / validation-pending until automated and device checks are complete.
