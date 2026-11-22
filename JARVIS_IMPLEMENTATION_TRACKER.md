@@ -604,3 +604,11 @@
 - **Delivery:** one draft PR for the integrated batch after implementation and automated validation. No merge into B20 or main without owner approval.
 - **Device verification:** target Poco M4 Pro 4G remains required for device-dependent capabilities.
 - **Project boundary:** JARVIS only; Even untouched.
+
+
+### B21 implementation update — Existing task module upgrade
+
+- **Code-present:** the existing structured task manager now accepts category (Personal/Work/Study/Home/Health/Other), priority (Low/Normal/High/Urgent), and an optional date; task rows display these fields. Existing `structured_tasks_v1` storage is extended in place, preserving older records with default display values.
+- **Validation:** added `B21TaskRules` for title length, allowed category/priority values, and strict optional ISO date validation, with JUnit coverage.
+- **Scope count:** 3 of the 50 planned B21 capabilities have an initial code implementation (task category, priority, due date). The other 47 remain unimplemented or require audit; no claim that the full batch is complete.
+- **CI:** GitHub Actions runs were triggered for the MainActivity change and the new validation/test files; final conclusions are pending. Device testing on Poco M4 Pro 4G is pending.
