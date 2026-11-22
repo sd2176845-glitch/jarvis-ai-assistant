@@ -901,3 +901,6 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - **Storyboard & Shot List:** code added; numbered scene/framing/transition plans with accessibility notes; text output only; final rebased CI/device verification pending.
 - **Presentation Builder:** code added; slide outline, bullets, speaker notes and sources-to-verify; text output only; no PPTX generation; final rebased CI/device verification pending.
 - Uses memory-isolated AI request with explicit confirmation; no new permissions or persistent creative archive.
+
+
+**B11 verification update (2026-11-22):** rebased head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14` passed GitHub Actions run #636 (`45046654060`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #35 is open and unmerged.
