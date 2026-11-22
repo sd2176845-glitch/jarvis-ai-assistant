@@ -151,7 +151,7 @@
 ### Batch validation and safety status
 - **Implementation files:** `MemoryExpansionStudio.java` (new) and existing `MainActivity.java` (one entry added inside the existing vault).
 - **Permissions:** no manifest permission added. Uses Android Keystore and app-private storage only.
-- **CI/build:** pending for this batch; do not claim build success until the current branch head workflow completes.
+- **CI/build:** passed on the batch source/documentation head `0de68e1501efa54523776625964b387690d1c9ca` (GitHub Actions run #537, ID `45043884161`) and the latest tracker-linked head `f27de69d8faade2c565adf0870569e301fe3dec7` (run #538, ID `45043923314`). Backend JavaScript syntax checks, Gradle debug APK build and APK artifact upload completed successfully. Latest artifact ID: `14762319147` (`jarvis-debug-apk`).
 - **Unit tests/lint:** not yet run as separate tasks; no claim of passing.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify API 23+ Keystore AES-GCM support, create/verify/replace/delete archive, graph CRUD and idea-version restore.
 - **Merge:** keep stacked on parent PR #23 until reviewed; do not merge to parent or `main` without owner approval.
