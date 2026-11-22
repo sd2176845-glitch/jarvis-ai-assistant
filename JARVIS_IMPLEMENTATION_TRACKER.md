@@ -640,3 +640,14 @@
 **Automated tests added:** task metadata/date validation, overdue detection, workflow preview output, allowlisted speech locales, and message draft validation. CI is triggered per commit; only completed successful runs count as verified. Poco device testing remains pending.
 
 **Scope note:** these are 18 B21 capability improvements/extensions, not a claim that all 50 planned items are complete. Existing B20 capabilities are reused rather than duplicated. Provider-backed sign-in, OCR, and other integrations that require external credentials/dependencies remain gated until their safe configuration and test requirements are established.
+
+
+### B21 implementation update — additional 5 capabilities
+
+19. Knowledge Graph provenance labels: new nodes/links are marked Owner-entered; legacy records without provenance are explicitly labeled source-not-recorded.
+20. Virtual Experiment Notebook: owner can save, review and clear local text-only studies; entries are labeled SIMULATION ONLY and carry a source-verification note.
+21. Creative Project Organizer: owner can save, review and clear locally stored creative drafts; drafts are clearly not rendered media files.
+22. Image Text Reader: owner-selected images are processed locally with ML Kit; no image/text upload or persistence. Supported scripts are Latin and Devanagari; Bengali is not currently supported.
+23. OCR processing releases the recognizer after success/failure; file selection is user-initiated.
+
+The B21 code-present improvement count is now **23**. Automated CI for the newest OCR/dependency changes is pending; earlier individual feature commits have successful Actions runs. Device verification remains pending.
