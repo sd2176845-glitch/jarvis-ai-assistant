@@ -268,3 +268,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B05 verification update (2026-11-22):** final head `76877d030adcf36b187bf01e263ce52051b10661` passed GitHub Actions run #563 (`45045200384`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #27 is open and unmerged.
+
+
+### M06 — Live Information Studio (Batch B06; implementation status tracked separately)
+- Added three owner-invoked tools to the existing Command Center: city weather via Open-Meteo (manual city entry, no GPS); currency conversion via Frankfurter v2 (reference rates, not bank/live market quotes); and India public-holiday lookup via Nager.Date v4.
+- All require confirmation and send only the entered city, amount/currency codes or year. No precise location or personal memory is attached.
+- Uses HTTPS GET, bounded timeouts and response-size cap; no API key or new Android permission.
+- Weather and holiday datasets are provider-dependent and must not be represented as guaranteed forecasts or exhaustive official calendars.
+- **Status:** code added on `feature/m06-live-info-3pack`; CI/build and target-device verification pending.
