@@ -149,11 +149,11 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 
 
 ### Priority 7 — Owner feedback, diagnostics and repair handoff
-- [ ] Add an owner-invoked "Report a problem" / "Self-Diagnostics" conversation flow. JARVIS asks what is not working (for example voice, wake word, memory, AI replies, app commands, reminders or integrations) and lets the owner describe the issue in their own words.
-- [ ] Run safe, read-only checks for relevant app version, permission state, network reachability, backend health, API response status, speech/TTS availability and recent non-sensitive error codes; do not claim a root cause without evidence.
-- [ ] Produce a shareable, structured diagnostic report with issue description, expected vs actual behavior, reproducible steps, timestamps, app/build version, device/Android details, relevant sanitized logs, checks performed and likely next steps.
-- [ ] Provide a preview before sharing. Redact API keys, auth tokens, phone numbers, contact names, message contents, precise location, personal notes and other private data by default. Include only data the owner explicitly approves.
-- [ ] Give the report a unique reference ID and export it as text/JSON that the owner can copy or share with the developer/ChatGPT; do not silently upload it.
+- [~] Extend the existing System Safety Check into an owner-invoked Self-Diagnostics report flow. The owner can optionally describe an issue; this is a local preview/share flow, not a conversational troubleshooting interview (code present — device test needed).
+- [~] Run safe, read-only checks for app/device version, microphone/notification permission state, speech-recognition service and TTS initialization. Live network/backend reachability, API response status and sanitized error-code collection are not implemented; the report explicitly says so.
+- [~] Produce a shareable text report with optional owner-entered issue description, reference ID, timestamp, app version, device/Android details and completed checks. Expected-vs-actual fields, reproducible-step capture, logs and automated next-step analysis remain planned.
+- [x] Provide a preview before sharing; the owner must explicitly tap Share. The current report does not collect logs, contacts, messages, notes or location. The owner-entered issue description is included in the preview, so the owner must review it and remove secrets/private details before sharing.
+- [~] Give the report a short unique reference ID and share it as plain text through Android's share chooser. JSON export and copy-to-clipboard controls remain planned; there is no automatic upload.
 - [ ] Support a repair handoff: owner shares the report with the developer, who reviews the evidence, proposes a code fix, updates the JARVIS feature branch, runs available builds/tests and returns a testable APK or patch.
 - [ ] After a fix, provide a short verification checklist and let the owner report whether the original problem is resolved; keep unresolved issues open and attach new evidence rather than marking them fixed automatically.
 - [ ] Never let JARVIS rewrite its own installed APK, change source code, deploy backend changes or execute arbitrary repair commands autonomously. Code repairs require developer review, explicit authorization, build/test and owner installation.
