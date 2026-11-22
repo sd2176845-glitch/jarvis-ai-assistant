@@ -334,3 +334,6 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - Explicit confirmation before sending the creative brief; no conversation memory, notes or contacts attached, no persistent creative archive or new permission.
 - Original-content, factual-accuracy, likeness-consent and safe-production boundaries are included.
 - **Status:** code rebased on latest M13 parent on `feature/m15-creative-media-3pack`; final rebased CI/build and target-device verification pending.
+
+
+**B11 verification update (2026-11-22):** rebased head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14` passed GitHub Actions run #636 (`45046654060`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #35 is open and unmerged.
