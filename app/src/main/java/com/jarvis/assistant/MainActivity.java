@@ -41,7 +41,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.Locale;\nimport org.json.JSONArray;\nimport org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private TextView status, transcript;
@@ -379,11 +379,13 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
+        String structured = getStructuredTaskSummary();
         String notes = getSavedNotes();
-        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
+        String summary = structured;
+        if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\n\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
-                .setPositiveButton("Add task", (d, w) -> showNotesDialog())
+                .setMessage(summary + "\n\nTasks are stored locally in a separate structured list. Existing notes are preserved. Alarm time must be confirmed in Android Clock.")
+                .setPositiveButton("Manage tasks", (d, w) -> showStructuredTaskManager())
                 .setNeutralButton("Set alarm", (d, w) -> {
                     try {
                         Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
@@ -392,6 +394,129 @@ public class MainActivity extends Activity {
                     } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
                 })
                 .setNegativeButton("New event", (d, w) -> showCalendarEventDraftDialog()).show();
+    }
+
+    private org.json.JSONArray readStructuredTasks() {
+        String raw = preferences.getString("structured_tasks_v1", "[]");
+        try {
+            return new org.json.JSONArray(raw);
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private boolean saveStructuredTasks(org.json.JSONArray tasks) {
+        if (tasks == null) return false;
+        preferences.edit().putString("structured_tasks_v1", tasks.toString()).apply();
+        return true;
+    }
+
+    private String getStructuredTaskSummary() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) return "Structured task data needs attention; saved data has been preserved.";
+        if (tasks.length() == 0) return "TASK LIST\nNo structured tasks yet.";
+        int pending = 0;
+        int completed = 0;
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            if (item.optBoolean("done", false)) completed++;
+            else pending++;
+        }
+        return "TASK LIST\nPending: " + pending + "  •  Completed: " + completed;
+    }
+
+    private void showStructuredTaskManager() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Tasks")
+                    .setMessage("Task data could not be read. Nothing has been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            labels.add((item.optBoolean("done", false) ? "✓  " : "○  ")
+                    + item.optString("title", "Untitled task"));
+        }
+        String[] entries = labels.toArray(new String[0]);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Structured tasks")
+                .setItems(entries, (dialog, which) -> {
+                    org.json.JSONObject item = tasks.optJSONObject(which);
+                    if (item != null) {
+                        item.put("done", !item.optBoolean("done", false));
+                        saveStructuredTasks(tasks);
+                        status.setText(item.optBoolean("done", false) ? "TASK COMPLETED" : "TASK REOPENED");
+                    }
+                    showStructuredTaskManager();
+                })
+                .setPositiveButton("Add task", (dialog, which) -> showAddStructuredTaskDialog())
+                .setNeutralButton("Delete task", (dialog, which) -> showDeleteStructuredTaskDialog())
+                .setNegativeButton("Close", null);
+        if (entries.length == 0) {
+            builder.setMessage("No tasks yet. Tap Add task to create your first one.");
+        } else {
+            builder.setMessage("Tap a task to switch its completion status.");
+        }
+        builder.show();
+    }
+
+    private void showAddStructuredTaskDialog() {
+        EditText input = new EditText(this);
+        input.setHint("What needs to be done?");
+        input.setSingleLine(true);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Add task")
+                .setMessage("This task stays in JARVIS private app storage on this phone.")
+                .setView(input)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save task", (dialog, which) -> {
+                    String title = input.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("EMPTY TASK NOT SAVED");
+                        return;
+                    }
+                    org.json.JSONArray tasks = readStructuredTasks();
+                    if (tasks == null) {
+                        status.setText("TASK DATA COULD NOT BE READ");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("done", false);
+                        item.put("created_at", System.currentTimeMillis());
+                        tasks.put(item);
+                        saveStructuredTasks(tasks);
+                        status.setText("TASK SAVED ON DEVICE");
+                        showStructuredTaskManager();
+                    } catch (org.json.JSONException e) {
+                        status.setText("TASK COULD NOT BE SAVED");
+                    }
+                }).show();
+    }
+
+    private void showDeleteStructuredTaskDialog() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null || tasks.length() == 0) {
+            status.setText(tasks == null ? "TASK DATA COULD NOT BE READ" : "NO TASKS TO DELETE");
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            labels.add(item == null ? "Untitled task" : item.optString("title", "Untitled task"));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Delete task")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    tasks.remove(which);
+                    saveStructuredTasks(tasks);
+                    status.setText("TASK DELETED");
+                    showStructuredTaskManager();
+                })
+                .setNegativeButton("Cancel", null).show();
     }
 
     private void showConnectedSystems() {
