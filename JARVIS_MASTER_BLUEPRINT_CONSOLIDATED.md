@@ -383,3 +383,9 @@ Three separate capabilities have been added inside the existing Personal Memory 
 **Owner-Reviewed Voice Transcript Correction Gate — code-present; CI and device verification pending.** The existing `understandVoiceCommand()` path is upgraded in place. If the correction endpoint changes recognized words, JARVIS shows the original and suggested wording and waits for the owner to choose corrected text, original text, edited text, or cancel. Unchanged transcripts continue without interruption. Empty edits and cancellation do not execute commands. The transcript is not persisted by this feature.
 
 **Files:** `VoiceTranscriptReviewRules.java`, `VoiceTranscriptReviewRulesTest.java`, and existing `MainActivity.java`. Three focused JUnit tests cover the comparison and fallback rules. No duplicate voice engine, command router, transcript database, new permission, or background capture is introduced. CI pending; Poco M4 Pro 4G testing pending. Draft PR #42 is stacked on M01 PR #41. JARVIS only; Even untouched.
+
+
+### M15 — Display & Accessibility Studio (Batch B17; implementation status tracked separately)
+- **Code-present:** owner-selectable Standard, Large, Extra-large and High-contrast app-local readability profiles, with reset. Applies to existing JARVIS status and response text and persists in the existing private preferences store.
+- **Boundary:** does not alter Android system settings, screen density, permissions, or background accessibility services.
+- **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
