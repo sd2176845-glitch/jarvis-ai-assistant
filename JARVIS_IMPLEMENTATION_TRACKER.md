@@ -487,6 +487,6 @@
 ### Implementation and verification
 - **Files:** `PracticalIntelligenceStudio.java` (new), `PracticalIntelligenceRules.java` (pure prompts/validation), `PracticalIntelligenceRulesTest.java` (three focused JUnit tests), and `MainActivity.java` (one Command Center entry).
 - **Automated tests:** separate tests cover emergency-planning honesty/safety, legal explanation boundaries, and vehicle-record validation. Inherits CI's `gradle testDebugUnitTest` before `gradle assembleDebug`.
-- **CI status:** pending for this batch; do not claim tests/build passed until the M19 branch workflow completes.
+- **CI/build:** corrected code head `9bd9ea41ccd237911ea86e133787b4d6bbe84f27` passed GitHub Actions run #701 (`45050181584`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764908613`; SHA-256 `dcac5e8d711b92ac0a88c7154b93d496c0610b297c50681f4a2c7e88d48c68af`. Intermediate run #700 failed because the vehicle form helper lacked an Activity parameter; this was corrected in the passing head. Earlier documentation-only runs #697–#699 passed.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify local record CRUD/restart/corrupt-data behavior, AI confirmation/cancel, and offline/server errors.
 - **Merge policy:** keep stacked on PR #39; do not merge into PR #39 or `main` without owner approval. JARVIS only; Even untouched.
