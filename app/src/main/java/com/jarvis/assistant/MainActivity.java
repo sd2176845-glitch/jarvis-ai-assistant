@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
     private String pendingDirectCallName = null;
     private SharedPreferences preferences;
     private ImageView avatar;
+    private android.os.CountDownTimer activeFocusTimer;
 
     private int cyan = Color.rgb(255,  70, 82);
     private int bg = Color.rgb(8, 5, 9);
@@ -373,6 +374,87 @@ public class MainActivity extends Activity {
         avatar.animate().scaleX(scale).scaleY(scale).setDuration(duration).start();
     }
 
+
+    /**
+     * Owner-started focus timer. It does not block apps, notifications or calls.
+     * The countdown remains active only while the JARVIS process is alive.
+     */
+    private void showFocusSession() {
+        EditText taskInput = new EditText(this);
+        taskInput.setHint("What are you focusing on?");
+        taskInput.setSingleLine(true);
+        taskInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(28, 8, 28, 4);
+        TextView help = new TextView(this);
+        help.setText("Choose a short focus block. JARVIS will show a countdown; it will not restrict your phone or silence notifications. Keep JARVIS open while the session runs.");
+        help.setTextColor(Color.rgb(190, 215, 230));
+        panel.addView(help);
+        panel.addView(taskInput);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Focus session")
+                .setMessage("Add a task, then choose a duration.")
+                .setView(panel)
+                .setItems(new String[]{"15 minutes", "25 minutes", "45 minutes"}, (dialog, which) -> {
+                    String task = taskInput.getText().toString().trim();
+                    if (task.isEmpty()) task = "Focus session";
+                    int minutes = which == 0 ? 15 : (which == 1 ? 25 : 45);
+                    startFocusSession(task, minutes);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void startFocusSession(String task, int minutes) {
+        if (activeFocusTimer != null) {
+            activeFocusTimer.cancel();
+            activeFocusTimer = null;
+        }
+        final String focusTask = task;
+        final TextView timerText = new TextView(this);
+        timerText.setTextColor(Color.WHITE);
+        timerText.setTextSize(30);
+        timerText.setGravity(Gravity.CENTER);
+        timerText.setPadding(20, 28, 20, 28);
+        final AlertDialog sessionDialog = new AlertDialog.Builder(this)
+                .setTitle("FOCUS IN PROGRESS")
+                .setMessage(focusTask + "\n\nKeep JARVIS open for the countdown.")
+                .setView(timerText)
+                .setPositiveButton("Stop session", null)
+                .create();
+        sessionDialog.setCancelable(false);
+        sessionDialog.show();
+        sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (activeFocusTimer != null) {
+                activeFocusTimer.cancel();
+                activeFocusTimer = null;
+            }
+            status.setText("FOCUS SESSION STOPPED");
+            transcript.setText("JARVIS • Focus session stopped\n\n" + focusTask);
+            sessionDialog.dismiss();
+        });
+        activeFocusTimer = new android.os.CountDownTimer(minutes * 60L * 1000L, 1000L) {
+            @Override public void onTick(long millisUntilFinished) {
+                long totalSeconds = millisUntilFinished / 1000L;
+                long remainingMinutes = totalSeconds / 60L;
+                long remainingSeconds = totalSeconds % 60L;
+                timerText.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                        remainingMinutes, remainingSeconds));
+                status.setText("FOCUS SESSION • " + remainingMinutes + " MIN LEFT");
+            }
+
+            @Override public void onFinish() {
+                activeFocusTimer = null;
+                timerText.setText("SESSION COMPLETE");
+                status.setText("FOCUS SESSION COMPLETE");
+                transcript.setText("JARVIS • Focus session complete\n\n" + focusTask);
+                sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Done");
+                sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> sessionDialog.dismiss());
+            }
+        }.start();
+    }
+
     private void showCommandCenter() {
         String[] items = {
                 "Hey JARVIS • Background listening",
@@ -396,7 +478,8 @@ public class MainActivity extends Activity {
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
-                "Voice Studio • Voice / Speed / Pitch"
+                "Voice Studio • Voice / Speed / Pitch",
+                "Focus & Productivity Session"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -435,6 +518,7 @@ public class MainActivity extends Activity {
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
                     else if (which == 21) showVoiceSettings();
+                    else if (which == 22) showFocusSession();
                 }).setNegativeButton("Close", null).show();
     }
 
