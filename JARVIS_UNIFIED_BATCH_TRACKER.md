@@ -27,7 +27,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 7. Autonomous Engine: **partial implementation**; local user-scheduled reminders use AlarmManager and a notification receiver. Recurring routines, cancellation UI and an audit log remain.
 8. Creator Engine: **partial implementation**; Creator Studio asks the AI backend for caption, short-video script, story and bio drafts; saving is explicit and owner-gated. No auto-posting or auto-sharing.
 9. Security Engine: **partial implementation**; read-only permission review and a static link/code inspector exist, owner/guest privacy gates were expanded, and backend secrets remain server-side. A full threat model, encrypted storage and audit tests remain.
-10. Scheduled Learning: **limited initial implementation**; users can schedule a local topic-review reminder. Automated approved-source refresh/indexing, provenance, pause/disable and learning history are not yet implemented.
+10. Scheduled Learning: **initial approved-source implementation added; validation pending**; Owner can approve up to five HTTPS RSS/Atom feeds, enable/pause daily refresh, manually refresh, and review up to 40 saved items with source host, publication date and link. Each refresh is bounded to four new items per source, 100 KB per feed and HTTPS with redirects disabled. CI, parser behavior and target-device tests remain pending.
 11. Auto Repair Kit: **partial implementation**; read-only diagnostics cover microphone permission, speech recognition, TTS, notifications and accessibility. An owner-approved voice-profile repair backs up current settings and supports rollback; broader repair/rollback remains unimplemented.
 12. Personal Media Vault: **partial implementation ported**; owner-only selected media copies stay in private app storage, with import/export/restore and SHA-256 integrity checks before restore/export. Files are not encrypted and local storage is not an independent cloud backup; device and recovery tests remain.
 
@@ -45,7 +45,7 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - [x] **11. Auto Repair Kit — initial repair implementation:** diagnostics, owner-approved voice-profile repair with backup, and rollback added; other repair categories remain manual.
 - [x] **12. Personal Media Vault — initial implementation:** owner-gated selected-file backup/import/export/restore plus SHA-256 sidecar integrity checks added; encryption and independent backup verification remain.
 - [x] **6. Communication Engine — initial integration:** owner-gated calls and announcements plus SMS draft handoff to the user's messaging app; sending remains a user action. Device and contact-flow tests remain.
-- [ ] Implement automated approved-source Scheduled Learning with provenance, pause/disable and limits.
+- [x] **10. Scheduled Learning — initial implementation:** owner-gated RSS/Atom source approval, five-source cap, daily enable/pause scheduling, manual refresh, bounded feed parsing and saved source/date/link provenance added. CI and target-device validation remain pending.
 - [ ] Add safe repair/rollback workflow and complete privacy/security review.
 - [ ] Run lint, unit tests, latest CI build, APK size/existence checks and target-device testing.
 - [ ] Update the master blueprint with implemented / partial / platform-dependent / device-test-needed status.
@@ -70,3 +70,4 @@ The current `main` branch is behind/diverged from several feature branches. Do n
 - [ ] Review all owner-only data/action entry points and verify the session expiry is enforced before every protected operation.
 - [ ] Verify lockout, successful reset, Guest fallback and idle expiry on the target Poco M4 Pro 4G.
 - [ ] Keep these changes marked code-present / validation-pending until automated and device checks are complete.
+\n\n## Scheduled Learning implementation — 2026-11-22\n\n- [x] Added `JarvisScheduledLearning` with owner-approved HTTPS RSS/Atom feeds, up to five sources, bounded response size and per-feed item limits, duplicate-link suppression, source host/publication date/link provenance, and a 40-item history cap.\n- [x] Added daily inexact AlarmManager refresh with explicit enable/pause controls and a manual refresh action in Command Center.\n- [x] Registered a non-exported refresh receiver; feed redirects are disabled and feed content is parsed as text only (never executed or auto-opened).\n- [ ] Run CI build, lint and tests; verify RSS/Atom parsing and scheduling behavior on Poco M4 Pro 4G.\n
