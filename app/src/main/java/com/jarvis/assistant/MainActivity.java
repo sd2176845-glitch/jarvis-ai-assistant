@@ -418,7 +418,8 @@ public class MainActivity extends Activity {
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
                 "Background listening voice: Silent / On",
-                "Voice settings • Language / Voice / Speed / Pitch"
+                "Voice settings • Language / Voice / Speed / Pitch",
+                "Smart Notification Intelligence"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -457,7 +458,8 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
-                    else if (which == 21) showVoiceSettings();\n                    else if (which == 22) showSmartNotificationIntelligence();
+                    else if (which == 21) showVoiceSettings();
+                    else if (which == 22) showSmartNotificationIntelligence();\n                    else if (which == 22) showSmartNotificationIntelligence();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1558,7 +1560,7 @@ public class MainActivity extends Activity {
                 .setMessage(summary)
                 .setPositiveButton(enabled ? "Notification settings" : "Enable access", (d, w) -> {
                     try {
-                        startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                        startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
                     } catch (Exception e) {
                         status.setText("OPEN ANDROID SETTINGS > NOTIFICATION ACCESS");
                     }
