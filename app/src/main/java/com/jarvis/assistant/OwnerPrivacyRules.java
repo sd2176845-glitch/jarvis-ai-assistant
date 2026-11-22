@@ -29,7 +29,7 @@ public final class OwnerPrivacyRules {
             if (inString) {
                 elementStarted = true;
                 if (escaped) escaped = false;
-                else if (ch == '\\\\') escaped = true;
+                else if (ch == '\\') escaped = true;
                 else if (ch == '"') inString = false;
                 continue;
             }
