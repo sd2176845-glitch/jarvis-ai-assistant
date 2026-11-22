@@ -443,7 +443,8 @@ public class MainActivity extends Activity {
                     + item.optString("title", "Untitled task")
                     + "  •  " + item.optString("priority", "Normal")
                     + "  •  " + item.optString("category", "Personal")
-                    + (item.optString("due_date", "").isEmpty() ? "" : "  •  Due " + item.optString("due_date")));
+                    + (item.optString("due_date", "").isEmpty() ? "" : "  •  Due " + item.optString("due_date"))
+                    + (B21TaskRules.isOverdue(item.optString("due_date", ""), item.optBoolean("done", false), System.currentTimeMillis()) ? "  •  OVERDUE" : ""));
         }
         String[] entries = labels.toArray(new String[0]);
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
