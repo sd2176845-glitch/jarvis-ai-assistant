@@ -437,8 +437,8 @@ public class MainActivity extends Activity {
         ArrayList<String> labels = new ArrayList<>();
         for (int i = 0; i < tasks.length(); i++) {
             org.json.JSONObject item = tasks.optJSONObject(i);
-            if (item == null) continue;
-            labels.add((item.optBoolean("done", false) ? "✓  " : "○  ")
+            labels.add(item == null ? "Untitled task"
+                    : (item.optBoolean("done", false) ? "✓  " : "○  ")
                     + item.optString("title", "Untitled task"));
         }
         String[] entries = labels.toArray(new String[0]);
@@ -447,9 +447,13 @@ public class MainActivity extends Activity {
                 .setItems(entries, (dialog, which) -> {
                     org.json.JSONObject item = tasks.optJSONObject(which);
                     if (item != null) {
-                        item.put("done", !item.optBoolean("done", false));
-                        saveStructuredTasks(tasks);
-                        status.setText(item.optBoolean("done", false) ? "TASK COMPLETED" : "TASK REOPENED");
+                        try {
+                            item.put("done", !item.optBoolean("done", false));
+                            saveStructuredTasks(tasks);
+                            status.setText(item.optBoolean("done", false) ? "TASK COMPLETED" : "TASK REOPENED");
+                        } catch (org.json.JSONException e) {
+                            status.setText("TASK STATUS COULD NOT BE UPDATED");
+                        }
                     }
                     showStructuredTaskManager();
                 })
