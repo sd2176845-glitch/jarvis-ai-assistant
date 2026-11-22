@@ -569,6 +569,11 @@ public class MainActivity extends Activity {
         timeline.setText("OPEN PERSONAL TIMELINE");
         timeline.setOnClickListener(v -> showPersonalTimeline());
         panel.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
+        Button memoryExpansion = new Button(this);
+        memoryExpansion.setText("MEMORY EXPANSION STUDIO");
+        memoryExpansion.setOnClickListener(v ->
+                MemoryExpansionStudio.show(this, preferences, getFilesDir(), null));
+        panel.addView(memoryExpansion, new LinearLayout.LayoutParams(-1, -2));
         ScrollView scroll = new ScrollView(this);
         scroll.addView(panel);
         new AlertDialog.Builder(this)
