@@ -1753,7 +1753,8 @@ public class MainActivity extends Activity {
                 "Display & Accessibility Studio • Text / Contrast",
                 "Image Text Reader • Local OCR",
                 "PDF Text Reader • First-page OCR",
-                "Guest Mode • Hide private data"
+                "Guest Mode • Hide private data",
+                "Media Player Controls • Android media session"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1812,6 +1813,7 @@ public class MainActivity extends Activity {
                     else if (which == 39) ImageOcrStudio.chooseImage(MainActivity.this);
                     else if (which == 40) DocumentOcrStudio.choosePdf(MainActivity.this);
                     else if (which == 41) showGuestModeOptions();
+                    else if (which == 42) MediaControlStudio.show(MainActivity.this);
                 }).setNegativeButton("Close", null).show();
     }
 
