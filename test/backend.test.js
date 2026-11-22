@@ -1,8 +1,8 @@
-import test, { before, after } from "node:test";
-import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { once } from "node:events";
-import net from "node:net";
+const { test, before, after } = require("node:test");
+const assert = require("node:assert/strict");
+const { spawn } = require("node:child_process");
+const { once } = require("node:events");
+const net = require("node:net");
 
 let child;
 let baseUrl;
