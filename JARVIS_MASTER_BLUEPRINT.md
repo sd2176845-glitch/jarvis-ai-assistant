@@ -881,3 +881,10 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
+
+
+## Implementation status addendum — M13 Creative Media Studio (Batch B10; 2026-11-22)
+- **Image Concept Builder:** code added; produces an original image prompt, format-specific composition and alt text; no image file is generated; CI/device verification pending.
+- **Video Storyboard Studio:** code added; produces a timed scene plan with visuals, narration and captions; no video file is rendered; CI/device verification pending.
+- **Presentation Planner:** code added; produces a slide outline and speaker notes, with fact-check flags; no presentation file is created; CI/device verification pending.
+- All tools use isolated, owner-entered briefs and explicit confirmation; no new permissions, background collection or persistent media archive.
