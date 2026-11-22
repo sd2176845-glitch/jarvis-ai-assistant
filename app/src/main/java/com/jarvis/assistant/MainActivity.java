@@ -388,17 +388,26 @@ public class MainActivity extends Activity {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(28, 8, 28, 4);
         TextView help = new TextView(this);
-        help.setText("Choose a short focus block. JARVIS will show a countdown; it will not restrict your phone or silence notifications. Keep JARVIS open while the session runs.");
+        help.setText("Choose a short focus block. JARVIS shows a countdown but does not restrict apps, calls or notifications. Keep JARVIS open while the session runs.");
         help.setTextColor(Color.rgb(190, 215, 230));
         panel.addView(help);
         panel.addView(taskInput);
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Focus session")
-                .setMessage("Add a task, then choose a duration.")
                 .setView(panel)
-                .setItems(new String[]{"15 minutes", "25 minutes", "45 minutes"}, (dialog, which) -> {
+                .setPositiveButton("Choose duration", (dialog, which) -> {
                     String task = taskInput.getText().toString().trim();
                     if (task.isEmpty()) task = "Focus session";
+                    showFocusDurationDialog(task);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showFocusDurationDialog(String task) {
+        new AlertDialog.Builder(this)
+                .setTitle("Choose focus duration")
+                .setItems(new String[]{"15 minutes", "25 minutes", "45 minutes"}, (dialog, which) -> {
                     int minutes = which == 0 ? 15 : (which == 1 ? 25 : 45);
                     startFocusSession(task, minutes);
                 })
@@ -412,15 +421,24 @@ public class MainActivity extends Activity {
             activeFocusTimer = null;
         }
         final String focusTask = task;
+        final TextView taskLabel = new TextView(this);
+        taskLabel.setText(focusTask);
+        taskLabel.setTextColor(Color.rgb(190, 215, 230));
+        taskLabel.setTextSize(16);
+        taskLabel.setGravity(Gravity.CENTER);
+        taskLabel.setPadding(16, 20, 16, 8);
         final TextView timerText = new TextView(this);
         timerText.setTextColor(Color.WHITE);
         timerText.setTextSize(30);
         timerText.setGravity(Gravity.CENTER);
-        timerText.setPadding(20, 28, 20, 28);
+        timerText.setPadding(20, 24, 20, 28);
+        LinearLayout timerPanel = new LinearLayout(this);
+        timerPanel.setOrientation(LinearLayout.VERTICAL);
+        timerPanel.addView(taskLabel);
+        timerPanel.addView(timerText);
         final AlertDialog sessionDialog = new AlertDialog.Builder(this)
                 .setTitle("FOCUS IN PROGRESS")
-                .setMessage(focusTask + "\n\nKeep JARVIS open for the countdown.")
-                .setView(timerText)
+                .setView(timerPanel)
                 .setPositiveButton("Stop session", null)
                 .create();
         sessionDialog.setCancelable(false);
@@ -431,7 +449,7 @@ public class MainActivity extends Activity {
                 activeFocusTimer = null;
             }
             status.setText("FOCUS SESSION STOPPED");
-            transcript.setText("JARVIS • Focus session stopped\n\n" + focusTask);
+            transcript.setText("JARVIS • Focus session stopped\\n\\n" + focusTask);
             sessionDialog.dismiss();
         });
         activeFocusTimer = new android.os.CountDownTimer(minutes * 60L * 1000L, 1000L) {
@@ -448,7 +466,7 @@ public class MainActivity extends Activity {
                 activeFocusTimer = null;
                 timerText.setText("SESSION COMPLETE");
                 status.setText("FOCUS SESSION COMPLETE");
-                transcript.setText("JARVIS • Focus session complete\n\n" + focusTask);
+                transcript.setText("JARVIS • Focus session complete\\n\\n" + focusTask);
                 sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Done");
                 sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> sessionDialog.dismiss());
             }
