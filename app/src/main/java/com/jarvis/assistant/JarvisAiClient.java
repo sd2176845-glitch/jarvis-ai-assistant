@@ -92,7 +92,7 @@ public final class JarvisAiClient {
         Handler main = new Handler(Looper.getMainLooper());
         SharedPreferences memory = appContext.getSharedPreferences("jarvis_ai_memory", Context.MODE_PRIVATE);
         String originalMessage = message == null ? "" : message.trim();
-        String prior = memory.getString("conversation", "");
+        String prior = SecureMemoryStore.getString(appContext, "conversation", "");
         SharedPreferences appPreferences = appContext.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
         String mode = appPreferences.getString("assistant_mode", "Normal");
         String modeGuidance;
@@ -154,7 +154,7 @@ public final class JarvisAiClient {
             final String result = answer;
             if (!result.startsWith("JARVIS AI server mein error") &&
                     !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
-                String old = memory.getString("conversation", "");
+                String old = SecureMemoryStore.getString(appContext, "conversation", "");
                 String updated = (old.isEmpty() ? "" : old + "\n")
                         + "Boss: " + originalMessage + "\nJARVIS: " + result;
                 String[] lines = updated.split("\n");
@@ -164,7 +164,7 @@ public final class JarvisAiClient {
                     if (compact.length() > 0) compact.append('\n');
                     compact.append(lines[i]);
                 }
-                memory.edit().putString("conversation", compact.toString()).apply();
+                SecureMemoryStore.putString(appContext, "conversation", compact.toString());
             }
             main.post(() -> {
                 if (callback != null) callback.onReply(result);
