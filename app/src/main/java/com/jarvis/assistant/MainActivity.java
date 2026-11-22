@@ -1198,7 +1198,8 @@ public class MainActivity extends Activity {
                 "Personal Memory & Knowledge Vault",
                 "Language & Learning Studio • Translate / Text / Vocabulary",
                 "Universal App Intelligence • Installed Apps / Details / Permissions",
-                "Public Knowledge Studio • Countries / India PIN / Dictionary"
+                "Public Knowledge Studio • Countries / India PIN / Dictionary",
+                "Live Information Studio • Weather / Currency / Holidays"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1244,6 +1245,7 @@ public class MainActivity extends Activity {
                     else if (which == 26) LanguageStudio.show(MainActivity.this, status, transcript);
                     else if (which == 27) AppIntelligenceStudio.show(MainActivity.this);
                     else if (which == 28) PublicKnowledgeStudio.show(MainActivity.this);
+                    else if (which == 29) LiveInfoStudio.show(MainActivity.this);
                 }).setNegativeButton("Close", null).show();
     }
 
