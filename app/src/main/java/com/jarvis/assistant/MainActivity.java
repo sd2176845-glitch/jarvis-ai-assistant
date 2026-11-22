@@ -14,6 +14,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.RecognitionListener;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -56,6 +57,7 @@ public class MainActivity extends Activity {
     private SharedPreferences preferences;
     private ImageView avatar;
     private android.os.CountDownTimer activeFocusTimer;
+    private boolean aiOffline = false;
 
     private int cyan = Color.rgb(255,  70, 82);
     private int bg = Color.rgb(8, 5, 9);
@@ -71,21 +73,43 @@ public class MainActivity extends Activity {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
                 applySavedVoiceSettings();
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override public void onStart(String utteranceId) {
+                        runOnUiThread(() -> setVoiceStatus("SPEAKING…"));
+                    }
+                    @Override public void onDone(String utteranceId) {
+                        runOnUiThread(() -> setVoiceStatus(aiOffline
+                                ? "AI OFFLINE • LOCAL COMMANDS READY"
+                                : "STANDBY • TAP TO SPEAK"));
+                    }
+                    @Override public void onError(String utteranceId) {
+                        runOnUiThread(() -> setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK"));
+                    }
+                });
+            } else {
+                setVoiceStatus("VOICE OUTPUT UNAVAILABLE");
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(this);
             recognizer.setRecognitionListener(new RecognitionListener() {
-                public void onReadyForSpeech(Bundle params) { status.setText("LISTENING…"); animateOrb(1.07f, 550L); }
-                public void onBeginningOfSpeech() { status.setText("HEARING YOU"); animateOrb(1.10f, 350L); }
+                public void onReadyForSpeech(Bundle params) { setVoiceStatus("LISTENING…"); animateOrb(1.07f, 550L); }
+                public void onBeginningOfSpeech() { setVoiceStatus("HEARING YOU"); animateOrb(1.10f, 350L); }
                 public void onRmsChanged(float rmsdB) {}
                 public void onBufferReceived(byte[] buffer) {}
-                public void onEndOfSpeech() { status.setText("ANALYZING"); animateOrb(1.035f, 700L); }
-                public void onError(int error) { status.setText("STANDBY • TAP TO SPEAK"); animateOrb(1.0f, 800L); }
+                public void onEndOfSpeech() { setVoiceStatus("PROCESSING SPEECH…"); animateOrb(1.035f, 700L); }
+                public void onError(int error) {
+                    setVoiceStatus("VOICE INPUT ENDED • TAP TO SPEAK");
+                    animateOrb(1.0f, 800L);
+                }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (matches != null && !matches.isEmpty()) understandVoiceCommand(matches.get(0));
-                    status.setText("STANDBY • TAP TO SPEAK");
+                    if (matches != null && !matches.isEmpty()) {
+                        setVoiceStatus("PROCESSING COMMAND…");
+                        understandVoiceCommand(matches.get(0));
+                    } else {
+                        setVoiceStatus("NO SPEECH RECOGNIZED • TAP TO SPEAK");
+                    }
                     animateOrb(1.0f, 800L);
                 }
                 public void onPartialResults(Bundle partialResults) {}
@@ -213,6 +237,23 @@ public class MainActivity extends Activity {
                 (int) (54 * getResources().getDisplayMetrics().density));
         voiceParams.setMargins(8, 4, 8, 12);
         root.addView(speak, voiceParams);
+
+        Button stopVoice = new Button(this);
+        stopVoice.setText("STOP FOREGROUND VOICE");
+        stopVoice.setTextColor(Color.rgb(255, 190, 195));
+        stopVoice.setTextSize(12);
+        stopVoice.setAllCaps(false);
+        GradientDrawable stopShape = new GradientDrawable();
+        stopShape.setColor(Color.rgb(30, 10, 15));
+        stopShape.setCornerRadius(42);
+        stopShape.setStroke((int) (1.0f * getResources().getDisplayMetrics().density),
+                Color.rgb(155, 45, 58));
+        stopVoice.setBackground(stopShape);
+        stopVoice.setOnClickListener(v -> stopVoiceSession());
+        LinearLayout.LayoutParams stopParams = new LinearLayout.LayoutParams(-1,
+                (int) (46 * getResources().getDisplayMetrics().density));
+        stopParams.setMargins(8, 0, 8, 12);
+        root.addView(stopVoice, stopParams);
 
         Button commandCenter = new Button(this);
         commandCenter.setText("COMMAND CENTER   ⌄");
@@ -1109,7 +1150,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void stopVoiceSession() {
+        try {
+            if (recognizer != null) recognizer.cancel();
+        } catch (Exception ignored) { }
+        try {
+            if (tts != null) tts.stop();
+        } catch (Exception ignored) { }
+        setVoiceStatus("VOICE SESSION STOPPED • STANDBY");
+        animateOrb(1.0f, 300L);
+    }
+
+    private void setVoiceStatus(String message) {
+        if (status == null) return;
+        runOnUiThread(() -> status.setText(message));
+    }
+
     private void startListening() {
+        aiOffline = false;
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
             status.setText("MICROPHONE PERMISSION NEEDED");
@@ -1545,10 +1603,13 @@ public class MainActivity extends Activity {
     }
 
     private void requestAiReply(String original) {
-        status.setText("CONNECTING TO JARVIS AI…");
+        aiOffline = false;
+        setVoiceStatus("THINKING • CONNECTING TO JARVIS AI…");
         transcript.setText("YOU: " + original + "\n\nJARVIS: Thinking…");
         JarvisAiClient.ask(this, original, reply -> {
-            status.setText("SYSTEM ONLINE • STANDBY");
+            aiOffline = reply != null && (reply.startsWith("JARVIS AI server mein error")
+                    || reply.startsWith("JARVIS AI se connect nahi ho paaya"));
+            if (aiOffline) setVoiceStatus("AI OFFLINE • LOCAL COMMANDS READY");
             replyAndShow(original, reply);
         });
     }
@@ -1788,13 +1849,19 @@ public class MainActivity extends Activity {
     private void speak(String text) {
         if (tts != null) {
             applySavedVoiceSettings();
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+            int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+            if (result == TextToSpeech.ERROR) setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK");
+        } else {
+            setVoiceStatus("VOICE OUTPUT UNAVAILABLE");
         }
     }
 
     @Override
     protected void onDestroy() {
-        if (recognizer != null) recognizer.destroy();
+        if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) { }
+            recognizer.destroy();
+        }
         if (tts != null) tts.shutdown();
         super.onDestroy();
     }
