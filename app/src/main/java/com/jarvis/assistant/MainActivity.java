@@ -1114,7 +1114,12 @@ public class MainActivity extends Activity {
             if (done != null) {
                 for (int j = 0; j < done.length(); j++) if (done.optBoolean(j, false)) completed++;
             }
-            labels.add(item.optString("title", "Untitled workflow") + "  •  " + completed + "/" + total);
+            long updatedAt = item.optLong("updated_at", item.optLong("created_at", 0L));
+            String updatedLabel = updatedAt > 0L
+                    ? new java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault())
+                            .format(new java.util.Date(updatedAt)) : "not yet updated";
+            labels.add(item.optString("title", "Untitled workflow") + "  •  " + completed + "/" + total
+                    + "  •  " + updatedLabel);
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Workflow Studio")
@@ -1204,6 +1209,7 @@ public class MainActivity extends Activity {
                     for (boolean value : checked) updated.put(value);
                     try {
                         item.put("done", updated);
+                        item.put("updated_at", System.currentTimeMillis());
                         saveManualWorkflows(workflows);
                         status.setText("WORKFLOW CHECKLIST PROGRESS SAVED");
                     } catch (org.json.JSONException e) {
