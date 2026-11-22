@@ -41,7 +41,7 @@ import android.animation.ValueAnimator;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
-import java.util.Locale;\nimport org.json.JSONArray;\nimport org.json.JSONObject;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
     private TextView status, transcript;
