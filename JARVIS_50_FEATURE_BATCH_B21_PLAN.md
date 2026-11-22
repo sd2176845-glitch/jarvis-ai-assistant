@@ -152,3 +152,24 @@ The following are implemented as extensions of existing canonical modules, not s
 33. Read-only backend health endpoint check; no credentials or user data transmitted.
 34. Category-selective personal-memory export with preview.
 35. Public Play Store listing handoff from installed-app details, clearly separated from local package update timestamp.
+
+
+### Final B21 implementation ledger — 36–50
+
+36. Wikipedia topic lookup with source link/timestamp and verification caveat.
+37. Conservative pasted CI/build report viewer.
+38. Read-only public GitHub repository metadata overview.
+39. Device-authenticated Guest Mode for private data.
+40. Two-hour recent-conversation context expiry and existing manual reset.
+41. Installed-app catalogue launch action.
+42. Allowlisted dialer-only accessibility call controls.
+43. Standard Android media-session controls.
+44. Learning lesson completion status.
+45. Individual learning lesson deletion.
+46. Creative project rename, review status and individual deletion.
+47. Software plan review status and individual deletion.
+48. Individual data report sharing and deletion.
+49. Latin/Devanagari PDF OCR script selection.
+50. Manual workflow step history and safe workflow duplication.
+
+**Quota reached: 50/50 code-present capability improvements.** CI and physical device verification are still required; this is not yet a release-ready claim.
