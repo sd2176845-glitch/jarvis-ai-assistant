@@ -651,3 +651,17 @@
 23. OCR processing releases the recognizer after success/failure; file selection is user-initiated.
 
 The B21 code-present improvement count is now **23**. Automated CI for the newest OCR/dependency changes is pending; earlier individual feature commits have successful Actions runs. Device verification remains pending.
+
+
+### B21 implementation update — 8 further capabilities (24–31)
+
+24. PDF first-page OCR using Android PdfRenderer and on-device ML Kit.
+25. Consent-gated AI explanation for owner-selected image OCR text; only extracted text is sent after a second confirmation.
+26. Consent-gated AI explanation for owner-selected PDF first-page OCR text; the PDF itself is not sent.
+27. Addressed SMS draft syntax `message to contact-name: text`, with contact choice and editable preview before opening the messaging app.
+28. Daily briefing now includes owner-entered task due-today, overdue and urgent counts.
+29. Software Project Notebook for locally saved project blueprints, bug analyses and code reviews; drafts are not executed.
+30. Learning Notebook for locally saved lessons and roadmaps.
+31. Data Insight Report archive for locally saved AI narratives generated from aggregate-only CSV statistics; raw CSV rows are not sent.
+
+**B21 code-present improvement count: 31.** Latest CI for the newest notebook/archive changes is pending. Earlier commits have successful CI; physical device verification is still pending.
