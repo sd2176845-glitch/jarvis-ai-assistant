@@ -2058,8 +2058,9 @@ public class MainActivity extends Activity {
         try {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-IN");
+            String speechLocale = preferences.getString("speech_input_language", "en-IN");
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, speechLocale);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, speechLocale);
             intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to JARVIS");
             recognizer.startListening(intent);
         } catch (Exception e) {
@@ -2735,9 +2736,24 @@ public class MainActivity extends Activity {
                     dialog.dismiss();
                 })
                 .setPositiveButton("Speech style", (dialog, which) -> showSpeechStyleOptions())
-                .setNeutralButton("Pitch", (dialog, which) -> showVoicePitchOptions())
+                .setNeutralButton("Input language", (dialog, which) -> showSpeechInputLanguageOptions())
                 .setNegativeButton("Close", null)
                 .show();
+    }
+
+    private void showSpeechInputLanguageOptions() {
+        String[] labels = {"English (India)", "Hindi (India)", "Bengali (India)"};
+        String[] tags = {"en-IN", "hi-IN", "bn-IN"};
+        String current = preferences.getString("speech_input_language", "en-IN");
+        int selected = 0;
+        for (int i = 0; i < tags.length; i++) if (tags[i].equals(current)) selected = i;
+        new AlertDialog.Builder(this).setTitle("JARVIS • Speech input language")
+                .setMessage("This selects the Android speech-recognition language. Availability depends on the speech service installed on your phone.")
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> {
+                    preferences.edit().putString("speech_input_language", tags[which]).apply();
+                    status.setText("SPEECH INPUT LANGUAGE • " + labels[which].toUpperCase(Locale.ROOT));
+                    dialog.dismiss();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showSpeechStyleOptions() {
