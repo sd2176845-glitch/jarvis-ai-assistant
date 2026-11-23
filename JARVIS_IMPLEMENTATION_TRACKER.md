@@ -814,3 +814,8 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Verification:** GitHub Actions run for the latest B26 branch head is pending. No CI pass or APK artifact is claimed yet. Poco M4 Pro 4G physical-device testing is pending.
 - **Batch target:** 50 distinct capabilities, audited against the consolidated blueprint and existing code. Remaining capabilities must be implemented and tested before calling B26 complete; this progress note is not a 50/50 completion claim.
 - **Safety boundary:** owner-entered local records only; no background monitoring, hidden collection, credential storage, private app data access or unapproved external actions.
+
+- **B26 UI wiring:** added owner-invoked local inventory search (name/category/condition/notes) and a read-only warranty overview to the existing Smart Asset Inventory menu.
+- **Compatibility review:** warranty countdown uses UTC GregorianCalendar rather than java.time so the helper remains compatible with the app's minSdk 23 declaration.
+- **Draft PR:** #53, stacked on `feature/b25-owner-warranty-tracking`; open and unmerged. Latest code commit: `26fc303cbe3cf03ccc349759deb9829cf8f41428`.
+- **CI state:** no workflow run/status was returned for the latest head at the time of this update; build/test status is therefore unverified, not passed.
