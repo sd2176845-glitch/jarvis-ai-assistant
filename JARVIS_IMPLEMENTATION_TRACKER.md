@@ -813,4 +813,11 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Owner can inspect a selected reminder and explicitly confirm cancellation. Cancellation removes only that JARVIS reminder's saved record, matching Android alarm and its notification.
 - Added pure-Java validation coverage for stored reminder records. Malformed/expired records are left untouched by the read-only list operation.
 - No access to other apps' notifications, no new permissions, no cloud upload or background collection.
-- **Status:** code added; final-head CI for Feature 2 and Poco M4 Pro 4G physical-device testing pending.
+- **Status:** CI PASS on final Feature 2 head `01a49811edd243f15110bdaa798c96a2d8174f3d`, workflow run #918 (unit tests, debug APK build and artifact upload); artifact `jarvis-debug-apk`, ID `14790574055`, SHA-256 `f59c21d944eb541b1af5c5bf9816e88df78fc16258e34078063c1318e8a4db40`. Poco M4 Pro 4G physical-device testing remains pending.
+
+## B26 — Feature 3/50 — Owner Reminder Rescheduling
+
+- Added a “Reschedule” action to the existing reminder details view; it uses the same reminder ID, local record, AlarmManager and receiver.
+- Owner selects a new local date/time; past times are rejected. On scheduling failure, JARVIS attempts to restore the previous saved time and alarm.
+- No duplicate reminder manager, scheduler, database, permission, other-app notification access or cloud upload.
+- **Status:** code added on the B26 branch; final-head CI and Poco M4 Pro 4G physical-device testing pending.
