@@ -111,4 +111,19 @@ public class PracticalIntelligenceRulesTest {
                         "Good", "2026-12-31"));
     }
 
+
+    @Test
+    public void assetExportSanitizesActualLineBreaksTabsAndSeparators() {
+        assertEquals("Lamp / spare shelf | Home shelf | Needs repair | 2026-12-31",
+                PracticalIntelligenceRules.safeAssetExportLine(
+                        "Lamp | spare\r\nshelf", "Home\tshelf", "Needs\nrepair", "2026-12-31"));
+    }
+
+    @Test
+    public void assetExportSanitizesEscapedLineBreakSequences() {
+        assertEquals("Lamp shelf | Home | Good | 2026-12-31",
+                PracticalIntelligenceRules.safeAssetExportLine(
+                        "Lamp\\nShelf", "Home", "Good", "2026-12-31"));
+    }
+
 }

@@ -2,6 +2,7 @@ package com.jarvis.assistant;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.Gravity;
 import android.widget.EditText;
@@ -243,7 +244,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Export inventory", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -253,7 +254,8 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 3) warrantyOverview(activity);
                     else if (which == 4) filterAssets(activity);
                     else if (which == 5) sortAssets(activity);
-                    else if (which == 6) clearAssetInventory(activity);
+                    else if (which == 6) exportAssetInventory(activity);
+                    else if (which == 7) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -526,6 +528,57 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Warranty overview")
                 .setMessage(summary + "\n\nThis is a local summary of owner-entered dates, not a manufacturer's live warranty lookup.")
                 .setPositiveButton("OK", null).show();
+    }
+
+
+    /** Owner-reviewed export from the existing inventory; notes and purchase-date labels are excluded. */
+    private static void exportAssetInventory(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        List<String> rows = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item == null) continue;
+            rows.add(PracticalIntelligenceRules.safeAssetExportLine(
+                    item.optString("name"), item.optString("category"),
+                    item.optString("condition"), item.optString("warranty_until")));
+        }
+        if (rows.isEmpty()) {
+            new AlertDialog.Builder(activity).setTitle("Export inventory")
+                    .setMessage("There are no valid inventory items to export.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+
+        StringBuilder report = new StringBuilder();
+        report.append("JARVIS • LOCAL ASSET INVENTORY\n");
+        report.append("Items: ").append(rows.size()).append('\n');
+        report.append("Name | Category | Condition | Warranty end\n");
+        for (String row : rows) report.append(row).append('\n');
+
+        TextView preview = new TextView(activity);
+        preview.setText("Review before sharing. This report includes item names, categories, conditions and warranty end dates. It excludes notes, purchase-date labels and internal metadata. Choosing a sharing app may send this information outside JARVIS.\n\n"
+                + report);
+        preview.setTextIsSelectable(true);
+        preview.setPadding(24, 16, 24, 16);
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(preview);
+
+        new AlertDialog.Builder(activity).setTitle("Review inventory export")
+                .setView(scroll)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Share…", (dialog, which) -> {
+                    Intent send = new Intent(Intent.ACTION_SEND);
+                    send.setType("text/plain");
+                    send.putExtra(Intent.EXTRA_SUBJECT, "JARVIS asset inventory");
+                    send.putExtra(Intent.EXTRA_TEXT, report.toString());
+                    try {
+                        activity.startActivity(Intent.createChooser(send, "Share inventory report"));
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "No compatible sharing app is available.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }).show();
     }
 
 
