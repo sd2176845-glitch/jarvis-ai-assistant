@@ -750,3 +750,16 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Privacy boundary:** no NotificationListenerService was added; no other-app notification content, SMS content, contacts or background message scraping is read or stored.
 - Draft PR #48 is open against the B21 feature branch and remains unmerged. Do not merge without explicit owner approval.
 - JARVIS only; the separate Even project remains untouched.
+
+
+## B23 — Private Smart Notification Intelligence (2026-11-23)
+
+- **Code-present:** extends B22's owner-created reminder notifications only; no duplicate reminder scheduler or task store.
+- Added owner-controlled quiet hours with local start/end times, including overnight windows.
+- A reminder due during quiet hours is deferred using the configured local end time; future-only scheduling continues through the existing ReminderStore.
+- Added a 10-minute Snooze action to each JARVIS reminder notification.
+- Added pure-Java tests for valid/invalid quiet windows, overnight and same-day quiet-hour detection, next allowed time, and ten-minute snooze calculation.
+- **Privacy boundary:** no NotificationListenerService or notification-listener permission; no reading, classification, storage, speech or transmission of notifications from other apps. No new Android permission, backend request or background scraping.
+- **Validation:** branch-head run #883 passed backend syntax validation and Android unit tests; debug APK build/artifact upload were still running at the time this entry was written. Final branch-head CI must pass all steps before marking build-verified.
+- **Poco M4 Pro 4G device verification:** pending — test quiet-hour deferral across midnight, snooze action, notification permission, Doze behavior and reboot recovery.
+- Draft PR #49 is open against B22; no merge performed. JARVIS only; Even remains untouched.
