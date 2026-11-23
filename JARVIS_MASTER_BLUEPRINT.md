@@ -931,3 +931,13 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - Added a local Vehicle Maintenance Log with owner-entered service records and CRUD controls. It does not request vehicle identifiers, sync to cloud, schedule reminders or duplicate M07 tasks.
 - Three focused JUnit tests were added; CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
 - JARVIS only; Even remains untouched.
+
+
+## B24 implementation note — Smart Asset & Inventory Intelligence MVP (2026-11-23)
+
+- **MVP code-present; Priority 38 remains partially pending.** Added an owner-invoked local catalog for household items, electronics, tools and equipment inside the existing Practical Intelligence Studio.
+- Supports add, inspect, remove and clear operations; fields are item nickname, category, optional purchase-date label, condition and optional short notes. The list is bounded to 100 entries.
+- Uses a separate app-private preference key and does not reuse or alter the vehicle maintenance log, task store, reminders or Personal Knowledge Vault.
+- Privacy scope is deliberately narrower than the full blueprint: no serial numbers, registration/identity details, receipt/manual scanning, camera access, cloud sync or automatic collection. No new Android permission.
+- Full Priority 38 scope (warranty/manual attachments, reminder integration, encrypted export/restore and device testing) remains pending; do not mark the overall priority complete.
+- JARVIS only; Even remains untouched.
