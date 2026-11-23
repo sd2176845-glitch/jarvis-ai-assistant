@@ -344,7 +344,7 @@ public final class PracticalIntelligenceStudio {
                     String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
                     String warrantyState = PracticalIntelligenceRules.warrantyStatus(warranty, today);
                     long warrantyDays = PracticalIntelligenceRules.warrantyDaysRemaining(warranty, today);
-                    String warrantyCountdown = warrantyDays == -1L ? "Unavailable"
+                    String warrantyCountdown = warrantyDays == Long.MIN_VALUE ? "Unavailable"
                             : warrantyDays < 0L ? Math.abs(warrantyDays) + " days overdue"
                             : warrantyDays + " days remaining";
                     String details = selected == null ? choices[which]
