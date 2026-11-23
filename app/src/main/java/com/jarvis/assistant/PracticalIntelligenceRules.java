@@ -38,4 +38,19 @@ public final class PracticalIntelligenceRules {
             return "Enter a maintenance summary between 1 and 300 characters.";
         return null;
     }
+    public static String validateAssetEntry(String name, String category, String purchaseDate,
+                                             String condition, String notes) {
+        if (name == null || name.trim().isEmpty() || name.trim().length() > 60)
+            return "Enter an item name between 1 and 60 characters.";
+        if (category == null || category.trim().isEmpty() || category.trim().length() > 40)
+            return "Enter a category between 1 and 40 characters.";
+        if (purchaseDate != null && purchaseDate.trim().length() > 24)
+            return "Purchase date must be 24 characters or fewer.";
+        if (condition == null || condition.trim().isEmpty() || condition.trim().length() > 30)
+            return "Enter a condition between 1 and 30 characters.";
+        if (notes != null && notes.trim().length() > 240)
+            return "Notes must be 240 characters or fewer.";
+        return null;
+    }
+
 }
