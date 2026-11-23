@@ -251,7 +251,9 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 1) viewAssets(activity);
                     else if (which == 2) searchAssets(activity);
                     else if (which == 3) warrantyOverview(activity);
-                    else if (which == 4) filterAssets(activity);\n                    else if (which == 5) sortAssets(activity);\n                    else if (which == 6) clearAssetInventory(activity);
+                    else if (which == 4) filterAssets(activity);
+                    else if (which == 5) sortAssets(activity);
+                    else if (which == 6) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -346,7 +348,8 @@ public final class PracticalIntelligenceStudio {
                             + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
                             + "\nWarranty status: " + warrantyState
                             + "\nNotes: " + selected.optString("notes");
-                    new AlertDialog.Builder(activity).setTitle("Inventory item")\n                            .setMessage(details).setNegativeButton("Close", null)\n                            .setNeutralButton("Edit", (d, w) -> editAsset(activity, which))\n                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
+                    new AlertDialog.Builder(activity).setTitle("Inventory item")
+                            .setMessage(details).setNegativeButton("Close", null)\n                            .setNeutralButton("Edit", (d, w) -> editAsset(activity, which))\n                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
                 }).setNegativeButton("Close", null).show();
     }
 
