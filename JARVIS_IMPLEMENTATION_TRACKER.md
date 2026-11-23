@@ -794,3 +794,23 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI:** final-head workflow pending. Runs #895 and #896 were triggered on earlier commits in this branch; only a successful run against the final documented branch head may verify the batch.
 - **Device verification:** pending on Poco M4 Pro 4G — add/view old and new records, verify status around expiry date, restart persistence, and confirm B24 inventory plus vehicle log/tasks/reminders remain intact.
 - Draft PR to be opened against B24 after final-head CI passes. JARVIS only; Even untouched.
+
+
+## B26 — Integrated 50-capability batch (in progress; 2026-11-23)
+
+- **Branch:** `feature/b26-integrated-50-capability-batch`, created separately from the B25 continuation branch. No merge to main; no change to Even.
+- **Anti-duplication audit:** B26 builds on the existing M19 Smart Asset Inventory and B25 warranty field; it does not add another inventory screen, storage key, reminder scheduler, task store or vehicle log.
+- **Implemented in code so far (code-present; CI pending):**
+  1. Case-insensitive local asset search across item name, category, condition and notes.
+  2. Optional category filter matching.
+  3. Optional condition filter matching.
+  4. Calendar-day warranty countdown, including zero-day expiry and negative expired values.
+  5. Warranty-expiring-within-N-days rule.
+  6. Warranty-status aggregate counting.
+  7. Defensive inventory summary validation.
+  8. Export-line sanitization for line breaks and field separators.
+- Added JUnit tests for search, filters, warranty countdown/window, warranty counts, summary validation and export sanitization.
+- **Not yet integrated into the Android inventory screen:** these are currently pure rules with unit tests; UI wiring and end-to-end behavior remain pending.
+- **Verification:** GitHub Actions run for the latest B26 branch head is pending. No CI pass or APK artifact is claimed yet. Poco M4 Pro 4G physical-device testing is pending.
+- **Batch target:** 50 distinct capabilities, audited against the consolidated blueprint and existing code. Remaining capabilities must be implemented and tested before calling B26 complete; this progress note is not a 50/50 completion claim.
+- **Safety boundary:** owner-entered local records only; no background monitoring, hidden collection, credential storage, private app data access or unapproved external actions.
