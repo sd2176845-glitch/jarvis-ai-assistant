@@ -7,10 +7,10 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m01-owner-privacy-studio-3pack` (stacked on M19 Personal & Practical Intelligence / PR #40; JARVIS only).
-- Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
-- Parent draft PR: #39 — M18 Simulation & Engineering Intelligence. New M19 batch is to be opened as draft PR #40 against `feature/m18-virtual-engineering-studio-3pack`.
-- `main` has not been changed or merged by this work; Even remains untouched.
+- Current continuation branch: `feature/b24-owner-asset-inventory`, stacked on B23 code head `97daee97951ca9b7fc7e52b20990dc48533f1f01`.
+- B24 draft PR #50 targets B23 PR branch `feature/b23-private-notification-intelligence`; it remains open, draft and unmerged.
+- B22 PR #48 and B23 PR #49 remain open draft PRs; neither has been merged.
+- `main` has not been changed or merged by this work; the separate Even project remains untouched.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -247,7 +247,6 @@
 - **Privacy:** manual city entry only; no GPS, background location or location permission.
 - **Provider:** Open-Meteo forecast + geocoding. API docs: https://open-meteo.com/en/docs
 - **Acceptance checks:** ambiguous city selection, no result, weather code mapping, missing optional fields, API error, offline behavior and timestamp/timezone.
-
 ### Feature 2 — Currency Converter
 - **Code-present:** owner enters amount and ISO 4217 source/target codes (example: `100 USD INR`). Uses Frankfurter v2 reference rates and displays the returned rate date and calculated amount.
 - **Important limitation:** reference rates are not real-time trading quotes, bank/card rates or guaranteed conversion amounts; spreads and fees may differ.
@@ -497,8 +496,7 @@
 **Branch:** `feature/m01-owner-privacy-studio-3pack`, stacked on M19 / PR #40. Draft PR is to target `feature/m19-practical-intelligence-3pack`; this batch is separate and unmerged.
 
 ### Feature 1 — Permission & Access Review
-- **Code-present:** read-only status summary for microphone, contacts, phone state, direct calling, SMS receipt, Android notifications (where runtime permission applies), display-over-other-apps and JARVIS accessibility service.
-- **Controls:** links to Android App Info and Accessibility settings. The screen never requests, grants, revokes or changes permissions.
+- **Code-present:** read-only status summary for microphone, contacts, phone state, direct calling, SMS receipt, Android notifications (where runtime permission applies), display-over-other-apps and JARVIS accessibility service.- **Controls:** links to Android App Info and Accessibility settings. The screen never requests, grants, revokes or changes permissions.
 - **Boundary:** status display only; not a security certification or proof that a feature is safe/necessary.
 
 ### Feature 2 — Local Data Inventory
@@ -747,8 +745,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI:** run #871 passed on code head `bb8f97b37e6e4914d1ea2b4e5edc12b2ebd09281`, including backend syntax validation, Android unit tests, debug APK build and artifact upload. Artifact `jarvis-debug-apk`, ID `14787672311` (23.2 MB). Subsequent commits only reconcile documentation; no app code changed after this tested code head.
 - An intermediate run #866 failed because it checked an earlier commit snapshot before `ReminderReceiver.java` had been added; later complete snapshots passed. The final-head result is authoritative.
 - **Poco M4 Pro 4G physical-device testing:** pending — test notification permission, scheduled delivery, tap-to-open, Doze delay, reboot recovery and app-update recovery.
-- **Privacy boundary:** no NotificationListenerService was added; no other-app notification content, SMS content, contacts or background message scraping is read or stored.
-- Draft PR #48 is open against the B21 feature branch and remains unmerged. Do not merge without explicit owner approval.
+- **Privacy boundary:** no NotificationListenerService was added; no other-app notification content, SMS content, contacts or background message scraping is read or stored.- Draft PR #48 is open against the B21 feature branch and remains unmerged. Do not merge without explicit owner approval.
 - JARVIS only; the separate Even project remains untouched.
 
 
@@ -773,9 +770,11 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Pure validation rules reject missing/overlong names, categories and condition labels, oversized dates and notes. Added two JUnit tests for valid optional fields and invalid/oversized fields.
 - **Privacy boundary:** no serial numbers, vehicle identifiers, exact home location, passwords, receipts, document/camera scanning, background collection, cloud upload or new Android permission.
 - **Scope limitation:** this is an MVP, not full Priority 38 completion. Warranty/manual attachments, reminder integration, encrypted export/restore and Poco device testing remain pending.
-- **CI:** pending for B24 branch head; record only the final-head GitHub Actions result after Android unit tests, debug APK build and artifact upload complete.
+- **CI: PASS** — GitHub Actions run #890 on app-code commit `4218c25f9b36c38b5918a24f8b2ce1ec6f04e355`: backend syntax validation, Android unit tests, debug APK build and artifact upload all succeeded.
+- Artifact: `jarvis-debug-apk`, ID `14787827994`, 23.2 MB; SHA-256 `b408cd6e1de7b1e0679e3cf9a24798cfbf3daeb0719d99e37191d581356a1cc0`.
+- Workflow run: https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45107225599
 - **Device verification:** pending on Poco M4 Pro 4G — add/view/remove/clear flows, persistence after restart, 100-item cap, malformed-data handling and confirmation that vehicle log/tasks/reminders are unchanged.
-- Draft PR will be opened against B23 after final-head CI passes. JARVIS only; Even untouched.
+- Draft PR #50 is open against B23, remains draft and unmerged. JARVIS only; Even untouched.
 
 ## Continuation state reconciliation (2026-11-23)
 
