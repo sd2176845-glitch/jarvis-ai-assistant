@@ -344,10 +344,102 @@ public final class PracticalIntelligenceStudio {
                             + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
                             + "\nWarranty status: " + warrantyState
                             + "\nNotes: " + selected.optString("notes");
-                    new AlertDialog.Builder(activity).setTitle("Inventory item")
-                            .setMessage(details).setNegativeButton("Close", null)
-                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
+                    AlertDialog.Builder detailDialog = new AlertDialog.Builder(activity)
+                            .setTitle("Inventory item")
+                            .setMessage(details)
+                            .setNegativeButton("Close", null)
+                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which));
+                    if ("Active".equals(warrantyState)) {
+                        detailDialog.setNeutralButton("Set reminder", (d, w) ->
+                                scheduleWarrantyReminder(activity, selected.optString("name"), warranty));
+                    }
+                    detailDialog.show();
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private static void scheduleWarrantyReminder(Activity activity, String itemName, String warrantyUntil) {
+        if (!PracticalIntelligenceRules.isValidIsoDate(warrantyUntil)) {
+            Toast.makeText(activity, "A valid warranty end date is required.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        parser.setLenient(false);
+        final Calendar expiry;
+        try {
+            Date parsed = parser.parse(warrantyUntil);
+            if (parsed == null) return;
+            expiry = Calendar.getInstance();
+            expiry.setTime(parsed);
+            expiry.set(Calendar.HOUR_OF_DAY, 23);
+            expiry.set(Calendar.MINUTE, 59);
+            expiry.set(Calendar.SECOND, 59);
+            expiry.set(Calendar.MILLISECOND, 999);
+        } catch (Exception invalidDate) {
+            Toast.makeText(activity, "Warranty date could not be read.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Calendar suggested = (Calendar) expiry.clone();
+        suggested.add(Calendar.DAY_OF_MONTH, -1);
+        suggested.set(Calendar.HOUR_OF_DAY, 9);
+        suggested.set(Calendar.MINUTE, 0);
+        suggested.set(Calendar.SECOND, 0);
+        suggested.set(Calendar.MILLISECOND, 0);
+        if (!ReminderRules.isFuture(suggested.getTimeInMillis(), System.currentTimeMillis())) {
+            suggested = Calendar.getInstance();
+            suggested.add(Calendar.HOUR_OF_DAY, 1);
+            if (suggested.after(expiry)) {
+                Toast.makeText(activity, "There is no future time before this warranty expires.", Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+
+        Calendar initial = (Calendar) suggested.clone();
+        android.app.DatePickerDialog dateDialog = new android.app.DatePickerDialog(activity,
+                (dateView, year, month, day) -> {
+                    Calendar chosen = Calendar.getInstance();
+                    chosen.set(Calendar.YEAR, year);
+                    chosen.set(Calendar.MONTH, month);
+                    chosen.set(Calendar.DAY_OF_MONTH, day);
+                    new android.app.TimePickerDialog(activity, (timeView, hour, minute) -> {
+                        chosen.set(Calendar.HOUR_OF_DAY, hour);
+                        chosen.set(Calendar.MINUTE, minute);
+                        chosen.set(Calendar.SECOND, 0);
+                        chosen.set(Calendar.MILLISECOND, 0);
+                        long triggerAt = chosen.getTimeInMillis();
+                        if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
+                            Toast.makeText(activity, "Choose a future reminder time.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (triggerAt > expiry.getTimeInMillis()) {
+                            Toast.makeText(activity, "Choose a time on or before the warranty expiry date.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        String title = PracticalIntelligenceRules.warrantyReminderTitle(itemName);
+                        if (title.isEmpty()) {
+                            Toast.makeText(activity, "Item name is not valid for a reminder.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        int reminderId = activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE)
+                                .getInt("reminder_id_counter", 2000) + 1;
+                        if (reminderId <= 0) reminderId = 2001;
+                        if (!ReminderStore.save(activity, reminderId, title, triggerAt)) {
+                            Toast.makeText(activity, "Warranty reminder could not be saved.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        if (!ReminderStore.schedule(activity, reminderId, title, triggerAt)) {
+                            ReminderStore.remove(activity, reminderId);
+                            Toast.makeText(activity, "Warranty reminder could not be scheduled.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit()
+                                .putInt("reminder_id_counter", reminderId).apply();
+                        Toast.makeText(activity, "Warranty reminder scheduled in JARVIS.", Toast.LENGTH_LONG).show();
+                    }, initial.get(Calendar.HOUR_OF_DAY), initial.get(Calendar.MINUTE), false).show();
+                }, initial.get(Calendar.YEAR), initial.get(Calendar.MONTH),
+                initial.get(Calendar.DAY_OF_MONTH));
+        dateDialog.getDatePicker().setMaxDate(expiry.getTimeInMillis());
+        dateDialog.show();
     }
 
     private static void removeAsset(Activity activity, int index) {
