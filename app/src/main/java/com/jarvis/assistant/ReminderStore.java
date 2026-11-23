@@ -71,6 +71,28 @@ public final class ReminderStore {
                 .edit().remove(String.valueOf(id)).apply();
     }
 
+    /** Checks for a same-title, same-time reminder without modifying stored records. */
+    public static boolean hasDuplicate(Context context, String title, long triggerAtMillis, int excludeId) {
+        if (context == null || normalizeForComparison(title).isEmpty() || triggerAtMillis <= 0L) return false;
+        Map<String, ?> records = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getAll();
+        for (Object value : records.values()) {
+            if (!(value instanceof String)) continue;
+            try {
+                JSONObject record = new JSONObject((String) value);
+                if (ReminderRules.isSameReminder(record.optInt("id", -1),
+                        record.optString("title", ""), record.optLong("triggerAt", 0L),
+                        excludeId, title, triggerAtMillis)) return true;
+            } catch (Exception ignored) {
+                // A duplicate check is read-only; malformed records remain untouched.
+            }
+        }
+        return false;
+    }
+
+    private static String normalizeForComparison(String title) {
+        return ReminderRules.normalizeTitle(title);
+    }
+
     /** Returns valid future reminders sorted by their scheduled time. */
     public static List<JSONObject> getPending(Context context) {
         ArrayList<JSONObject> pending = new ArrayList<>();
