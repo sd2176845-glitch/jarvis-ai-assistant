@@ -19,6 +19,15 @@ public final class ReminderRules {
                 && triggerAtMillis > nowMillis;
     }
 
+    public static boolean isSameReminder(int existingId, String existingTitle, long existingTriggerAt,
+            int candidateId, String candidateTitle, long candidateTriggerAt) {
+        String existing = normalizeTitle(existingTitle);
+        String candidate = normalizeTitle(candidateTitle);
+        return existingId > 0 && existingId != candidateId && !existing.isEmpty()
+                && !candidate.isEmpty() && existing.equalsIgnoreCase(candidate)
+                && existingTriggerAt == candidateTriggerAt;
+    }
+
     public static boolean shouldRestore(long triggerAtMillis, long nowMillis) {
         return isFuture(triggerAtMillis, nowMillis);
     }
