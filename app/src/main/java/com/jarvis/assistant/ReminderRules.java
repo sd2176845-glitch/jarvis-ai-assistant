@@ -14,6 +14,11 @@ public final class ReminderRules {
         return triggerAtMillis > nowMillis;
     }
 
+    public static boolean isValidStoredReminder(int id, String title, long triggerAtMillis, long nowMillis) {
+        return id > 0 && !normalizeTitle(title).isEmpty()
+                && triggerAtMillis > nowMillis;
+    }
+
     public static boolean shouldRestore(long triggerAtMillis, long nowMillis) {
         return isFuture(triggerAtMillis, nowMillis);
     }
