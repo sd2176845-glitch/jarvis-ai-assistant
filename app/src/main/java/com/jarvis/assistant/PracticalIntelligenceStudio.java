@@ -409,10 +409,15 @@ public final class PracticalIntelligenceStudio {
             JSONArray latest=readAssetInventory(activity); if(latest==null||index>=latest.length())return;
             JSONObject current=latest.optJSONObject(index); if(current==null)return;
             try {
-              JSONObject updated=new JSONObject(); updated.put("name",n);updated.put("category",c);
-              updated.put("purchase_date",p);updated.put("condition",q);updated.put("warranty_until",wt);
-              updated.put("notes",nt);updated.put("created_at",current.optLong("created_at",0L));
-              latest.put(index,updated);
+              // Update the existing JSON object so any fields added by newer versions remain intact.
+              current.put("name", n);
+              current.put("category", c);
+              current.put("purchase_date", p);
+              current.put("condition", q);
+              current.put("warranty_until", wt);
+              current.put("notes", nt);
+              // created_at and any unrecognized metadata are deliberately preserved.
+              latest.put(index, current);
               boolean saved=preferences(activity).edit().putString(ASSET_INVENTORY_KEY,latest.toString()).commit();
               Toast.makeText(activity,saved?"Inventory item updated.":"Could not update item.",Toast.LENGTH_SHORT).show();
             } catch(Exception e){Toast.makeText(activity,"Item could not be updated.",Toast.LENGTH_SHORT).show();}
