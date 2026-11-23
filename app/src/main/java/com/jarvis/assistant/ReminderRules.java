@@ -28,6 +28,13 @@ public final class ReminderRules {
                 && existingTriggerAt == candidateTriggerAt;
     }
 
+    public static boolean matchesReminderQuery(String title, String query) {
+        String normalizedTitle = normalizeTitle(title).toLowerCase(java.util.Locale.ROOT);
+        String normalizedQuery = query == null ? "" : query.trim().replaceAll("\\s+", " ")
+                .toLowerCase(java.util.Locale.ROOT);
+        return normalizedQuery.isEmpty() || normalizedTitle.contains(normalizedQuery);
+    }
+
     public static boolean shouldRestore(long triggerAtMillis, long nowMillis) {
         return isFuture(triggerAtMillis, nowMillis);
     }
