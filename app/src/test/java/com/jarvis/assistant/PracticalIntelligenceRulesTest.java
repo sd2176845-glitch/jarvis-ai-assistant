@@ -51,6 +51,13 @@ public class PracticalIntelligenceRulesTest {
         assertFalse(PracticalIntelligenceRules.isValidIsoDate(""));
     }
 
+    @Test public void warrantyReminderTitleIsBoundedAndNormalized() {
+        assertEquals("Warranty ending: Laptop",
+                PracticalIntelligenceRules.warrantyReminderTitle("  Laptop  "));
+        assertEquals("", PracticalIntelligenceRules.warrantyReminderTitle(""));
+        assertEquals("", PracticalIntelligenceRules.warrantyReminderTitle(new String(new char[61]).replace('\\0', 'x')));
+    }
+
     @Test public void warrantyStatusUsesInclusiveExpiryDateAndHandlesMissingData() {
         assertEquals("Active", PracticalIntelligenceRules.warrantyStatus("2026-11-23", "2026-11-23"));
         assertEquals("Active", PracticalIntelligenceRules.warrantyStatus("2026-12-01", "2026-11-23"));
