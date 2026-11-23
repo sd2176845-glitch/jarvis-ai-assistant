@@ -87,7 +87,7 @@ public class PracticalIntelligenceRulesTest {
     }
 
     @Test public void warrantyCountsIgnoreInvalidTodayAndCountKnownStatuses() {
-        assertEquals(2, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
+        assertEquals(1, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
                 new String[]{"2026-12-01", "2026-11-01", "", "bad"}, "2026-11-23", "Active"));
         assertEquals(1, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
                 new String[]{"2026-12-01", "2026-11-01", "", "bad"}, "2026-11-23", "Expired"));
