@@ -419,7 +419,7 @@ public class MainActivity extends Activity {
                 "EEE, dd MMM yyyy • hh:mm a", java.util.Locale.getDefault());
         ArrayList<String> labels = new ArrayList<>();
         for (org.json.JSONObject item : reminders) {
-            labels.add(item.optString("title", "Reminder") + "\\n"
+            labels.add(item.optString("title", "Reminder") + "\n"
                     + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
         }
         new AlertDialog.Builder(this).setTitle("JARVIS • Upcoming reminders")
@@ -430,8 +430,8 @@ public class MainActivity extends Activity {
                     String title = selected.optString("title", "Reminder");
                     long triggerAt = selected.optLong("triggerAt", 0L);
                     new AlertDialog.Builder(this).setTitle("Reminder details")
-                            .setMessage(title + "\\n" + formatter.format(new java.util.Date(triggerAt))
-                                    + "\\n\\nCancel this JARVIS reminder?")
+                            .setMessage(title + "\n" + formatter.format(new java.util.Date(triggerAt))
+                                    + "\n\nCancel this JARVIS reminder?")
                             .setNegativeButton("Keep", null)
                             .setPositiveButton("Cancel reminder", (confirm, choice) -> {
                                 if (ReminderStore.cancel(this, id)) {
@@ -1378,30 +1378,30 @@ public class MainActivity extends Activity {
                         status.setText("NO MEMORY CATEGORIES SELECTED");
                         return;
                     }
-                    StringBuilder export = new StringBuilder("JARVIS SELECTED MEMORY EXPORT\\n\\n");
+                    StringBuilder export = new StringBuilder("JARVIS SELECTED MEMORY EXPORT\n\n");
                     if (selected[0]) {
                         String notes = getSavedNotes();
-                        export.append("SAVED NOTES\\n").append(notes.isEmpty() ? "(none)" : notes).append("\\n\\n");
+                        export.append("SAVED NOTES\n").append(notes.isEmpty() ? "(none)" : notes).append("\n\n");
                     }
                     if (selected[1]) {
                         org.json.JSONArray timeline = readPersonalTimeline();
-                        export.append("OWNER-CREATED TIMELINE\\n");
-                        if (timeline == null || timeline.length() == 0) export.append("(none)\\n");
+                        export.append("OWNER-CREATED TIMELINE\n");
+                        if (timeline == null || timeline.length() == 0) export.append("(none)\n");
                         else {
                             for (int i = 0; i < timeline.length(); i++) {
                                 org.json.JSONObject item = timeline.optJSONObject(i);
                                 if (item == null) continue;
                                 export.append(item.optString("title", "Untitled entry"))
                                         .append(" • ").append(item.optLong("createdAt", 0L))
-                                        .append("\\n").append(item.optString("detail", "")).append("\\n\\n");
+                                        .append("\n").append(item.optString("detail", "")).append("\n\n");
                             }
                         }
                     }
                     if (selected[2]) {
                         String conversation = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE)
                                 .getString("conversation", "");
-                        export.append("RECENT AI CONVERSATION CONTEXT\\n")
-                                .append(conversation.isEmpty() ? "(none)" : conversation).append("\\n\\n");
+                        export.append("RECENT AI CONVERSATION CONTEXT\n")
+                                .append(conversation.isEmpty() ? "(none)" : conversation).append("\n\n");
                     }
                     export.append("Selected categories only • exported by owner from this device.");
                     String preview = export.toString();
@@ -1529,7 +1529,7 @@ public class MainActivity extends Activity {
                 .setPositiveButton("Save", (dialog, which) -> {
                     String title = titleInput.getText().toString().trim();
                     String rawSteps = stepsInput.getText().toString();
-                    String[] split = rawSteps.split("\\r?\\n");
+                    String[] split = rawSteps.split("\\r?\n");
                     org.json.JSONArray steps = new org.json.JSONArray();
                     for (String line : split) {
                         String step = line.trim();
@@ -1660,16 +1660,16 @@ public class MainActivity extends Activity {
 
     private void showManualWorkflowHistory(org.json.JSONObject item, org.json.JSONArray steps) {
         org.json.JSONArray times = item.optJSONArray("done_at");
-        StringBuilder report = new StringBuilder("STEP COMPLETION HISTORY\\n\\n");
+        StringBuilder report = new StringBuilder("STEP COMPLETION HISTORY\n\n");
         java.text.SimpleDateFormat format = new java.text.SimpleDateFormat(
                 "dd MMM yyyy, hh:mm a", java.util.Locale.getDefault());
         for (int i = 0; i < steps.length(); i++) {
             long timestamp = times == null ? 0L : times.optLong(i, 0L);
             report.append(i + 1).append(". ").append(steps.optString(i, "Unavailable step"))
-                    .append("\\n   ")
+                    .append("\n   ")
                     .append(timestamp > 0L ? "Completed: " + format.format(new java.util.Date(timestamp))
                             : "Not marked completed")
-                    .append("\\n\\n");
+                    .append("\n\n");
         }
         new AlertDialog.Builder(this).setTitle("Workflow step history")
                 .setMessage(report.toString())
@@ -1797,7 +1797,7 @@ public class MainActivity extends Activity {
                 activeFocusTimer = null;
             }
             status.setText("FOCUS SESSION STOPPED");
-            transcript.setText("JARVIS • Focus session stopped\\n\\n" + focusTask);
+            transcript.setText("JARVIS • Focus session stopped\n\n" + focusTask);
             sessionDialog.dismiss();
         });
         activeFocusTimer = new android.os.CountDownTimer(minutes * 60L * 1000L, 1000L) {
@@ -1814,7 +1814,7 @@ public class MainActivity extends Activity {
                 activeFocusTimer = null;
                 timerText.setText("SESSION COMPLETE");
                 status.setText("FOCUS SESSION COMPLETE");
-                transcript.setText("JARVIS • Focus session complete\\n\\n" + focusTask);
+                transcript.setText("JARVIS • Focus session complete\n\n" + focusTask);
                 sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Done");
                 sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> sessionDialog.dismiss());
             }
@@ -1826,91 +1826,91 @@ public class MainActivity extends Activity {
      * Read-only device resource overview. Uses Android public APIs and adds no permissions.
      */
     private void showDeviceResourceDashboard() {
-        StringBuilder report = new StringBuilder("JARVIS • DEVICE RESOURCE INTELLIGENCE\\n\\n");
-        report.append("DEVICE\\n");
+        StringBuilder report = new StringBuilder("JARVIS • DEVICE RESOURCE INTELLIGENCE\n\n");
+        report.append("DEVICE\n");
         report.append(android.os.Build.MANUFACTURER).append(" ")
-                .append(android.os.Build.MODEL).append("\\n");
+                .append(android.os.Build.MODEL).append("\n");
         report.append("Android ").append(android.os.Build.VERSION.RELEASE)
-                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\\n\\n");
+                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\n\n");
 
-        report.append("HARDWARE COMPATIBILITY SNAPSHOT\\n");
+        report.append("HARDWARE COMPATIBILITY SNAPSHOT\n");
         report.append("CPU cores exposed to Android: ")
-                .append(Runtime.getRuntime().availableProcessors()).append("\\n");
+                .append(Runtime.getRuntime().availableProcessors()).append("\n");
         report.append("Android-supported app ABIs: ")
-                .append(HardwareCompatibilityRules.formatAbiList(android.os.Build.SUPPORTED_ABIS)).append("\\n");
+                .append(HardwareCompatibilityRules.formatAbiList(android.os.Build.SUPPORTED_ABIS)).append("\n");
         try {
             android.app.ActivityManager activityManager = (android.app.ActivityManager)
                     getSystemService(Context.ACTIVITY_SERVICE);
             report.append("Low-RAM device flag: ")
                     .append(activityManager != null && activityManager.isLowRamDevice() ? "Yes" : "No / unavailable")
-                    .append("\\n");
+                    .append("\n");
         } catch (Exception e) {
-            report.append("Low-RAM device flag: unavailable\\n");
+            report.append("Low-RAM device flag: unavailable\n");
         }
         android.util.DisplayMetrics display = getResources().getDisplayMetrics();
         report.append("Display: ").append(display.widthPixels).append(" × ")
                 .append(display.heightPixels).append(" px @ ")
-                .append(display.densityDpi).append(" dpi\\n");
-        report.append("Note: ABI and resource values are Android-reported compatibility hints, not a benchmark or guarantee that every app/game will run.\\n\\n");
+                .append(display.densityDpi).append(" dpi\n");
+        report.append("Note: ABI and resource values are Android-reported compatibility hints, not a benchmark or guarantee that every app/game will run.\n\n");
 
-        report.append("BATTERY\\n");
+        report.append("BATTERY\n");
         Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (battery != null) {
             int level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
             int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
             int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
             if (level >= 0 && scale > 0) {
-                report.append("Charge: ").append(level * 100 / scale).append("%\\n");
+                report.append("Charge: ").append(level * 100 / scale).append("%\n");
             } else {
-                report.append("Charge: unavailable\\n");
+                report.append("Charge: unavailable\n");
             }
-            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Connected to power").append("\\n");
+            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Connected to power").append("\n");
             int batteryStatus = battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             int batteryHealth = battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
             int temperature = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1);
             report.append("Charging state: ")
-                    .append(BatterySnapshotRules.chargingState(batteryStatus)).append("\\n");
+                    .append(BatterySnapshotRules.chargingState(batteryStatus)).append("\n");
             report.append("Battery health (Android report): ")
-                    .append(BatterySnapshotRules.healthLabel(batteryHealth)).append("\\n");
+                    .append(BatterySnapshotRules.healthLabel(batteryHealth)).append("\n");
             report.append("Battery temperature: ")
-                    .append(BatterySnapshotRules.temperatureLabel(temperature)).append("\\n");
-            report.append("Note: These are Android-reported snapshot values, not a battery diagnostic or repair assessment.\\n");
+                    .append(BatterySnapshotRules.temperatureLabel(temperature)).append("\n");
+            report.append("Note: These are Android-reported snapshot values, not a battery diagnostic or repair assessment.\n");
         } else {
-            report.append("Battery details unavailable\\n");
+            report.append("Battery details unavailable\n");
         }
 
-        report.append("\\nSTORAGE (APP DATA VOLUME)\\n");
+        report.append("\nSTORAGE (APP DATA VOLUME)\n");
         try {
             android.os.StatFs storage = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
             long totalBytes = storage.getTotalBytes();
             long freeBytes = storage.getAvailableBytes();
-            report.append("Total: ").append(formatResourceBytes(totalBytes)).append("\\n");
-            report.append("Available: ").append(formatResourceBytes(freeBytes)).append("\\n");
+            report.append("Total: ").append(formatResourceBytes(totalBytes)).append("\n");
+            report.append("Available: ").append(formatResourceBytes(freeBytes)).append("\n");
             if (totalBytes > 0L) {
-                report.append("Used: ").append((totalBytes - freeBytes) * 100L / totalBytes).append("%\\n");
+                report.append("Used: ").append((totalBytes - freeBytes) * 100L / totalBytes).append("%\n");
             }
         } catch (Exception e) {
-            report.append("Storage details unavailable\\n");
+            report.append("Storage details unavailable\n");
         }
 
-        report.append("\\nMEMORY (RAM)\\n");
+        report.append("\nMEMORY (RAM)\n");
         try {
             android.app.ActivityManager manager =
                     (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
             if (manager != null) {
                 android.app.ActivityManager.MemoryInfo memory = new android.app.ActivityManager.MemoryInfo();
                 manager.getMemoryInfo(memory);
-                report.append("Total: ").append(formatResourceBytes(memory.totalMem)).append("\\n");
-                report.append("Available: ").append(formatResourceBytes(memory.availMem)).append("\\n");
-                report.append("Low-memory condition: ").append(memory.lowMemory ? "Yes" : "No").append("\\n");
+                report.append("Total: ").append(formatResourceBytes(memory.totalMem)).append("\n");
+                report.append("Available: ").append(formatResourceBytes(memory.availMem)).append("\n");
+                report.append("Low-memory condition: ").append(memory.lowMemory ? "Yes" : "No").append("\n");
             } else {
-                report.append("RAM details unavailable\\n");
+                report.append("RAM details unavailable\n");
             }
         } catch (Exception e) {
-            report.append("RAM details unavailable\\n");
+            report.append("RAM details unavailable\n");
         }
 
-        report.append("\\nREAD-ONLY OVERVIEW\\n");
+        report.append("\nREAD-ONLY OVERVIEW\n");
         report.append("JARVIS only reads the system summaries shown here. It does not clear memory, close apps, change settings, or upload this report.");
         transcript.setText(report.toString());
         status.setText("DEVICE RESOURCE OVERVIEW READY");
@@ -2384,14 +2384,14 @@ public class MainActivity extends Activity {
                 if ("Urgent".equalsIgnoreCase(item.optString("priority", "Normal"))) urgentOpen++;
             }
         }
-        String report = "JARVIS • DAILY BRIEFING\\n\\n" + date + "\\n" + batteryText
-                + "\\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
-                + (guestMode ? "\\nGuest Mode: private notes and task details are hidden."
-                        : "\\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\\n").length)
-                        + "\\nOpen tasks due today: " + dueToday
-                        + "\\nOverdue tasks: " + overdue
-                        + "\\nUrgent open tasks: " + urgentOpen)
-                + "\\n\\nLive weather and current news require an internet search.";
+        String report = "JARVIS • DAILY BRIEFING\n\n" + date + "\n" + batteryText
+                + "\nAssistant mode: " + preferences.getString("assistant_mode", "Normal")
+                + (guestMode ? "\nGuest Mode: private notes and task details are hidden."
+                        : "\nSaved notes: " + (notes.isEmpty() ? "none" : notes.split("\n").length)
+                        + "\nOpen tasks due today: " + dueToday
+                        + "\nOverdue tasks: " + overdue
+                        + "\nUrgent open tasks: " + urgentOpen)
+                + "\n\nLive weather and current news require an internet search.";
         transcript.setText(report);
         status.setText("DAILY BRIEFING READY");
         new AlertDialog.Builder(this).setTitle("Daily briefing").setMessage(report)
@@ -2705,9 +2705,9 @@ public class MainActivity extends Activity {
      * routing any command. No transcript is persisted by this review dialog.
      */
     private void showVoiceTranscriptReview(String original, String corrected) {
-        String message = "I heard:\\n" + original
-                + "\\n\\nSuggested correction:\\n" + corrected
-                + "\\n\\nChoose which wording I should use. No command runs until you choose.";
+        String message = "I heard:\n" + original
+                + "\n\nSuggested correction:\n" + corrected
+                + "\n\nChoose which wording I should use. No command runs until you choose.";
         new AlertDialog.Builder(this)
                 .setTitle("Review voice correction")
                 .setMessage(message)
