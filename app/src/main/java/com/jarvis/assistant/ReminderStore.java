@@ -7,6 +7,10 @@ import android.content.Intent;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /** Persists only reminders explicitly created by the owner for reboot recovery. */
@@ -65,6 +69,62 @@ public final class ReminderStore {
     public static void remove(Context context, int id) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().remove(String.valueOf(id)).apply();
+    }
+
+    /** Returns valid future reminders sorted by their scheduled time. */
+    public static List<JSONObject> getPending(Context context) {
+        ArrayList<JSONObject> pending = new ArrayList<>();
+        if (context == null) return pending;
+        Map<String, ?> records = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getAll();
+        long now = System.currentTimeMillis();
+        for (Object value : records.values()) {
+            if (!(value instanceof String)) continue;
+            try {
+                JSONObject record = new JSONObject((String) value);
+                int id = record.optInt("id", -1);
+                String title = ReminderRules.normalizeTitle(record.optString("title", ""));
+                long triggerAt = record.optLong("triggerAt", 0L);
+                if (ReminderRules.isValidStoredReminder(id, title, triggerAt, now)) {
+                    pending.add(record);
+                }
+            } catch (Exception ignored) {
+                // Keep malformed records untouched; this read-only view never edits stored data.
+            }
+        }
+        Collections.sort(pending, new Comparator<JSONObject>() {
+            @Override public int compare(JSONObject left, JSONObject right) {
+                return Long.compare(left.optLong("triggerAt", 0L), right.optLong("triggerAt", 0L));
+            }
+        });
+        return pending;
+    }
+
+    /** Cancels one owner-created reminder and its matching local alarm/notification. */
+    public static boolean cancel(Context context, int id) {
+        if (context == null || id <= 0) return false;
+        try {
+            String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .getString(String.valueOf(id), null);
+            if (raw == null) return false;
+            JSONObject record = new JSONObject(raw);
+            String title = ReminderRules.normalizeTitle(record.optString("title", ""));
+            Intent intent = new Intent(context, ReminderReceiver.class);
+            intent.putExtra(ReminderReceiver.EXTRA_TITLE, title);
+            intent.putExtra(ReminderReceiver.EXTRA_ID, id);
+            PendingIntent pending = PendingIntent.getBroadcast(context, id, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (manager != null) manager.cancel(pending);
+            pending.cancel();
+            android.app.NotificationManager notifications = (android.app.NotificationManager)
+                    context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notifications != null) notifications.cancel(id);
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit().remove(String.valueOf(id)).commit();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static void restorePending(Context context) {
