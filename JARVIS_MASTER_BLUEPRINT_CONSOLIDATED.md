@@ -407,3 +407,12 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Code-present:** extends the existing read-only resource dashboard battery section with Android-reported charging state, health category and temperature.
 - **Boundary:** one-shot broadcast snapshot only; no background monitoring, alerts, uploads, persistence or repair diagnosis.
 - **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+## B26 implementation status — 50-feature Batch 1 (in progress)
+
+- **Feature 1/50 — Warranty Reminder Integration (M07/M19):** the existing Smart Asset Inventory item-details view now offers an owner-invoked reminder action when a valid warranty is active.
+- The action reuses the existing M07 reminder scheduler and notification receiver, including quiet-hours and snooze behavior; it does not create a second scheduler, database or notification service.
+- Owner selects a local date/time; the picker cannot go beyond the warranty expiry date, and the selected time must be future-dated. The default suggestion is one day before expiry at 9 AM when possible.
+- Reminder text is derived from the owner-entered item nickname and normalized through the existing reminder title rules. No new permission, external sharing, background inventory scan or cloud upload.
+- **Status:** code added on feature branch; CI and Poco M4 Pro 4G device verification pending. This entry does not imply the other 49 batch features are implemented.
