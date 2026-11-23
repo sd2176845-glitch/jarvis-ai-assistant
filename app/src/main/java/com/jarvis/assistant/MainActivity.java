@@ -470,6 +470,11 @@ public class MainActivity extends Activity {
                             status.setText("CHOOSE A FUTURE REMINDER TIME");
                             return;
                         }
+                        if (ReminderStore.hasDuplicate(this, title, newTriggerAt, id)) {
+                            status.setText("A REMINDER WITH THIS TITLE AND TIME ALREADY EXISTS");
+                            speak("A matching reminder already exists.");
+                            return;
+                        }
                         if (!ReminderStore.updateTrigger(this, id, newTriggerAt)) {
                             status.setText("REMINDER TIME COULD NOT BE UPDATED");
                             return;
@@ -520,6 +525,11 @@ public class MainActivity extends Activity {
                             long triggerAt = chosen.getTimeInMillis();
                             if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
                                 status.setText("CHOOSE A FUTURE TIME");
+                                return;
+                            }
+                            if (ReminderStore.hasDuplicate(this, title, triggerAt, -1)) {
+                                status.setText("A REMINDER WITH THIS TITLE AND TIME ALREADY EXISTS");
+                                speak("A matching reminder already exists.");
                                 return;
                             }
                             int reminderId = preferences.getInt("reminder_id_counter", 2000) + 1;
