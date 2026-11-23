@@ -417,33 +417,75 @@ public class MainActivity extends Activity {
         }
         java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(
                 "EEE, dd MMM yyyy • hh:mm a", java.util.Locale.getDefault());
-        ArrayList<String> labels = new ArrayList<>();
-        for (org.json.JSONObject item : reminders) {
-            labels.add(item.optString("title", "Reminder") + "\n"
+        final ArrayList<org.json.JSONObject> visibleReminders = new ArrayList<>(reminders);
+        final ArrayList<String> labels = new ArrayList<>();
+        for (org.json.JSONObject item : visibleReminders) {
+            labels.add(item.optString("title", "Reminder") + "\\n"
                     + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
         }
-        new AlertDialog.Builder(this).setTitle("JARVIS • Upcoming reminders")
-                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
-                    if (which < 0 || which >= reminders.size()) return;
-                    org.json.JSONObject selected = reminders.get(which);
-                    int id = selected.optInt("id", -1);
-                    String title = selected.optString("title", "Reminder");
-                    long triggerAt = selected.optLong("triggerAt", 0L);
-                    new AlertDialog.Builder(this).setTitle("Reminder details")
-                            .setMessage(title + "\n" + formatter.format(new java.util.Date(triggerAt))
-                                    + "\n\nYou can change the date/time or cancel this JARVIS reminder.")
-                            .setNegativeButton("Keep", null)
-                            .setNeutralButton("Reschedule", (confirm, choice) ->
-                                    showRescheduleReminder(id, title, triggerAt))
-                            .setPositiveButton("Cancel reminder", (confirm, choice) -> {
-                                if (ReminderStore.cancel(this, id)) {
-                                    status.setText("JARVIS REMINDER CANCELLED");
-                                    speak("Reminder cancelled.");
-                                } else {
-                                    status.setText("REMINDER COULD NOT BE CANCELLED");
-                                }
-                            }).show();
-                }).setNegativeButton("Close", null).show();
+        final android.widget.LinearLayout content = new android.widget.LinearLayout(this);
+        content.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        content.setPadding(pad, pad, pad, 0);
+        final android.widget.EditText searchInput = new android.widget.EditText(this);
+        searchInput.setSingleLine(true);
+        searchInput.setHint("Search reminder titles");
+        content.addView(searchInput, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        final android.widget.ListView list = new android.widget.ListView(this);
+        final android.widget.TextView empty = new android.widget.TextView(this);
+        empty.setText("No matching reminders");
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(pad, pad, pad, pad);
+        content.addView(empty, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        content.addView(list, new android.widget.LinearLayout.LayoutParams(-1,
+                (int) (340 * getResources().getDisplayMetrics().density)));
+        list.setEmptyView(empty);
+        final android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, labels);
+        list.setAdapter(adapter);
+        final AlertDialog reminderDialog = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Upcoming reminders")
+                .setView(content)
+                .setNegativeButton("Close", null).create();
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                visibleReminders.clear();
+                labels.clear();
+                for (org.json.JSONObject item : reminders) {
+                    if (ReminderRules.matchesReminderQuery(item.optString("title", ""), s.toString())) {
+                        visibleReminders.add(item);
+                        labels.add(item.optString("title", "Reminder") + "\\n"
+                                + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void afterTextChanged(android.text.Editable s) { }
+        });
+        list.setOnItemClickListener((parent, view, position, itemId) -> {
+            if (position < 0 || position >= visibleReminders.size()) return;
+            org.json.JSONObject selected = visibleReminders.get(position);
+            reminderDialog.dismiss();
+            int id = selected.optInt("id", -1);
+            String title = selected.optString("title", "Reminder");
+            long triggerAt = selected.optLong("triggerAt", 0L);
+            new AlertDialog.Builder(this).setTitle("Reminder details")
+                    .setMessage(title + "\\n" + formatter.format(new java.util.Date(triggerAt))
+                            + "\\n\\nYou can change the date/time or cancel this JARVIS reminder.")
+                    .setNegativeButton("Keep", null)
+                    .setNeutralButton("Reschedule", (confirm, choice) ->
+                            showRescheduleReminder(id, title, triggerAt))
+                    .setPositiveButton("Cancel reminder", (confirm, choice) -> {
+                        if (ReminderStore.cancel(this, id)) {
+                            status.setText("JARVIS REMINDER CANCELLED");
+                            speak("Reminder cancelled.");
+                        } else {
+                            status.setText("REMINDER COULD NOT BE CANCELLED");
+                        }
+                    }).show();
+        });
+        reminderDialog.show();
     }
 
     private void showRescheduleReminder(int id, String title, long oldTriggerAt) {
