@@ -80,6 +80,13 @@ public final class PracticalIntelligenceRules {
         return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
     }
 
+    public static String warrantyReminderTitle(String itemName) {
+        if (itemName == null) return "";
+        String normalizedName = itemName.trim().replaceAll("\\s+", " ");
+        if (normalizedName.isEmpty() || normalizedName.length() > 60) return "";
+        return ReminderRules.normalizeTitle("Warranty ending: " + normalizedName);
+    }
+
     public static String warrantyStatus(String warrantyUntil, String todayIsoDate) {
         if (warrantyUntil == null || warrantyUntil.trim().isEmpty()) return "Not recorded";
         String date = warrantyUntil.trim();
