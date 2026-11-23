@@ -343,10 +343,15 @@ public final class PracticalIntelligenceStudio {
                     String warranty = selected == null ? "" : selected.optString("warranty_until", "");
                     String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
                     String warrantyState = PracticalIntelligenceRules.warrantyStatus(warranty, today);
+                    long warrantyDays = PracticalIntelligenceRules.warrantyDaysRemaining(warranty, today);
+                    String warrantyCountdown = warrantyDays == -1L ? "Unavailable"
+                            : warrantyDays < 0L ? Math.abs(warrantyDays) + " days overdue"
+                            : warrantyDays + " days remaining";
                     String details = selected == null ? choices[which]
                             : choices[which] + "\nPurchase date: " + selected.optString("purchase_date")
                             + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
                             + "\nWarranty status: " + warrantyState
+                            + "\nWarranty countdown: " + warrantyCountdown
                             + "\nNotes: " + selected.optString("notes");
                     new AlertDialog.Builder(activity).setTitle("Inventory item")
                             .setMessage(details).setNegativeButton("Close", null)
@@ -386,6 +391,7 @@ public final class PracticalIntelligenceStudio {
         EditText name=field(activity,"Item name"), category=field(activity,"Category");
         EditText purchase=field(activity,"Purchase date (optional)"), condition=field(activity,"Condition");
         EditText warranty=field(activity,"Warranty end YYYY-MM-DD (optional)"), notes=field(activity,"Notes (optional)");
+        notes.setSingleLine(false); notes.setMinLines(2); notes.setMaxLines(3);
         name.setText(existing.optString("name")); category.setText(existing.optString("category"));
         purchase.setText(existing.optString("purchase_date")); condition.setText(existing.optString("condition"));
         warranty.setText(existing.optString("warranty_until")); notes.setText(existing.optString("notes"));
@@ -397,7 +403,7 @@ public final class PracticalIntelligenceStudio {
             String n=name.getText().toString().trim(), c=category.getText().toString().trim();
             String p=purchase.getText().toString().trim(), q=condition.getText().toString().trim();
             String wt=warranty.getText().toString().trim(), nt=notes.getText().toString().trim();
-            String error=PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,nt,wt);
+            String error=AssetInventoryBatchRules.isValidEdit(n,c,p,q,nt,wt) ? null\n                    : PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,nt,wt);
             if(error!=null){Toast.makeText(activity,error,Toast.LENGTH_LONG).show();return;}
             JSONArray latest=readAssetInventory(activity); if(latest==null||index>=latest.length())return;
             JSONObject current=latest.optJSONObject(index); if(current==null)return;
