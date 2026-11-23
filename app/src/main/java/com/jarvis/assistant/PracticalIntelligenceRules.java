@@ -127,9 +127,9 @@ public final class PracticalIntelligenceRules {
         return count;
     }
 
-    /** Days until expiry; negative means expired, zero means expires today, -1 means unavailable. */
+    /** Days until expiry; negative means expired, zero means expires today, Long.MIN_VALUE means unavailable. */
     public static long warrantyDaysRemaining(String warrantyUntil, String todayIsoDate) {
-        if (!isValidIsoDate(warrantyUntil) || !isValidIsoDate(todayIsoDate)) return -1L;
+        if (!isValidIsoDate(warrantyUntil) || !isValidIsoDate(todayIsoDate)) return Long.MIN_VALUE;
         java.util.TimeZone utc = java.util.TimeZone.getTimeZone("UTC");
         java.util.GregorianCalendar expiry = new java.util.GregorianCalendar(utc, java.util.Locale.ROOT);
         java.util.GregorianCalendar today = new java.util.GregorianCalendar(utc, java.util.Locale.ROOT);
@@ -147,7 +147,7 @@ public final class PracticalIntelligenceRules {
             long dayMillis = 24L * 60L * 60L * 1000L;
             return (expiry.getTimeInMillis() - today.getTimeInMillis()) / dayMillis;
         } catch (IllegalArgumentException e) {
-            return -1L;
+            return Long.MIN_VALUE;
         }
     }
 
