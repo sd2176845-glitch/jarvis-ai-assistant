@@ -27,4 +27,20 @@ public class PracticalIntelligenceRulesTest {
         assertNotNull(PracticalIntelligenceRules.validateVehicleEntry("Scooter", "Today", "12A", "Oil service"));
         assertNotNull(PracticalIntelligenceRules.validateVehicleEntry("Scooter", "Today", "12000", ""));
     }
+    @Test public void assetInventoryValidationAcceptsOptionalPurchaseDateAndNotes() {
+        assertNull(PracticalIntelligenceRules.validateAssetEntry(
+                "Desk lamp", "Household", "", "Good", ""));
+    }
+
+    @Test public void assetInventoryValidationRejectsMissingOrOversizedFields() {
+        assertNotNull(PracticalIntelligenceRules.validateAssetEntry(
+                "", "Electronics", "", "Working", ""));
+        assertNotNull(PracticalIntelligenceRules.validateAssetEntry(
+                "Laptop", "", "", "Working", ""));
+        assertNotNull(PracticalIntelligenceRules.validateAssetEntry(
+                "Laptop", "Electronics", "", "", ""));
+        assertNotNull(PracticalIntelligenceRules.validateAssetEntry(
+                "Laptop", "Electronics", "", "Working", new String(new char[241]).replace('\0', 'x')));
+    }
+
 }
