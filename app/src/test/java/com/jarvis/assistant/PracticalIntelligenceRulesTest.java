@@ -81,6 +81,8 @@ public class PracticalIntelligenceRulesTest {
         assertEquals(0L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-23", "2026-11-23"));
         assertEquals(7L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-30", "2026-11-23"));
         assertEquals(-1L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-22", "2026-11-23"));
+        assertEquals(Long.MIN_VALUE, PracticalIntelligenceRules.warrantyDaysRemaining("", "2026-11-23"));
+        assertEquals(Long.MIN_VALUE, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-22", "bad-date"));
         assertTrue(PracticalIntelligenceRules.isWarrantyExpiringWithin("2026-11-30", "2026-11-23", 7));
         assertFalse(PracticalIntelligenceRules.isWarrantyExpiringWithin("2026-12-01", "2026-11-23", 7));
         assertFalse(PracticalIntelligenceRules.isWarrantyExpiringWithin("bad", "2026-11-23", 30));
