@@ -27,6 +27,17 @@ public class ReminderRulesTest {
         assertFalse(ReminderRules.isFuture(999L, 1000L));
     }
 
+    @Test public void detectsSameTitleAndExactTimeButAllowsDifferentTimeOrId() {
+        assertTrue(ReminderRules.isSameReminder(10, "  Pay   bill ", 5000L,
+                11, "pay bill", 5000L));
+        assertFalse(ReminderRules.isSameReminder(10, "Pay bill", 5000L,
+                10, "Pay bill", 5000L));
+        assertFalse(ReminderRules.isSameReminder(10, "Pay bill", 5000L,
+                11, "Pay bill", 6000L));
+        assertFalse(ReminderRules.isSameReminder(10, "Pay bill", 5000L,
+                11, "Call home", 5000L));
+    }
+
     @Test public void restoresOnlyFutureReminders() {
         assertTrue(ReminderRules.shouldRestore(2000L, 1000L));
         assertFalse(ReminderRules.shouldRestore(1000L, 1000L));
