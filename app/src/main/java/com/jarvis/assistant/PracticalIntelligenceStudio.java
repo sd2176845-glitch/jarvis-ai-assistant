@@ -349,7 +349,9 @@ public final class PracticalIntelligenceStudio {
                             + "\nWarranty status: " + warrantyState
                             + "\nNotes: " + selected.optString("notes");
                     new AlertDialog.Builder(activity).setTitle("Inventory item")
-                            .setMessage(details).setNegativeButton("Close", null)\n                            .setNeutralButton("Edit", (d, w) -> editAsset(activity, which))\n                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
+                            .setMessage(details).setNegativeButton("Close", null)
+                            .setNeutralButton("Edit", (d, w) -> editAsset(activity, which))
+                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
                 }).setNegativeButton("Close", null).show();
     }
 
