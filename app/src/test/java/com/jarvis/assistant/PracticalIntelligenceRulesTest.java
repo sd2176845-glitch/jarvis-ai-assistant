@@ -43,4 +43,20 @@ public class PracticalIntelligenceRulesTest {
                 "Laptop", "Electronics", "", "Working", new String(new char[241]).replace('\0', 'x')));
     }
 
+    @Test public void warrantyDateValidationRequiresARealIsoDate() {
+        assertTrue(PracticalIntelligenceRules.isValidIsoDate("2028-02-29"));
+        assertFalse(PracticalIntelligenceRules.isValidIsoDate("2027-02-29"));
+        assertFalse(PracticalIntelligenceRules.isValidIsoDate("2028-13-01"));
+        assertFalse(PracticalIntelligenceRules.isValidIsoDate("28-01-2028"));
+        assertFalse(PracticalIntelligenceRules.isValidIsoDate(""));
+    }
+
+    @Test public void warrantyStatusUsesInclusiveExpiryDateAndHandlesMissingData() {
+        assertEquals("Active", PracticalIntelligenceRules.warrantyStatus("2026-11-23", "2026-11-23"));
+        assertEquals("Active", PracticalIntelligenceRules.warrantyStatus("2026-12-01", "2026-11-23"));
+        assertEquals("Expired", PracticalIntelligenceRules.warrantyStatus("2026-11-22", "2026-11-23"));
+        assertEquals("Not recorded", PracticalIntelligenceRules.warrantyStatus("", "2026-11-23"));
+        assertEquals("Date unavailable", PracticalIntelligenceRules.warrantyStatus("bad-date", "2026-11-23"));
+    }
+
 }
