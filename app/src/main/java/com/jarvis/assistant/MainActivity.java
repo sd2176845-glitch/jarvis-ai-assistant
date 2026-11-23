@@ -388,17 +388,86 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String summary = structured;
         if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
+        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "New calendar event"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\n\nTasks are stored locally in a separate structured list. Existing notes are preserved. Alarm time must be confirmed in Android Clock.")
-                .setPositiveButton("Manage tasks", (d, w) -> showStructuredTaskManager())
-                .setNeutralButton("Set alarm", (d, w) -> {
-                    try {
-                        Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
-                        alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
-                        startActivity(alarm);
-                    } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                })
-                .setNegativeButton("New event", (d, w) -> showCalendarEventDraftDialog()).show();
+                .setMessage(summary + "\n\nJARVIS reminders are stored locally and delivered as Android notifications. Delivery may be delayed by battery settings.")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) showStructuredTaskManager();
+                    else if (which == 1) showCreateReminderDialog();
+                    else if (which == 2) {
+                        try {
+                            Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
+                            alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
+                            startActivity(alarm);
+                        } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
+                    } else showCalendarEventDraftDialog();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showCreateReminderDialog() {
+        if (blockPrivateInGuestMode()) return;
+        android.widget.EditText titleInput = new android.widget.EditText(this);
+        titleInput.setHint("Reminder title (max 100 characters)");
+        titleInput.setSingleLine(true);
+        new AlertDialog.Builder(this).setTitle("JARVIS • New reminder")
+                .setMessage("Choose a future date and time. This reminder uses a local Android notification; Doze and notification settings may affect delivery.")
+                .setView(titleInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Choose date & time", (dialog, which) -> {
+                    String title = ReminderRules.normalizeTitle(titleInput.getText().toString());
+                    if (title.isEmpty()) {
+                        status.setText("ENTER A REMINDER TITLE (UP TO 100 CHARACTERS)");
+                        return;
+                    }
+                    java.util.Calendar chosen = java.util.Calendar.getInstance();
+                    chosen.add(java.util.Calendar.MINUTE, 5);
+                    new android.app.DatePickerDialog(this, (dateView, year, month, day) -> {
+                        chosen.set(java.util.Calendar.YEAR, year);
+                        chosen.set(java.util.Calendar.MONTH, month);
+                        chosen.set(java.util.Calendar.DAY_OF_MONTH, day);
+                        new android.app.TimePickerDialog(this, (timeView, hour, minute) -> {
+                            chosen.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                            chosen.set(java.util.Calendar.MINUTE, minute);
+                            chosen.set(java.util.Calendar.SECOND, 0);
+                            chosen.set(java.util.Calendar.MILLISECOND, 0);
+                            long triggerAt = chosen.getTimeInMillis();
+                            if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
+                                status.setText("CHOOSE A FUTURE TIME");
+                                return;
+                            }
+                            int reminderId = preferences.getInt("reminder_id_counter", 2000) + 1;
+                            if (reminderId <= 0) reminderId = 2001;
+                            preferences.edit().putInt("reminder_id_counter", reminderId).apply();
+                            android.app.AlarmManager manager = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+                            if (manager == null) {
+                                status.setText("REMINDER SERVICE UNAVAILABLE");
+                                return;
+                            }
+                            if (!ReminderStore.save(this, reminderId, title, triggerAt)) {
+                                status.setText("REMINDER COULD NOT BE SAVED");
+                                return;
+                            }
+                            Intent alarmIntent = new Intent(this, ReminderReceiver.class);
+                            alarmIntent.putExtra(ReminderReceiver.EXTRA_TITLE, title);
+                            alarmIntent.putExtra(ReminderReceiver.EXTRA_ID, reminderId);
+                            android.app.PendingIntent pending = android.app.PendingIntent.getBroadcast(
+                                    this, reminderId, alarmIntent,
+                                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+                            try {
+                                manager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerAt, pending);
+                            } catch (Exception scheduleError) {
+                                ReminderStore.remove(this, reminderId);
+                                status.setText("REMINDER COULD NOT BE SCHEDULED");
+                                return;
+                            }
+                            status.setText("JARVIS REMINDER SCHEDULED — CHECK NOTIFICATION PERMISSION");
+                            speak("Reminder set: " + title);
+                        }, chosen.get(java.util.Calendar.HOUR_OF_DAY),
+                                chosen.get(java.util.Calendar.MINUTE), false).show();
+                    }, chosen.get(java.util.Calendar.YEAR),
+                            chosen.get(java.util.Calendar.MONTH),
+                            chosen.get(java.util.Calendar.DAY_OF_MONTH)).show();
+                }).show();
     }
 
     private org.json.JSONArray readStructuredTasks() {
