@@ -243,7 +243,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -373,3 +373,68 @@ public final class PracticalIntelligenceStudio {
     }
 
 }
+    /** Owner-invoked local search over existing inventory records; nothing is uploaded. */
+    private static void searchAssets(Activity activity) {
+        EditText query = field(activity, "Search name, category, condition or notes");
+        new AlertDialog.Builder(activity).setTitle("Search local inventory").setView(query)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Search", (dialog, which) -> {
+                    JSONArray records = readAssetInventory(activity);
+                    if (records == null) return;
+                    String q = query.getText().toString();
+                    List<Integer> indexes = new ArrayList<>();
+                    List<String> labels = new ArrayList<>();
+                    for (int i = 0; i < records.length(); i++) {
+                        JSONObject item = records.optJSONObject(i);
+                        if (item == null) continue;
+                        if (PracticalIntelligenceRules.matchesAssetQuery(
+                                item.optString("name"), item.optString("category"),
+                                item.optString("condition"), item.optString("notes"), q)) {
+                            indexes.add(i);
+                            labels.add(item.optString("name") + " • " + item.optString("category")
+                                    + " • " + item.optString("condition"));
+                        }
+                    }
+                    if (labels.isEmpty()) {
+                        new AlertDialog.Builder(activity).setTitle("Search results")
+                                .setMessage("No matching inventory items.").setPositiveButton("OK", null).show();
+                        return;
+                    }
+                    new AlertDialog.Builder(activity).setTitle("Matching items • " + labels.size())
+                            .setItems(labels.toArray(new String[0]), (d, selected) -> {
+                                JSONObject item = records.optJSONObject(indexes.get(selected));
+                                if (item == null) return;
+                                String warranty = item.optString("warranty_until", "");
+                                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+                                String details = item.optString("name") + "\\nCategory: " + item.optString("category")
+                                        + "\\nCondition: " + item.optString("condition")
+                                        + "\\nWarranty: " + PracticalIntelligenceRules.warrantyStatus(warranty, today);
+                                new AlertDialog.Builder(activity).setTitle("Inventory search result")
+                                        .setMessage(details).setPositiveButton("OK", null).show();
+                            }).setNegativeButton("Close", null).show();
+                }).show();
+    }
+
+    /** Read-only aggregate over the existing owner-entered warranty fields. */
+    private static void warrantyOverview(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        int active = 0, expired = 0, missing = 0;
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item == null) continue;
+            String state = PracticalIntelligenceRules.warrantyStatus(
+                    item.optString("warranty_until", ""), today);
+            if ("Active".equals(state)) active++;
+            else if ("Expired".equals(state)) expired++;
+            else if ("Not recorded".equals(state)) missing++;
+        }
+        String summary = PracticalIntelligenceRules.inventorySummary(
+                records.length(), active, expired, missing);
+        new AlertDialog.Builder(activity).setTitle("Warranty overview")
+                .setMessage(summary + "\\n\\nThis is a local summary of owner-entered dates, not a manufacturer's live warranty lookup.")
+                .setPositiveButton("OK", null).show();
+    }
+
+\n}\n
