@@ -30,6 +30,38 @@ public final class ReminderStore {
         }
     }
 
+    public static boolean updateTrigger(Context context, int id, long triggerAtMillis) {
+        if (id <= 0 || triggerAtMillis <= 0L) return false;
+        try {
+            android.content.SharedPreferences prefs =
+                    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            String raw = prefs.getString(String.valueOf(id), null);
+            if (raw == null) return false;
+            JSONObject record = new JSONObject(raw);
+            record.put("triggerAt", triggerAtMillis);
+            return prefs.edit().putString(String.valueOf(id), record.toString()).commit();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean schedule(Context context, int id, String title, long triggerAtMillis) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (manager == null || id <= 0 || ReminderRules.normalizeTitle(title).isEmpty()) return false;
+        Intent intent = new Intent(context, ReminderReceiver.class);
+        intent.putExtra(ReminderReceiver.EXTRA_TITLE, ReminderRules.normalizeTitle(title));
+        intent.putExtra(ReminderReceiver.EXTRA_ID, id);
+        PendingIntent pending = PendingIntent.getBroadcast(
+                context, id, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        try {
+            manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pending);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static void remove(Context context, int id) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit().remove(String.valueOf(id)).apply();
