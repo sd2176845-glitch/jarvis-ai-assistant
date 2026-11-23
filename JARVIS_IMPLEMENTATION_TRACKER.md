@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (10/20; Feature 10 CI pending, Poco device verification pending)
+### Implemented in code (10/20; CI passed, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -852,7 +852,9 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Failure/retest record:** run #962 first exposed export-whitespace normalization gaps; run #963 confirmed the sanitizer fix and exposed one test expectation casing mismatch. Both were corrected. Run #964 passed all workflow steps.
 - **CI/build:** PASS — GitHub Actions run #966 (`45184692964`) on exact head `629a6386371b44348d721e58ea1cc5be23672448`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14822892952`, size 23,244,892 bytes, SHA-256 `358d8b9a8b82e9e32995f1530aeb3a0dd58291d317c065063961ad0cdfa8ab73`.
-- **Progress:** 10/20 code-present capabilities; Features 8 and 9 passed CI. Feature 10 awaits its own unit-test and combined-build gate. Do not start Feature 11 until Feature 10 passes. Poco M4 Pro 4G physical-device verification remains pending.
+- **CI/build:** PASS — GitHub Actions run #968 (`45185344691`) on exact head `f36624c80e6ea31736ce74643a013fc876e13d60`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14821159816`, size 23,247,998 bytes, SHA-256 `cf38931248735cc40772300d22ef9050c602585a35a09fe248f1edfbc425544f`.
+- **Progress:** 10/20 code-present capabilities; Features 8–10 automated CI gates passed. Feature 11 may start now. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -881,5 +883,5 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Data behavior:** no existing record is changed, merged or deleted. The inventory remains bounded by the existing 100-item limit and uses its original preference key.
 - **Tests:** covers trimmed, case-insensitive exact identity matching and non-matches for different names/categories or missing identity fields.
 - **Privacy:** local-only comparison; no new permission, background activity, network request, or external transfer.
-- **CI/build:** pending for Feature 10 commit. Feature 11 must not start until unit tests and debug APK build pass.
+- **CI/build:** PASS — run #968 (`45185344691`) on exact code head `f36624c80e6ea31736ce74643a013fc876e13d60`; unit tests, debug APK build and artifact upload passed.
 - **Poco M4 Pro 4G:** device verification pending.
