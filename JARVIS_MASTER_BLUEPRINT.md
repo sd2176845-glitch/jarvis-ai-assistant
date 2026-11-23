@@ -97,6 +97,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] User-approved long-term preferences with review/edit/delete controls.
 - [ ] Structured notes and to-do lists with editing and deletion per item (current implementation stores and clears a simple local notes text list).
 - [x] One-time JARVIS-owned scheduled reminders with local Android notification delivery, app-private reminder records, and future-alarm recovery after device reboot or app replacement (code present; inexact/Doze-sensitive delivery and notification permission require Poco device testing).
+- [x] Owner-controlled quiet hours and a 10-minute snooze action for JARVIS-created reminder notifications; reminders due during quiet hours are deferred until the configured end time. This does not read or manage notifications from other apps (code present; CI/device verification tracked separately).
 - [ ] Calendar-connected morning briefing and daily schedule.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
 - [ ] Expand multi-step command handling into a safe command-chain planner: parse the requested steps, show the proposed actions, execute reversible low-risk steps, and ask separately before calls, messages, purchases, sharing data or changing calendar events.
