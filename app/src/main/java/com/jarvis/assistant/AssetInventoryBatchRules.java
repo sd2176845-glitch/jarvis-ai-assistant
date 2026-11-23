@@ -16,6 +16,13 @@ public final class AssetInventoryBatchRules {
     public static int compareCategoriesThenNames(String lc, String ln, String rc, String rn) {
         int c=safe(lc).compareToIgnoreCase(safe(rc)); return c!=0?c:compareNames(ln,rn);
     }
+    /** Case-insensitive condition order with name as a stable tie-breaker. */
+    public static int compareConditionsThenNames(String leftCondition, String leftName,
+                                                 String rightCondition, String rightName) {
+        int conditionOrder = safe(leftCondition).compareToIgnoreCase(safe(rightCondition));
+        return conditionOrder != 0 ? conditionOrder : compareNames(leftName, rightName);
+    }
+
     /** Valid YYYY-MM-DD dates sort earliest first; missing/invalid dates sort last. */
     public static int compareWarrantyDates(String left, String right) {
         boolean lv=PracticalIntelligenceRules.isValidIsoDate(left), rv=PracticalIntelligenceRules.isValidIsoDate(right);

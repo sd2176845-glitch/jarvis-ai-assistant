@@ -515,22 +515,39 @@ public final class PracticalIntelligenceStudio {
 
     /** Sorts the displayed copy only; stored inventory order is unchanged. */
     private static void sortAssets(Activity activity) {
-        String[] modes={"Name A–Z","Category then name","Warranty expiry (soonest first)"};
-        new AlertDialog.Builder(activity).setTitle("Sort inventory").setItems(modes,(d,mode)->{
-          JSONArray records=readAssetInventory(activity);if(records==null)return;
-          List<JSONObject> items=new ArrayList<>();
-          for(int i=0;i<records.length();i++){JSONObject item=records.optJSONObject(i);if(item!=null)items.add(item);}
-          java.util.Collections.sort(items,(left,right)->{
-            if(mode==0)return AssetInventoryBatchRules.compareNames(left.optString("name"),right.optString("name"));
-            if(mode==1)return AssetInventoryBatchRules.compareCategoriesThenNames(left.optString("category"),left.optString("name"),
-                right.optString("category"),right.optString("name"));
-            return AssetInventoryBatchRules.compareWarrantyDates(left.optString("warranty_until"),right.optString("warranty_until"));
-          });
-          List<String> labels=new ArrayList<>();
-          for(JSONObject item:items)labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("warranty_until","No warranty date"));
-          new AlertDialog.Builder(activity).setTitle(modes[mode]).setMessage(labels.isEmpty()?"No inventory items saved.":android.text.TextUtils.join("\n",labels))
-            .setPositiveButton("OK",null).show();
-        }).setNegativeButton("Close",null).show();
+        String[] modes = {"Name A–Z", "Category then name",
+                "Condition then name", "Warranty expiry (soonest first)"};
+        new AlertDialog.Builder(activity).setTitle("Sort inventory").setItems(modes, (dialog, mode) -> {
+            JSONArray records = readAssetInventory(activity);
+            if (records == null) return;
+            List<JSONObject> items = new ArrayList<>();
+            for (int i = 0; i < records.length(); i++) {
+                JSONObject item = records.optJSONObject(i);
+                if (item != null) items.add(item);
+            }
+            java.util.Collections.sort(items, (left, right) -> {
+                if (mode == 0) return AssetInventoryBatchRules.compareNames(
+                        left.optString("name"), right.optString("name"));
+                if (mode == 1) return AssetInventoryBatchRules.compareCategoriesThenNames(
+                        left.optString("category"), left.optString("name"),
+                        right.optString("category"), right.optString("name"));
+                if (mode == 2) return AssetInventoryBatchRules.compareConditionsThenNames(
+                        left.optString("condition"), left.optString("name"),
+                        right.optString("condition"), right.optString("name"));
+                return AssetInventoryBatchRules.compareWarrantyDates(
+                        left.optString("warranty_until"), right.optString("warranty_until"));
+            });
+            List<String> labels = new ArrayList<>();
+            for (JSONObject item : items) {
+                labels.add(item.optString("name") + " • " + item.optString("category")
+                        + " • " + item.optString("condition") + " • "
+                        + item.optString("warranty_until", "No warranty date"));
+            }
+            String result = labels.isEmpty() ? "No inventory items saved."
+                    : android.text.TextUtils.join("\n", labels);
+            new AlertDialog.Builder(activity).setTitle(modes[mode]).setMessage(result)
+                    .setPositiveButton("OK", null).show();
+        }).setNegativeButton("Close", null).show();
     }
 
     /** Owner-invoked local search over existing inventory records; nothing is uploaded. */

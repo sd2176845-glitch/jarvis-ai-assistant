@@ -153,4 +153,24 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void conditionSortIsCaseInsensitiveAndUsesNameAsTieBreaker() {
+        assertTrue(AssetInventoryBatchRules.compareConditionsThenNames(
+                "Good", "Lamp", "Needs Repair", "Cable") < 0);
+        assertTrue(AssetInventoryBatchRules.compareConditionsThenNames(
+                "good", "Desk Lamp", "Good", "Floor Lamp") < 0);
+        assertEquals(0, AssetInventoryBatchRules.compareConditionsThenNames(
+                "  Good ", "Lamp", "good", " lamp "));
+    }
+
+    @Test
+    public void conditionSortHandlesMissingLegacyLabelsSafely() {
+        assertEquals(0, AssetInventoryBatchRules.compareConditionsThenNames(
+                null, "Lamp", "", "lamp"));
+        assertTrue(AssetInventoryBatchRules.compareConditionsThenNames(
+                "Good", "Lamp", null, "Cable") < 0);
+    }
+
+
 }
