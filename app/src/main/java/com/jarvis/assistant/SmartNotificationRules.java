@@ -7,6 +7,10 @@ import java.util.TimeZone;
 public final class SmartNotificationRules {
     private SmartNotificationRules() { }
 
+    public static long snoozeUntil(long nowMillis) {
+        return nowMillis + 10L * 60L * 1000L;
+    }
+
     public static boolean isValidWindow(int startMinute, int endMinute) {
         return startMinute >= 0 && startMinute < 1440
                 && endMinute >= 0 && endMinute < 1440
