@@ -781,3 +781,16 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Current continuation branch: `feature/b24-owner-asset-inventory`, stacked on B23 code head `97daee97951ca9b7fc7e52b20990dc48533f1f01`.
 - B22 PR #48 and B23 PR #49 remain open draft PRs; neither has been merged. Their respective CI runs #871 and #883 passed, while Poco device checks remain pending.
 - Do not merge B22, B23 or B24 without the owner's explicit approval.
+
+## B25 — Owner-entered Warranty Tracking (2026-11-23)
+
+- **Code-present:** extends B24's existing Smart Asset Inventory; no new inventory screen, storage key or duplicate asset manager.
+- Adds an optional warranty end date in strict `YYYY-MM-DD` format to each new inventory record. Older B24 records without this field remain readable and display `Not recorded`.
+- Inventory item details show the saved warranty end date and a local-date-derived `Active`, `Expired`, `Not recorded` or `Date unavailable` status. The expiry date itself is inclusive.
+- Validation checks real Gregorian calendar dates, including leap-year rules; invalid dates are rejected before saving.
+- Added JUnit tests for valid leap days, invalid calendar dates, malformed formats, inclusive expiry-day behavior, expired status and missing/invalid data.
+- **Privacy boundary:** date is owner-entered and stored in the existing app-private inventory preference; no receipts, serial numbers, account details, scanning, background collection, cloud upload or new permission.
+- **Anti-duplication:** this upgrades B24's inventory model in place; existing vehicle records, task store, reminders and Personal Timeline are not duplicated or modified.
+- **CI:** final-head workflow pending. Runs #895 and #896 were triggered on earlier commits in this branch; only a successful run against the final documented branch head may verify the batch.
+- **Device verification:** pending on Poco M4 Pro 4G — add/view old and new records, verify status around expiry date, restart persistence, and confirm B24 inventory plus vehicle log/tasks/reminders remain intact.
+- Draft PR to be opened against B24 after final-head CI passes. JARVIS only; Even untouched.
