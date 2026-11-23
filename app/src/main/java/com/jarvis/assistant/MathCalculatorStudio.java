@@ -17,10 +17,8 @@ public final class MathCalculatorStudio {
         EditText expression = new EditText(activity);
         expression.setSingleLine(true);
         expression.setHint("Example: (125 + 75) * 2 / 4");
-        expression.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
-                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED
-                | android.text.InputType.TYPE_CLASS_TEXT);
+        expression.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         TextView note = new TextView(activity);
         note.setText("Supports +  −  ×  ÷  ^ and parentheses. Calculations stay on this phone; no account or internet is used.");
         note.setPadding(8, 8, 8, 12);
