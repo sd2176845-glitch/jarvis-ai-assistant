@@ -127,4 +127,30 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void warrantyStatusFilterMatchesAllExistingStatusVariants() {
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "2026-12-01", "2026-11-23", "Active"));
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "2026-11-22", "2026-11-23", "Expired"));
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "", "2026-11-23", "Not recorded"));
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "bad-date", "2026-11-23", "Date unavailable"));
+    }
+
+    @Test
+    public void warrantyStatusFilterSupportsAllAndRejectsDifferentOrUnknownStatus() {
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "bad-date", "2026-11-23", "All"));
+        assertTrue(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "2026-12-01", "2026-11-23", " all "));
+        assertFalse(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "2026-12-01", "2026-11-23", "Expired"));
+        assertFalse(AssetInventoryBatchRules.matchesWarrantyStatus(
+                "2026-12-01", "2026-11-23", "Unknown"));
+    }
+
+
 }

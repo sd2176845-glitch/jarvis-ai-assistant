@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (12/20; CI passed, Poco device verification pending)
+### Implemented in code (13/20; Feature 13 CI pending, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -838,6 +838,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 10. **Possible duplicate asset warning** — checks normalized item name and category before saving; owner can cancel or explicitly add a legitimate second copy.
 11. **Condition-wise inventory summary** — displays case-insensitive counts from existing local condition labels; blank legacy values are grouped as Unspecified and records remain unchanged.
 12. **Warranty expiry watchlist** — connects the existing expiry-window rule to the inventory UI, listing items expiring within 7, 30 or 90 days without changing stored records.
+13. **Warranty-status inventory filter** — upgrades the existing category/condition filter with Active, Expired, Not recorded and Date unavailable options.
 
 ### Files changed
 - Existing `PracticalIntelligenceStudio.java` upgraded in place; no second inventory page or storage key.
@@ -860,7 +861,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **APK artifact:** `jarvis-debug-apk`, ID `14823547505`, size 23,248,407 bytes, SHA-256 `418cf6a75058d0ebd80b29efb57f3e5c10df3be3f42192df614342c911dd8ade`.
 - **CI/build:** PASS — GitHub Actions run #972 (`45186652899`) on exact head `c491a5faf3f8126dc808f970b895679eaae316cf`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14824286479`, size 23,251,197 bytes, SHA-256 `a6d9d4c3db2a65d4e192fb610ade29194a54068c6cd0c251546c90c23d728508`.
-- **Progress:** 12/20 code-present capabilities; Features 8–12 automated CI gates passed. Feature 13 may start now. Poco M4 Pro 4G physical-device verification remains pending.
+- **Progress:** 13/20 code-present capabilities; Features 8–12 passed CI. Feature 13 awaits its own unit-test and combined-build gate. Do not start Feature 14 until Feature 13 passes. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -910,4 +911,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Tests:** covers inclusive window boundaries, same-day expiry, expired/missing/invalid dates, invalid today value, negative windows and null input.
 - **Privacy:** no new permission, background activity, network request or external transfer.
 - **CI/build:** PASS — run #972 (`45186652899`) on exact code head `c491a5faf3f8126dc808f970b895679eaae316cf`; unit tests, debug APK build and artifact upload passed.
+- **Poco M4 Pro 4G:** device verification pending.
+
+
+### Feature 13 — implementation and verification record
+- **Canonical owner:** M19 Smart Asset Inventory; extends the existing Filter inventory dialog rather than creating another filter screen.
+- **Implementation:** preserves category and condition filters and adds a warranty-status selector: All, Active, Expired, Not recorded and Date unavailable. Matching items display their calculated current warranty status.
+- **Data behavior:** uses the existing warranty status rule and existing local asset records; filtering is read-only and does not persist results.
+- **Tests:** covers each status, All selection, case/whitespace normalization, mismatched statuses and unknown selections.
+- **Privacy:** no new permission, background activity, network request or external transfer.
+- **CI/build:** pending for Feature 13 commit. Feature 14 must not start until Android unit tests and debug APK build pass.
 - **Poco M4 Pro 4G:** device verification pending.

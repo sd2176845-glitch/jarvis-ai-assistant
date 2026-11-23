@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.Gravity;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -462,22 +464,53 @@ public final class PracticalIntelligenceStudio {
 
     /** Read-only combined category and condition filter. */
     private static void filterAssets(Activity activity) {
-        EditText category=field(activity,"Category filter (blank = all)");
-        EditText condition=field(activity,"Condition filter (blank = all)");
-        LinearLayout form=new LinearLayout(activity);form.setOrientation(LinearLayout.VERTICAL);
-        form.addView(category);form.addView(condition);
+        EditText category = field(activity, "Category filter (blank = all)");
+        EditText condition = field(activity, "Condition filter (blank = all)");
+        String[] warrantyOptions = {"All", "Active", "Expired", "Not recorded", "Date unavailable"};
+        Spinner warrantyStatus = new Spinner(activity);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(activity,
+                android.R.layout.simple_spinner_item, warrantyOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        warrantyStatus.setAdapter(adapter);
+
+        LinearLayout form = new LinearLayout(activity);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.addView(category);
+        form.addView(condition);
+        TextView warrantyLabel = new TextView(activity);
+        warrantyLabel.setText("Warranty status");
+        warrantyLabel.setPadding(8, 12, 8, 4);
+        form.addView(warrantyLabel);
+        form.addView(warrantyStatus);
+
         new AlertDialog.Builder(activity).setTitle("Filter inventory").setView(form)
-          .setNegativeButton("Cancel",null).setPositiveButton("Apply",(d,w)->{
-            JSONArray records=readAssetInventory(activity);if(records==null)return;
-            List<String> labels=new ArrayList<>();
-            for(int i=0;i<records.length();i++){JSONObject item=records.optJSONObject(i);
-              if(item!=null&&AssetInventoryBatchRules.matchesFilters(item.optString("category"),category.getText().toString(),
-                  item.optString("condition"),condition.getText().toString()))
-                labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("condition"));
-            }
-            String result=labels.isEmpty()?"No matching items.":"Matching items • "+labels.size()+"\n"+android.text.TextUtils.join("\n",labels);
-            new AlertDialog.Builder(activity).setTitle("Filtered inventory").setMessage(result).setPositiveButton("OK",null).show();
-          }).show();
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Apply", (dialog, which) -> {
+                    JSONArray records = readAssetInventory(activity);
+                    if (records == null) return;
+                    String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+                    String selectedStatus = String.valueOf(warrantyStatus.getSelectedItem());
+                    List<String> labels = new ArrayList<>();
+                    for (int i = 0; i < records.length(); i++) {
+                        JSONObject item = records.optJSONObject(i);
+                        if (item == null) continue;
+                        if (AssetInventoryBatchRules.matchesFilters(
+                                item.optString("category"), category.getText().toString(),
+                                item.optString("condition"), condition.getText().toString())
+                                && AssetInventoryBatchRules.matchesWarrantyStatus(
+                                        item.optString("warranty_until", ""), today, selectedStatus)) {
+                            labels.add(item.optString("name") + " • " + item.optString("category")
+                                    + " • " + item.optString("condition") + " • "
+                                    + PracticalIntelligenceRules.warrantyStatus(
+                                            item.optString("warranty_until", ""), today));
+                        }
+                    }
+                    String result = labels.isEmpty() ? "No matching items."
+                            : "Matching items • " + labels.size() + "\n"
+                                    + android.text.TextUtils.join("\n", labels);
+                    new AlertDialog.Builder(activity).setTitle("Filtered inventory")
+                            .setMessage(result).setPositiveButton("OK", null).show();
+                }).show();
     }
 
     /** Sorts the displayed copy only; stored inventory order is unchanged. */

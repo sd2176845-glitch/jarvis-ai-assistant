@@ -21,6 +21,15 @@ public final class AssetInventoryBatchRules {
         boolean lv=PracticalIntelligenceRules.isValidIsoDate(left), rv=PracticalIntelligenceRules.isValidIsoDate(right);
         if(lv&&rv)return left.compareTo(right); if(lv)return -1; if(rv)return 1; return 0;
     }
+    /** Applies the selected warranty status without storing or mutating any inventory data. */
+    public static boolean matchesWarrantyStatus(String warrantyUntil, String todayIsoDate,
+                                                String selectedStatus) {
+        String selected = safe(selectedStatus);
+        if (selected.isEmpty() || "All".equalsIgnoreCase(selected)) return true;
+        return selected.equalsIgnoreCase(
+                PracticalIntelligenceRules.warrantyStatus(warrantyUntil, todayIsoDate));
+    }
+
     /** Returns original record indexes whose valid warranties expire inclusively within the window. */
     public static List<Integer> warrantyIndexesWithinWindow(String[] warrantyDates,
                                                               String todayIsoDate, int days) {
