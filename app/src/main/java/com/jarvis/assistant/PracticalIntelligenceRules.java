@@ -176,4 +176,5 @@ public final class PracticalIntelligenceRules {
         return value.replace("\\n", " ").replace("\\r", " ")
                 .replace("|", "/").trim();
     }
-\n}\n
+
+}
