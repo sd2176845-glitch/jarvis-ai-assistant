@@ -22,7 +22,9 @@ public final class PracticalIntelligenceStudio {
 
     private static final String PREFS = "jarvis_preferences";
     private static final String VEHICLE_LOG_KEY = "vehicle_service_log_v1";
+    private static final String ASSET_INVENTORY_KEY = "owner_asset_inventory_v1";
     private static final int MAX_RECORDS = 50;
+    private static final int MAX_ASSETS = 100;
 
     private interface TextAction { void submit(String value); }
 
@@ -30,13 +32,15 @@ public final class PracticalIntelligenceStudio {
         String[] options = {
                 "Emergency Readiness Planner • general checklist",
                 "Legal Document Explainer • selected text only",
-                "Vehicle Maintenance Log • local records"
+                "Vehicle Maintenance Log • local records",
+                "Smart Asset Inventory • local records"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Practical Intelligence")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) emergencyPlanner(activity, status, transcript);
                     else if (which == 1) legalExplainer(activity, status, transcript);
-                    else vehicleLogMenu(activity);
+                    else if (which == 2) vehicleLogMenu(activity);
+                    else assetInventoryMenu(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -224,4 +228,136 @@ public final class PracticalIntelligenceStudio {
                     Toast.makeText(activity, saved ? "Local maintenance log cleared." : "Could not clear log.", Toast.LENGTH_SHORT).show();
                 }).show();
     }
+
+    private static JSONArray readAssetInventory(Activity activity) {
+        try {
+            String raw = preferences(activity).getString(ASSET_INVENTORY_KEY, "[]");
+            return new JSONArray(raw == null ? "[]" : raw);
+        } catch (Exception e) {
+            Toast.makeText(activity, "Asset inventory data is invalid; existing data was left unchanged.", Toast.LENGTH_LONG).show();
+            return null;
+        }
+    }
+
+    private static void assetInventoryMenu(Activity activity) {
+        String[] actions = {"Add item", "View / remove items", "Clear inventory"};
+        new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
+                .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) addAsset(activity);
+                    else if (which == 1) viewAssets(activity);
+                    else clearAssetInventory(activity);
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private static void addAsset(Activity activity) {
+        JSONArray current = readAssetInventory(activity);
+        if (current == null) return;
+        if (current.length() >= MAX_ASSETS) {
+            Toast.makeText(activity, "The local inventory is limited to " + MAX_ASSETS + " items.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        EditText name = field(activity, "Item name / nickname");
+        EditText category = field(activity, "Category (e.g. electronics, household, tools)");
+        EditText purchaseDate = field(activity, "Purchase date (optional)");
+        EditText condition = field(activity, "Condition (e.g. good, needs repair)");
+        EditText notes = field(activity, "Optional notes (no sensitive details)");
+        notes.setSingleLine(false);
+        notes.setMinLines(2);
+        notes.setMaxLines(3);
+        LinearLayout form = new LinearLayout(activity);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(24, 8, 24, 8);
+        form.addView(name);
+        form.addView(category);
+        form.addView(purchaseDate);
+        form.addView(condition);
+        form.addView(notes);
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(form);
+        new AlertDialog.Builder(activity).setTitle("Add inventory item")
+                .setMessage("Records stay in JARVIS app-private storage on this phone. No receipt, camera or document scanning.")
+                .setView(scroll).setNegativeButton("Cancel", null)
+                .setPositiveButton("Save locally", (dialog, which) -> {
+                    String n = name.getText().toString().trim();
+                    String cat = category.getText().toString().trim();
+                    String date = purchaseDate.getText().toString().trim();
+                    String cond = condition.getText().toString().trim();
+                    String note = notes.getText().toString().trim();
+                    String error = PracticalIntelligenceRules.validateAssetEntry(n, cat, date, cond, note);
+                    if (error != null) {
+                        Toast.makeText(activity, error, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    JSONArray latest = readAssetInventory(activity);
+                    if (latest == null || latest.length() >= MAX_ASSETS) return;
+                    try {
+                        JSONObject item = new JSONObject();
+                        item.put("name", n);
+                        item.put("category", cat);
+                        item.put("purchase_date", date);
+                        item.put("condition", cond);
+                        item.put("notes", note);
+                        item.put("created_at", System.currentTimeMillis());
+                        latest.put(item);
+                        boolean saved = preferences(activity).edit()
+                                .putString(ASSET_INVENTORY_KEY, latest.toString()).commit();
+                        Toast.makeText(activity, saved ? "Inventory item saved on this phone." : "Could not save item.",
+                                Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(activity, "Item could not be saved.", Toast.LENGTH_SHORT).show();
+                    }
+                }).show();
+    }
+
+    private static void viewAssets(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        if (records.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Smart Asset Inventory")
+                    .setMessage("No items saved yet.").setPositiveButton("OK", null).show();
+            return;
+        }
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item == null) labels.add((i + 1) + ". Invalid item");
+            else labels.add((i + 1) + ". " + item.optString("name") + " • "
+                    + item.optString("category") + " • " + item.optString("condition"));
+        }
+        String[] choices = labels.toArray(new String[0]);
+        new AlertDialog.Builder(activity).setTitle("Saved items • tap to inspect")
+                .setItems(choices, (dialog, which) -> {
+                    JSONObject selected = records.optJSONObject(which);
+                    String details = selected == null ? choices[which]
+                            : choices[which] + "\nPurchase date: " + selected.optString("purchase_date")
+                            + "\nNotes: " + selected.optString("notes");
+                    new AlertDialog.Builder(activity).setTitle("Inventory item")
+                            .setMessage(details).setNegativeButton("Close", null)
+                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private static void removeAsset(Activity activity, int index) {
+        JSONArray current = readAssetInventory(activity);
+        if (current == null || index < 0 || index >= current.length()) return;
+        JSONArray updated = new JSONArray();
+        for (int i = 0; i < current.length(); i++) if (i != index) updated.put(current.opt(i));
+        boolean saved = preferences(activity).edit()
+                .putString(ASSET_INVENTORY_KEY, updated.toString()).commit();
+        Toast.makeText(activity, saved ? "Inventory item removed." : "Could not update inventory.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private static void clearAssetInventory(Activity activity) {
+        new AlertDialog.Builder(activity).setTitle("Clear asset inventory?")
+                .setMessage("This deletes only the locally saved inventory items. It does not change vehicle records, tasks or reminders.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Clear", (dialog, which) -> {
+                    boolean saved = preferences(activity).edit().remove(ASSET_INVENTORY_KEY).commit();
+                    Toast.makeText(activity, saved ? "Local asset inventory cleared." : "Could not clear inventory.",
+                            Toast.LENGTH_SHORT).show();
+                }).show();
+    }
+
 }
