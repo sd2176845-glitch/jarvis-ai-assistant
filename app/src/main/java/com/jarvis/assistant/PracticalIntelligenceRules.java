@@ -40,6 +40,11 @@ public final class PracticalIntelligenceRules {
     }
     public static String validateAssetEntry(String name, String category, String purchaseDate,
                                              String condition, String notes) {
+        return validateAssetEntry(name, category, purchaseDate, condition, notes, "");
+    }
+
+    public static String validateAssetEntry(String name, String category, String purchaseDate,
+                                             String condition, String notes, String warrantyUntil) {
         if (name == null || name.trim().isEmpty() || name.trim().length() > 60)
             return "Enter an item name between 1 and 60 characters.";
         if (category == null || category.trim().isEmpty() || category.trim().length() > 40)
@@ -50,7 +55,36 @@ public final class PracticalIntelligenceRules {
             return "Enter a condition between 1 and 30 characters.";
         if (notes != null && notes.trim().length() > 240)
             return "Notes must be 240 characters or fewer.";
+        if (warrantyUntil != null && !warrantyUntil.trim().isEmpty()
+                && !isValidIsoDate(warrantyUntil.trim()))
+            return "Warranty end date must be a valid date in YYYY-MM-DD format.";
         return null;
+    }
+
+    public static boolean isValidIsoDate(String value) {
+        if (value == null || !value.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) return false;
+        try {
+            int year = Integer.parseInt(value.substring(0, 4));
+            int month = Integer.parseInt(value.substring(5, 7));
+            int day = Integer.parseInt(value.substring(8, 10));
+            if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+            int[] days = {31, (isLeapYear(year) ? 29 : 28), 31, 30, 31, 30,
+                    31, 31, 30, 31, 30, 31};
+            return day <= days[month - 1];
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static boolean isLeapYear(int year) {
+        return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+    }
+
+    public static String warrantyStatus(String warrantyUntil, String todayIsoDate) {
+        if (warrantyUntil == null || warrantyUntil.trim().isEmpty()) return "Not recorded";
+        String date = warrantyUntil.trim();
+        if (!isValidIsoDate(date) || !isValidIsoDate(todayIsoDate)) return "Date unavailable";
+        return date.compareTo(todayIsoDate) >= 0 ? "Active" : "Expired";
     }
 
 }
