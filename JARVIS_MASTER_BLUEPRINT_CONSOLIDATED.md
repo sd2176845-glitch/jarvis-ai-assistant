@@ -430,3 +430,12 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - The new date/time must be in the future. The same reminder ID and existing local ReminderStore/AlarmManager are reused; if scheduling fails, JARVIS attempts to restore the previous time and alarm.
 - No duplicate scheduler or storage, no new permission, no access to other apps' notifications and no cloud upload.
 - **Status:** code added on the B26 branch; final-head CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+## B26 implementation status — Feature 4/50
+
+- **Duplicate Reminder Protection:** creation and rescheduling now check for an existing owner-created reminder with the same normalized title and exact trigger time.
+- The lookup reuses the existing local ReminderStore, is read-only, and excludes the current reminder ID during rescheduling.
+- Added pure-Java tests for duplicate matching and allowed non-duplicates.
+- No new permission, duplicate scheduler, external notification access, cloud upload or background collection.
+- **Status:** code added on B26 branch; final-head CI and Poco M4 M4 Pro 4G physical-device verification pending.
