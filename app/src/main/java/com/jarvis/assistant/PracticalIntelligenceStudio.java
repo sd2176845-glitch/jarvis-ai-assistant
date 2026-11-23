@@ -302,26 +302,57 @@ public final class PracticalIntelligenceStudio {
                         Toast.makeText(activity, error, Toast.LENGTH_LONG).show();
                         return;
                     }
-                    JSONArray latest = readAssetInventory(activity);
-                    if (latest == null || latest.length() >= MAX_ASSETS) return;
-                    try {
-                        JSONObject item = new JSONObject();
-                        item.put("name", n);
-                        item.put("category", cat);
-                        item.put("purchase_date", date);
-                        item.put("condition", cond);
-                        item.put("warranty_until", warranty);
-                        item.put("notes", note);
-                        item.put("created_at", System.currentTimeMillis());
-                        latest.put(item);
-                        boolean saved = preferences(activity).edit()
-                                .putString(ASSET_INVENTORY_KEY, latest.toString()).commit();
-                        Toast.makeText(activity, saved ? "Inventory item saved on this phone." : "Could not save item.",
-                                Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Toast.makeText(activity, "Item could not be saved.", Toast.LENGTH_SHORT).show();
-                    }
+                    saveNewAsset(activity, n, cat, date, cond, warranty, note, false);
                 }).show();
+    }
+
+    /** Re-checks the latest local records and warns before an accidental same-name/category duplicate. */
+    private static void saveNewAsset(Activity activity, String name, String category,
+                                     String purchaseDate, String condition, String warranty,
+                                     String notes, boolean allowDuplicate) {
+        JSONArray latest = readAssetInventory(activity);
+        if (latest == null) return;
+        if (latest.length() >= MAX_ASSETS) {
+            Toast.makeText(activity, "The local inventory is limited to " + MAX_ASSETS + " items.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        boolean duplicate = false;
+        for (int i = 0; i < latest.length(); i++) {
+            JSONObject existing = latest.optJSONObject(i);
+            if (existing != null && AssetInventoryBatchRules.isSameAsset(
+                    existing.optString("name"), existing.optString("category"), name, category)) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (duplicate && !allowDuplicate) {
+            new AlertDialog.Builder(activity).setTitle("Similar inventory item already exists")
+                    .setMessage("An item with the same name and category is already saved. The existing record will not be changed. Add another record anyway?")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Add anyway", (dialog, which) ->
+                            saveNewAsset(activity, name, category, purchaseDate, condition,
+                                    warranty, notes, true))
+                    .show();
+            return;
+        }
+        try {
+            JSONObject item = new JSONObject();
+            item.put("name", name);
+            item.put("category", category);
+            item.put("purchase_date", purchaseDate);
+            item.put("condition", condition);
+            item.put("warranty_until", warranty);
+            item.put("notes", notes);
+            item.put("created_at", System.currentTimeMillis());
+            latest.put(item);
+            boolean saved = preferences(activity).edit()
+                    .putString(ASSET_INVENTORY_KEY, latest.toString()).commit();
+            Toast.makeText(activity, saved ? "Inventory item saved on this phone." : "Could not save item.",
+                    Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Item could not be saved.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private static void viewAssets(Activity activity) {

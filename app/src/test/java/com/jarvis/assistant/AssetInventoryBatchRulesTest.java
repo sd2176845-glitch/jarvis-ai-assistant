@@ -65,4 +65,23 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void duplicateAssetWarningMatchesTrimmedNameAndCategoryCaseInsensitively() {
+        assertTrue(AssetInventoryBatchRules.isSameAsset(
+                " Desk Lamp ", "Home", "desk lamp", " home "));
+        assertFalse(AssetInventoryBatchRules.isSameAsset(
+                "Desk Lamp", "Home", "Floor Lamp", "Home"));
+        assertFalse(AssetInventoryBatchRules.isSameAsset(
+                "Desk Lamp", "Home", "Desk Lamp", "Electronics"));
+    }
+
+    @Test
+    public void duplicateAssetRuleDoesNotMatchMissingIdentityFields() {
+        assertFalse(AssetInventoryBatchRules.isSameAsset("", "Home", "Lamp", "Home"));
+        assertFalse(AssetInventoryBatchRules.isSameAsset("Lamp", "", "Lamp", "Home"));
+        assertFalse(AssetInventoryBatchRules.isSameAsset(null, "Home", "Lamp", "Home"));
+    }
+
+
 }

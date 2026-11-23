@@ -32,6 +32,16 @@ public final class AssetInventoryBatchRules {
         return counts;
     }
 
+    /** Same normalized item name and category; used only to warn, never to block intentional copies. */
+    public static boolean isSameAsset(String existingName, String existingCategory,
+                                      String proposedName, String proposedCategory) {
+        String oldName = safe(existingName), newName = safe(proposedName);
+        String oldCategory = safe(existingCategory), newCategory = safe(proposedCategory);
+        return !oldName.isEmpty() && !oldCategory.isEmpty()
+                && oldName.equalsIgnoreCase(newName)
+                && oldCategory.equalsIgnoreCase(newCategory);
+    }
+
     public static boolean isValidEdit(String n,String c,String p,String q,String notes,String w) {
         return PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,notes,w)==null;
     }
