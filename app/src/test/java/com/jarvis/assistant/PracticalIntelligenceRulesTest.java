@@ -126,4 +126,32 @@ public class PracticalIntelligenceRulesTest {
                         "Lamp\\nShelf", "Home", "Good", "2026-12-31"));
     }
 
+
+    @Test
+    public void assetSearchMatchesPurchaseAndWarrantyDateFields() {
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "2024-02-15",
+                "2026-12-31", "2024-02"));
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "2024-02-15",
+                "2026-12-31", "12-31"));
+        assertFalse(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "2024-02-15",
+                "2026-12-31", "2025"));
+    }
+
+    @Test
+    public void assetSearchDateFieldsRemainCaseInsensitiveAndOptional() {
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "", "", " lamp "));
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "", "", ""));
+        assertFalse(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "", "", "", "warranty"));
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Home", "Good", "warm white", "2024-01-01",
+                "2026-12-31", "WARM"));
+    }
+
+
 }

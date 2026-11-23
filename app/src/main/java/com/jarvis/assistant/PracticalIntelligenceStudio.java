@@ -552,7 +552,7 @@ public final class PracticalIntelligenceStudio {
 
     /** Owner-invoked local search over existing inventory records; nothing is uploaded. */
     private static void searchAssets(Activity activity) {
-        EditText query = field(activity, "Search name, category, condition or notes");
+        EditText query = field(activity, "Search name, category, condition, notes, purchase or warranty date");
         new AlertDialog.Builder(activity).setTitle("Search local inventory").setView(query)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Search", (dialog, which) -> {
@@ -566,7 +566,8 @@ public final class PracticalIntelligenceStudio {
                         if (item == null) continue;
                         if (PracticalIntelligenceRules.matchesAssetQuery(
                                 item.optString("name"), item.optString("category"),
-                                item.optString("condition"), item.optString("notes"), q)) {
+                                item.optString("condition"), item.optString("notes"),
+                                item.optString("purchase_date"), item.optString("warranty_until", ""), q)) {
                             indexes.add(i);
                             labels.add(item.optString("name") + " • " + item.optString("category")
                                     + " • " + item.optString("condition"));

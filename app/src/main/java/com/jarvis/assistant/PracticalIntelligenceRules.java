@@ -95,10 +95,18 @@ public final class PracticalIntelligenceRules {
 
     public static boolean matchesAssetQuery(String name, String category, String condition,
                                             String notes, String query) {
+        return matchesAssetQuery(name, category, condition, notes, "", "", query);
+    }
+
+    /** Search existing owner-entered identity, notes and date fields locally. */
+    public static boolean matchesAssetQuery(String name, String category, String condition,
+                                            String notes, String purchaseDate,
+                                            String warrantyUntil, String query) {
         String q = normalizeAssetQuery(query);
         if (q.isEmpty()) return true;
         return contains(name, q) || contains(category, q) || contains(condition, q)
-                || contains(notes, q);
+                || contains(notes, q) || contains(purchaseDate, q)
+                || contains(warrantyUntil, q);
     }
 
     private static boolean contains(String value, String query) {
