@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (8/20; Feature 8 CI pending, Poco device verification pending)
+### Implemented in code (8/20; CI passed, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -845,7 +845,10 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Filtering and sorting do not rewrite stored records. Editing updates the selected existing JSON object in place, preserving `created_at` and any additional metadata.
 - **CI/build:** PASS — GitHub Actions run #960 (`45181577757`) on exact head `569ce99f796cf253d9bbf0ce1ffabb8a7949ac3b`; backend syntax, Android unit tests, `gradle assembleDebug`, and APK artifact upload all succeeded. Artifact `jarvis-debug-apk`, ID `14821886641` (23.2 MB).
 - **Poco M4 Pro 4G:** physical-device verification pending.
-- **Progress:** 8/20 code-present capabilities. The first seven passed CI on their tested app-code head; Feature 8 now awaits its own CI gate. Do not start Feature 9 until Feature 8 unit tests and the combined build pass. Poco M4 Pro 4G verification remains pending.
+- **CI/build:** PASS — GitHub Actions run #964 (`45184002269`) on exact head `962fbbe5ff653cd3c1933cb271f4d8acab191b22`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14821912726`, size 23,243,152 bytes, SHA-256 `75f53e6cd69559deac6619aaf9ed4bb943f0dea15d93b94407ee5779bec0cfcd`.
+- **Failure/retest record:** run #962 first exposed export-whitespace normalization gaps; run #963 confirmed the sanitizer fix and exposed one test expectation casing mismatch. Both were corrected. Run #964 passed all workflow steps.
+- **Progress:** 8/20 code-present capabilities; Feature 8 automated CI gate passed. Feature 9 may start now. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -854,5 +857,5 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Sanitization:** literal CR/LF/tab characters, escaped line-break sequences and field separators are normalized before export. The export is plain text and no file, network upload or background transfer is created by JARVIS.
 - **Tests:** adds unit coverage for actual and escaped line breaks, tabs and field separators using the existing export sanitization helper.
 - **Privacy:** external sharing is user-initiated; the preview explicitly discloses that choosing a share target may send the listed information outside JARVIS. Cancel leaves data on-device.
-- **CI/build:** pending for this feature commit; do not mark passed until Android unit tests and debug APK build both succeed.
+- **CI/build:** PASS — run #964 (`45184002269`) on code head `962fbbe5ff653cd3c1933cb271f4d8acab191b22`; unit tests, debug APK build and artifact upload succeeded.
 - **Poco M4 Pro 4G:** device verification pending.
