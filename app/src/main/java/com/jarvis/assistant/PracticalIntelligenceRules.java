@@ -173,9 +173,10 @@ public final class PracticalIntelligenceRules {
 
     private static String cleanExportField(String value) {
         if (value == null) return "";
-        return value.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
-                .replace("\\n", " ").replace("\\r", " ").replace("\\t", " ")
-                .replace("|", "/").trim();
+        return value.replaceAll("[\\r\\n\\t]+", " ")
+                .replaceAll("\\\\[nrt]", " ")
+                .replace("|", "/")
+                .replaceAll(" {2,}", " ").trim();
     }
 
 }
