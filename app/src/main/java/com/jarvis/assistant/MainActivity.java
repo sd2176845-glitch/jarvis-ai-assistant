@@ -438,6 +438,17 @@ public class MainActivity extends Activity {
                             int reminderId = preferences.getInt("reminder_id_counter", 2000) + 1;
                             if (reminderId <= 0) reminderId = 2001;
                             preferences.edit().putInt("reminder_id_counter", reminderId).apply();
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                android.app.NotificationManager notificationManager =
+                                        (android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                if (notificationManager != null) {
+                                    android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                                            "jarvis_owner_reminders", "JARVIS reminders",
+                                            android.app.NotificationManager.IMPORTANCE_DEFAULT);
+                                    channel.setDescription("Notifications for reminders created inside JARVIS.");
+                                    notificationManager.createNotificationChannel(channel);
+                                }
+                            }
                             android.app.AlarmManager manager = (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
                             if (manager == null) {
                                 status.setText("REMINDER SERVICE UNAVAILABLE");
