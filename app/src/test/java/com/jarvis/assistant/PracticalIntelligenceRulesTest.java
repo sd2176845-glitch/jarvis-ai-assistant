@@ -55,7 +55,7 @@ public class PracticalIntelligenceRulesTest {
         assertEquals("Warranty ending: Laptop",
                 PracticalIntelligenceRules.warrantyReminderTitle("  Laptop  "));
         assertEquals("", PracticalIntelligenceRules.warrantyReminderTitle(""));
-        assertEquals("", PracticalIntelligenceRules.warrantyReminderTitle(new String(new char[61]).replace('\\0', 'x')));
+        assertEquals("", PracticalIntelligenceRules.warrantyReminderTitle(new String(new char[61]).replace((char) 0, 'x')));
     }
 
     @Test public void warrantyStatusUsesInclusiveExpiryDateAndHandlesMissingData() {
