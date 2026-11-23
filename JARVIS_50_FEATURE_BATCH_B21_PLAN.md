@@ -1,6 +1,6 @@
 # JARVIS — 50-Feature Integrated Batch (B21)
 
-**Status:** Scope and acceptance plan only. None of these 50 items is claimed implemented by this document.
+**Status:** Implemented on the B21 branch as 50 capability improvements/extensions. See the implementation ledger and final verification below. The original 50 candidates were audited and adapted where they overlapped existing modules or required unavailable provider credentials.
 **Branch:** `feature/jarvis-50-feature-megabatch`
 **Parent:** `feature/m17-battery-health-snapshot` (B20).
 **Project boundary:** JARVIS only. Even is not part of this work.
@@ -122,7 +122,7 @@ The following are implemented as extensions of existing canonical modules, not s
 - **Voice controls (3 improvements):** en-IN/hi-IN/bn-IN speech input selection, repeat last spoken response, and stop speech output.
 - **Communication flow (2 improvements):** editable message preview before messaging-app handoff; contact disambiguation before explicit call confirmation.
 
-**Current B21 code-present count: 18 capability improvements.** This is not 50/50 completion. Remaining items must pass overlap audit and dependency/provider readiness before implementation. All external communication stays owner-confirmed; no background or covert actions are introduced.
+**Historical checkpoint:** the first implementation pass contained 18 capability improvements. Subsequent ledger entries 19–50 complete the B21 code-present quota. The final branch-head CI and remaining physical-device/provider gates are recorded below.
 
 
 ### Additional B21 ledger entries (19–23)
