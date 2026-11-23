@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (8/20; CI passed, Poco device verification pending)
+### Implemented in code (9/20; Feature 9 CI pending, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -834,6 +834,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 6. **Warranty-expiry sorting** — valid ISO warranty dates earliest first; missing/invalid dates last; display only.
 7. **Warranty countdown in item details** — displays days remaining, expired days or unavailable state using the existing calendar-day rule.
 8. **Owner-approved inventory export** — previews a sanitized text report and opens Android's share chooser only after an explicit Share action; notes, purchase-date labels and internal metadata are excluded.
+9. **Category-wise inventory summary** — displays case-insensitive counts from existing local inventory records; blank legacy categories are grouped as Uncategorized and the stored records are not changed.
 
 ### Files changed
 - Existing `PracticalIntelligenceStudio.java` upgraded in place; no second inventory page or storage key.
@@ -848,7 +849,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** PASS — GitHub Actions run #964 (`45184002269`) on exact head `962fbbe5ff653cd3c1933cb271f4d8acab191b22`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14821912726`, size 23,243,152 bytes, SHA-256 `75f53e6cd69559deac6619aaf9ed4bb943f0dea15d93b94407ee5779bec0cfcd`.
 - **Failure/retest record:** run #962 first exposed export-whitespace normalization gaps; run #963 confirmed the sanitizer fix and exposed one test expectation casing mismatch. Both were corrected. Run #964 passed all workflow steps.
-- **Progress:** 8/20 code-present capabilities; Feature 8 automated CI gate passed. Feature 9 may start now. Poco M4 Pro 4G physical-device verification remains pending.
+- **Progress:** 9/20 code-present capabilities; Feature 8 passed CI. Feature 9 awaits its own unit-test and combined-build gate. Do not start Feature 10 until Feature 9 passes. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -858,4 +859,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Tests:** adds unit coverage for actual and escaped line breaks, tabs and field separators using the existing export sanitization helper.
 - **Privacy:** external sharing is user-initiated; the preview explicitly discloses that choosing a share target may send the listed information outside JARVIS. Cancel leaves data on-device.
 - **CI/build:** PASS — run #964 (`45184002269`) on code head `962fbbe5ff653cd3c1933cb271f4d8acab191b22`; unit tests, debug APK build and artifact upload succeeded.
+- **Poco M4 Pro 4G:** device verification pending.
+
+
+### Feature 9 — implementation and verification record
+- **Canonical owner:** M19 Smart Asset Inventory; uses the existing owner-entered asset array and existing Command Center entry.
+- **Implementation:** owner can open a read-only category summary showing item counts sorted alphabetically. Category matching is case-insensitive and trims surrounding whitespace; blank legacy categories are grouped as Uncategorized.
+- **Data behavior:** calculations run locally, do not persist derived counts, and do not modify inventory records or other modules.
+- **Tests:** covers category aggregation, case/whitespace normalization, null/blank legacy categories, alphabetical ordering, and null/empty input.
+- **Privacy:** no new permission, background activity, network request, or external sharing.
+- **CI/build:** pending for Feature 9 commit. Feature 10 must not start until unit tests and debug APK build pass.
 - **Poco M4 Pro 4G:** device verification pending.

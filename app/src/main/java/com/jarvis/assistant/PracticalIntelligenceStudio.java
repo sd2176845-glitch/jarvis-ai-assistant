@@ -244,7 +244,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Export inventory", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Export inventory", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -254,8 +254,9 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 3) warrantyOverview(activity);
                     else if (which == 4) filterAssets(activity);
                     else if (which == 5) sortAssets(activity);
-                    else if (which == 6) exportAssetInventory(activity);
-                    else if (which == 7) clearAssetInventory(activity);
+                    else if (which == 6) assetCategorySummary(activity);
+                    else if (which == 7) exportAssetInventory(activity);
+                    else if (which == 8) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -530,6 +531,32 @@ public final class PracticalIntelligenceStudio {
                 .setPositiveButton("OK", null).show();
     }
 
+
+    /** Read-only category counts over the existing owner-entered inventory records. */
+    private static void assetCategorySummary(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        List<String> categories = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item != null) categories.add(item.optString("category"));
+        }
+        java.util.Map<String, Integer> counts = AssetInventoryBatchRules.countByCategory(
+                categories.toArray(new String[0]));
+        if (counts.isEmpty()) {
+            new AlertDialog.Builder(activity).setTitle("Inventory by category")
+                    .setMessage("No valid inventory items are saved yet.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+        StringBuilder summary = new StringBuilder("Local item counts by category\n\n");
+        for (java.util.Map.Entry<String, Integer> entry : counts.entrySet()) {
+            summary.append(entry.getKey()).append(": ").append(entry.getValue()).append('\n');
+        }
+        new AlertDialog.Builder(activity).setTitle("Inventory by category")
+                .setMessage(summary.toString())
+                .setPositiveButton("OK", null).show();
+    }
 
     /** Owner-reviewed export from the existing inventory; notes and purchase-date labels are excluded. */
     private static void exportAssetInventory(Activity activity) {

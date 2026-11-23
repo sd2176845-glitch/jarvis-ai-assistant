@@ -1,5 +1,8 @@
 package com.jarvis.assistant;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 /** Pure, deterministic rules for the next M19 inventory capability increment. */
 public final class AssetInventoryBatchRules {
     private AssetInventoryBatchRules() {}
@@ -16,6 +19,19 @@ public final class AssetInventoryBatchRules {
         boolean lv=PracticalIntelligenceRules.isValidIsoDate(left), rv=PracticalIntelligenceRules.isValidIsoDate(right);
         if(lv&&rv)return left.compareTo(right); if(lv)return -1; if(rv)return 1; return 0;
     }
+    /** Case-insensitive read-only category aggregation; blank legacy values are grouped safely. */
+    public static Map<String, Integer> countByCategory(String[] categories) {
+        Map<String, Integer> counts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        if (categories == null) return counts;
+        for (String category : categories) {
+            String label = safe(category);
+            if (label.isEmpty()) label = "Uncategorized";
+            Integer count = counts.get(label);
+            counts.put(label, count == null ? 1 : count + 1);
+        }
+        return counts;
+    }
+
     public static boolean isValidEdit(String n,String c,String p,String q,String notes,String w) {
         return PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,notes,w)==null;
     }

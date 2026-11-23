@@ -46,4 +46,23 @@ public class AssetInventoryBatchRulesTest {
         assertFalse(AssetInventoryBatchRules.isValidEdit("", "Home", "", "Good", "", ""));
         assertFalse(AssetInventoryBatchRules.isValidEdit("Lamp", "Home", "", "Good", "", "2026-02-30"));
     }
+
+    @Test
+    public void categorySummaryCountsCaseInsensitivelyAndHandlesMissingCategories() {
+        java.util.Map<String, Integer> counts = AssetInventoryBatchRules.countByCategory(
+                new String[]{"Home", " Electronics ", "electronics", null, "   "});
+        assertEquals(3, counts.size());
+        assertEquals(Integer.valueOf(2), counts.get("Electronics"));
+        assertEquals(Integer.valueOf(1), counts.get("home"));
+        assertEquals(Integer.valueOf(2), counts.get("Uncategorized"));
+        assertEquals("Electronics", counts.keySet().iterator().next());
+    }
+
+    @Test
+    public void categorySummaryHandlesNullAndEmptyInventory() {
+        assertTrue(AssetInventoryBatchRules.countByCategory(null).isEmpty());
+        assertTrue(AssetInventoryBatchRules.countByCategory(new String[0]).isEmpty());
+    }
+
+
 }
