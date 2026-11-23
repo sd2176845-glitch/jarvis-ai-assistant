@@ -422,7 +422,7 @@ public final class PracticalIntelligenceStudio {
                   item.optString("condition"),condition.getText().toString()))
                 labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("condition"));
             }
-            String result=labels.isEmpty()?"No matching items.":"Matching items • "+labels.size()+"\\n"+android.text.TextUtils.join("\\n",labels);
+            String result=labels.isEmpty()?"No matching items.":"Matching items • "+labels.size()+"\n"+android.text.TextUtils.join("\n",labels);
             new AlertDialog.Builder(activity).setTitle("Filtered inventory").setMessage(result).setPositiveButton("OK",null).show();
           }).show();
     }
@@ -442,7 +442,7 @@ public final class PracticalIntelligenceStudio {
           });
           List<String> labels=new ArrayList<>();
           for(JSONObject item:items)labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("warranty_until","No warranty date"));
-          new AlertDialog.Builder(activity).setTitle(modes[mode]).setMessage(labels.isEmpty()?"No inventory items saved.":android.text.TextUtils.join("\\n",labels))
+          new AlertDialog.Builder(activity).setTitle(modes[mode]).setMessage(labels.isEmpty()?"No inventory items saved.":android.text.TextUtils.join("\n",labels))
             .setPositiveButton("OK",null).show();
         }).setNegativeButton("Close",null).show();
     }
@@ -480,9 +480,9 @@ public final class PracticalIntelligenceStudio {
                                 if (item == null) return;
                                 String warranty = item.optString("warranty_until", "");
                                 String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-                                String details = item.optString("name") + "\\nCategory: " + item.optString("category")
-                                        + "\\nCondition: " + item.optString("condition")
-                                        + "\\nWarranty: " + PracticalIntelligenceRules.warrantyStatus(warranty, today);
+                                String details = item.optString("name") + "\nCategory: " + item.optString("category")
+                                        + "\nCondition: " + item.optString("condition")
+                                        + "\nWarranty: " + PracticalIntelligenceRules.warrantyStatus(warranty, today);
                                 new AlertDialog.Builder(activity).setTitle("Inventory search result")
                                         .setMessage(details).setPositiveButton("OK", null).show();
                             }).setNegativeButton("Close", null).show();
@@ -507,7 +507,7 @@ public final class PracticalIntelligenceStudio {
         String summary = PracticalIntelligenceRules.inventorySummary(
                 records.length(), active, expired, missing);
         new AlertDialog.Builder(activity).setTitle("Warranty overview")
-                .setMessage(summary + "\\n\\nThis is a local summary of owner-entered dates, not a manufacturer's live warranty lookup.")
+                .setMessage(summary + "\n\nThis is a local summary of owner-entered dates, not a manufacturer's live warranty lookup.")
                 .setPositiveButton("OK", null).show();
     }
 
