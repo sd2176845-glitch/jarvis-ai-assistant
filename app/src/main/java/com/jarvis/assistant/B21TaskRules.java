@@ -31,20 +31,11 @@ public final class B21TaskRules {
 
     public static boolean isOverdue(String dueDate, boolean completed, long nowMillis) {
         if (completed || dueDate == null || dueDate.isEmpty() || !isValidDueDate(dueDate)) return false;
-        try {
-            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
-            format.setLenient(false);
-            java.util.Date parsed = format.parse(dueDate);
-            java.util.Calendar due = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC"));
-            due.setTime(parsed);
-            due.set(java.util.Calendar.HOUR_OF_DAY, 23);
-            due.set(java.util.Calendar.MINUTE, 59);
-            due.set(java.util.Calendar.SECOND, 59);
-            due.set(java.util.Calendar.MILLISECOND, 999);
-            return nowMillis > due.getTimeInMillis();
-        } catch (java.text.ParseException e) {
-            return false;
-        }
+        // Due dates are calendar dates entered by the owner, so compare in the
+        // device's local timezone rather than converting midnight through UTC.
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(new java.util.Date(nowMillis));
+        return dueDate.compareTo(today) < 0;
     }
 
     private static boolean oneOf(String value, String... choices) {
