@@ -941,3 +941,14 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - Privacy scope is deliberately narrower than the full blueprint: no serial numbers, registration/identity details, receipt/manual scanning, camera access, cloud sync or automatic collection. No new Android permission.
 - Full Priority 38 scope (warranty/manual attachments, reminder integration, encrypted export/restore and device testing) remains pending; do not mark the overall priority complete.
 - JARVIS only; Even remains untouched.
+
+
+## B25 implementation note — Owner-entered Warranty Tracking (2026-11-23)
+
+- **Code-present; device test pending.** Extended B24 Smart Asset Inventory with an optional warranty end date and an Active/Expired status shown in item details.
+- Uses strict Gregorian `YYYY-MM-DD` validation, including leap-year handling. The expiry date is treated as inclusive; missing/invalid values are not guessed.
+- Existing B24 records without a warranty field remain compatible and show `Not recorded`.
+- Reuses the existing inventory record and app-private preference key. No second inventory, receipt scanning, serial-number collection, background monitoring, cloud upload or new permission.
+- JUnit coverage added for leap years, invalid dates, malformed input, expiry-day inclusivity and missing data.
+- This is a partial Priority 38 increment only. Manual/receipt attachments, reminder integration, encrypted export/restore and physical Poco testing remain pending.
+- JARVIS only; Even remains untouched.
