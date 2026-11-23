@@ -820,4 +820,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added a “Reschedule” action to the existing reminder details view; it uses the same reminder ID, local record, AlarmManager and receiver.
 - Owner selects a new local date/time; past times are rejected. On scheduling failure, JARVIS attempts to restore the previous saved time and alarm.
 - No duplicate reminder manager, scheduler, database, permission, other-app notification access or cloud upload.
-- **Status:** code added on the B26 branch; final-head CI and Poco M4 Pro 4G physical-device testing pending.
+- **Status:** CI PASS on commit `38a68b7408231c89298505a610517b64f14ab7f2`, workflow run #921 (Android unit tests, debug APK build and artifact upload); Poco M4 Pro 4G physical-device testing remains pending.
+
+
+## B26 — Feature 4/50 — Duplicate Reminder Protection
+
+- Prevents creating or rescheduling a JARVIS reminder when another owner-created reminder has the same normalized title (case-insensitive) and exact local trigger time.
+- Reuses the existing ReminderStore; duplicate lookup is read-only and leaves malformed/older records unchanged.
+- Rescheduling excludes the reminder's own ID, so keeping the same reminder details remains allowed.
+- Added pure-Java unit coverage for matching title/time, same-ID exclusion, different time and different title.
+- No new permission, second scheduler, cloud upload, access to other apps' notifications or background collection.
+- **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device testing pending.
