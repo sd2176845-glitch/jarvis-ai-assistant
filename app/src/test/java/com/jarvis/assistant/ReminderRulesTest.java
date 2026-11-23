@@ -38,6 +38,13 @@ public class ReminderRulesTest {
                 11, "Call home", 5000L));
     }
 
+    @Test public void reminderSearchMatchesCaseInsensitivelyAndIgnoresExtraSpaces() {
+        assertTrue(ReminderRules.matchesReminderQuery("  Pay   Electricity Bill ", "electricity"));
+        assertTrue(ReminderRules.matchesReminderQuery("Call Home", "  CALL   "));
+        assertTrue(ReminderRules.matchesReminderQuery("Call Home", ""));
+        assertFalse(ReminderRules.matchesReminderQuery("Call Home", "clinic"));
+    }
+
     @Test public void restoresOnlyFutureReminders() {
         assertTrue(ReminderRules.shouldRestore(2000L, 1000L));
         assertFalse(ReminderRules.shouldRestore(1000L, 1000L));
