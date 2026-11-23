@@ -7,9 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b24-owner-asset-inventory`, stacked on B23 code head `97daee97951ca9b7fc7e52b20990dc48533f1f01`.
-- B24 draft PR #50 targets B23 PR branch `feature/b23-private-notification-intelligence`; it remains open, draft and unmerged.
-- B22 PR #48 and B23 PR #49 remain open draft PRs; neither has been merged.
+- Current continuation branch: `feature/b25-owner-warranty-tracking`, stacked on B24 branch `feature/b24-owner-asset-inventory`.
+- B25 extends the existing M19 Practical Intelligence Studio / B24 inventory; the B25 draft PR will target B24 after final-head CI passes.
+- B24 PR #50 remains open, draft and unmerged. B22 PR #48 and B23 PR #49 remain open draft PRs; none has been merged.
 - `main` has not been changed or merged by this work; the separate Even project remains untouched.
 
 ## Latest implementation batches
