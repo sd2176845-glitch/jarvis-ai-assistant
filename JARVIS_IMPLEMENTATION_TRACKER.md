@@ -711,3 +711,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - PR base is `feature/m17-battery-health-snapshot`; it remains draft, open and unmerged.
 - Poco M4 Pro 4G physical install/functional verification: PENDING.
 - No merge performed. Do not merge without explicit owner approval.
+
+
+### B21 verification reconciliation — latest PR head
+
+- Latest PR head: `6196e48794d0807ce4527a6ca0e95a1a04c7af0e`.
+- Matching branch-head GitHub Actions run: **45058814748 — SUCCESS**.
+- Verified steps: backend JavaScript syntax, Android unit tests, debug APK build, and APK artifact upload.
+- Artifact: `jarvis-debug-apk`, ID `14768496836`, approximately 23.2 MB, not expired at last check.
+- Draft PR #47 head matches the successful run; PR remains open, draft, clean/mergeable, and unmerged.
+- This supersedes the earlier run #45058627982 noted above, whose head SHA was an earlier documentation commit.
+- Remaining release gate: physical install and functional checks on Poco M4 Pro 4G. This cannot be certified from CI and must be done on the actual device.
