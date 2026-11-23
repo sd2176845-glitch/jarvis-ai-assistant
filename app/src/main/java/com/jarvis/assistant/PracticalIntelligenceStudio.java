@@ -15,6 +15,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /** M19 owner-invoked preparedness/legal explainers and local vehicle service log. */
 public final class PracticalIntelligenceStudio {
@@ -261,6 +264,7 @@ public final class PracticalIntelligenceStudio {
         EditText category = field(activity, "Category (e.g. electronics, household, tools)");
         EditText purchaseDate = field(activity, "Purchase date (optional)");
         EditText condition = field(activity, "Condition (e.g. good, needs repair)");
+        EditText warrantyUntil = field(activity, "Warranty end date (optional, YYYY-MM-DD)");
         EditText notes = field(activity, "Optional notes (no sensitive details)");
         notes.setSingleLine(false);
         notes.setMinLines(2);
@@ -272,6 +276,7 @@ public final class PracticalIntelligenceStudio {
         form.addView(category);
         form.addView(purchaseDate);
         form.addView(condition);
+        form.addView(warrantyUntil);
         form.addView(notes);
         ScrollView scroll = new ScrollView(activity);
         scroll.addView(form);
@@ -283,8 +288,9 @@ public final class PracticalIntelligenceStudio {
                     String cat = category.getText().toString().trim();
                     String date = purchaseDate.getText().toString().trim();
                     String cond = condition.getText().toString().trim();
+                    String warranty = warrantyUntil.getText().toString().trim();
                     String note = notes.getText().toString().trim();
-                    String error = PracticalIntelligenceRules.validateAssetEntry(n, cat, date, cond, note);
+                    String error = PracticalIntelligenceRules.validateAssetEntry(n, cat, date, cond, note, warranty);
                     if (error != null) {
                         Toast.makeText(activity, error, Toast.LENGTH_LONG).show();
                         return;
@@ -297,6 +303,7 @@ public final class PracticalIntelligenceStudio {
                         item.put("category", cat);
                         item.put("purchase_date", date);
                         item.put("condition", cond);
+                        item.put("warranty_until", warranty);
                         item.put("notes", note);
                         item.put("created_at", System.currentTimeMillis());
                         latest.put(item);
@@ -329,8 +336,13 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Saved items • tap to inspect")
                 .setItems(choices, (dialog, which) -> {
                     JSONObject selected = records.optJSONObject(which);
+                    String warranty = selected == null ? "" : selected.optString("warranty_until", "");
+                    String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+                    String warrantyState = PracticalIntelligenceRules.warrantyStatus(warranty, today);
                     String details = selected == null ? choices[which]
                             : choices[which] + "\nPurchase date: " + selected.optString("purchase_date")
+                            + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
+                            + "\nWarranty status: " + warrantyState
                             + "\nNotes: " + selected.optString("notes");
                     new AlertDialog.Builder(activity).setTitle("Inventory item")
                             .setMessage(details).setNegativeButton("Close", null)
