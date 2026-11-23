@@ -403,7 +403,8 @@ public final class PracticalIntelligenceStudio {
             String n=name.getText().toString().trim(), c=category.getText().toString().trim();
             String p=purchase.getText().toString().trim(), q=condition.getText().toString().trim();
             String wt=warranty.getText().toString().trim(), nt=notes.getText().toString().trim();
-            String error=AssetInventoryBatchRules.isValidEdit(n,c,p,q,nt,wt) ? null\n                    : PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,nt,wt);
+            String error=AssetInventoryBatchRules.isValidEdit(n,c,p,q,nt,wt) ? null
+                    : PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,nt,wt);
             if(error!=null){Toast.makeText(activity,error,Toast.LENGTH_LONG).show();return;}
             JSONArray latest=readAssetInventory(activity); if(latest==null||index>=latest.length())return;
             JSONObject current=latest.optJSONObject(index); if(current==null)return;
