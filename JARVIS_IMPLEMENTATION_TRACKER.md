@@ -760,6 +760,6 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added a 10-minute Snooze action to each JARVIS reminder notification.
 - Added pure-Java tests for valid/invalid quiet windows, overnight and same-day quiet-hour detection, next allowed time, and ten-minute snooze calculation.
 - **Privacy boundary:** no NotificationListenerService or notification-listener permission; no reading, classification, storage, speech or transmission of notifications from other apps. No new Android permission, backend request or background scraping.
-- **Validation:** branch-head run #883 passed backend syntax validation and Android unit tests; debug APK build/artifact upload were still running at the time this entry was written. Final branch-head CI must pass all steps before marking build-verified.
+- **Validation:** PASS — GitHub Actions run #883 on code head `00eb6b3d5fe7ad1694edaeddbb24c860fe89b91c`: backend syntax validation, Android unit tests, debug APK build and artifact upload. Artifact `jarvis-debug-apk`, ID `14788276206` (23.2 MB). Subsequent commits only reconcile blueprint/tracker documentation; no app code changed after this tested code head.
 - **Poco M4 Pro 4G device verification:** pending — test quiet-hour deferral across midnight, snooze action, notification permission, Doze behavior and reboot recovery.
 - Draft PR #49 is open against B22; no merge performed. JARVIS only; Even remains untouched.
