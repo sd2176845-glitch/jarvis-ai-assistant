@@ -249,7 +249,9 @@ public final class PracticalIntelligenceStudio {
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) addAsset(activity);
                     else if (which == 1) viewAssets(activity);
-                    else clearAssetInventory(activity);
+                    else if (which == 2) searchAssets(activity);
+                    else if (which == 3) warrantyOverview(activity);
+                    else if (which == 4) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -372,7 +374,6 @@ public final class PracticalIntelligenceStudio {
                 }).show();
     }
 
-}
     /** Owner-invoked local search over existing inventory records; nothing is uploaded. */
     private static void searchAssets(Activity activity) {
         EditText query = field(activity, "Search name, category, condition or notes");
@@ -437,4 +438,5 @@ public final class PracticalIntelligenceStudio {
                 .setPositiveButton("OK", null).show();
     }
 
-\n}\n
+
+}
