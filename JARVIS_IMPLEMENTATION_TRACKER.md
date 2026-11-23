@@ -763,3 +763,22 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Validation:** PASS — GitHub Actions run #883 on code head `00eb6b3d5fe7ad1694edaeddbb24c860fe89b91c`: backend syntax validation, Android unit tests, debug APK build and artifact upload. Artifact `jarvis-debug-apk`, ID `14788276206` (23.2 MB). Subsequent commits only reconcile blueprint/tracker documentation; no app code changed after this tested code head.
 - **Poco M4 Pro 4G device verification:** pending — test quiet-hour deferral across midnight, snooze action, notification permission, Doze behavior and reboot recovery.
 - Draft PR #49 is open against B22; no merge performed. JARVIS only; Even remains untouched.
+
+
+## B24 — Smart Asset & Inventory Intelligence MVP (2026-11-23)
+
+- **Code-present:** added to the existing M19 Practical Intelligence Studio; no second hub, no duplicate vehicle log, task store, reminder scheduler or personal timeline.
+- Owner can add an item with nickname, category, optional purchase-date label, condition and optional notes; inspect and remove an individual item; or clear only the inventory.
+- Separate app-private preference key `owner_asset_inventory_v1`; bounded to 100 entries. Existing vehicle records remain under their original key and are not modified.
+- Pure validation rules reject missing/overlong names, categories and condition labels, oversized dates and notes. Added two JUnit tests for valid optional fields and invalid/oversized fields.
+- **Privacy boundary:** no serial numbers, vehicle identifiers, exact home location, passwords, receipts, document/camera scanning, background collection, cloud upload or new Android permission.
+- **Scope limitation:** this is an MVP, not full Priority 38 completion. Warranty/manual attachments, reminder integration, encrypted export/restore and Poco device testing remain pending.
+- **CI:** pending for B24 branch head; record only the final-head GitHub Actions result after Android unit tests, debug APK build and artifact upload complete.
+- **Device verification:** pending on Poco M4 Pro 4G — add/view/remove/clear flows, persistence after restart, 100-item cap, malformed-data handling and confirmation that vehicle log/tasks/reminders are unchanged.
+- Draft PR will be opened against B23 after final-head CI passes. JARVIS only; Even untouched.
+
+## Continuation state reconciliation (2026-11-23)
+
+- Current continuation branch: `feature/b24-owner-asset-inventory`, stacked on B23 code head `97daee97951ca9b7fc7e52b20990dc48533f1f01`.
+- B22 PR #48 and B23 PR #49 remain open draft PRs; neither has been merged. Their respective CI runs #871 and #883 passed, while Poco device checks remain pending.
+- Do not merge B22, B23 or B24 without the owner's explicit approval.
