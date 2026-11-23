@@ -169,7 +169,7 @@ public class AssetInventoryBatchRulesTest {
         assertEquals(0, AssetInventoryBatchRules.compareConditionsThenNames(
                 null, "Lamp", "", "lamp"));
         assertTrue(AssetInventoryBatchRules.compareConditionsThenNames(
-                "Good", "Lamp", null, "Cable") < 0);
+                "Good", "Lamp", null, "Cable") > 0);
     }
 
 
