@@ -243,7 +243,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -251,7 +251,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 1) viewAssets(activity);
                     else if (which == 2) searchAssets(activity);
                     else if (which == 3) warrantyOverview(activity);
-                    else if (which == 4) clearAssetInventory(activity);
+                    else if (which == 4) filterAssets(activity);\n                    else if (which == 5) sortAssets(activity);\n                    else if (which == 6) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -346,9 +346,7 @@ public final class PracticalIntelligenceStudio {
                             + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
                             + "\nWarranty status: " + warrantyState
                             + "\nNotes: " + selected.optString("notes");
-                    new AlertDialog.Builder(activity).setTitle("Inventory item")
-                            .setMessage(details).setNegativeButton("Close", null)
-                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
+                    new AlertDialog.Builder(activity).setTitle("Inventory item")\n                            .setMessage(details).setNegativeButton("Close", null)\n                            .setNeutralButton("Edit", (d, w) -> editAsset(activity, which))\n                            .setPositiveButton("Remove", (d, w) -> removeAsset(activity, which)).show();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -372,6 +370,81 @@ public final class PracticalIntelligenceStudio {
                     Toast.makeText(activity, saved ? "Local asset inventory cleared." : "Could not clear inventory.",
                             Toast.LENGTH_SHORT).show();
                 }).show();
+    }
+
+
+    /** Owner edits one existing record in place; original creation timestamp is preserved. */
+    private static void editAsset(Activity activity, int index) {
+        JSONArray records=readAssetInventory(activity);
+        if(records==null||index<0||index>=records.length())return;
+        JSONObject existing=records.optJSONObject(index); if(existing==null)return;
+        EditText name=field(activity,"Item name"), category=field(activity,"Category");
+        EditText purchase=field(activity,"Purchase date (optional)"), condition=field(activity,"Condition");
+        EditText warranty=field(activity,"Warranty end YYYY-MM-DD (optional)"), notes=field(activity,"Notes (optional)");
+        name.setText(existing.optString("name")); category.setText(existing.optString("category"));
+        purchase.setText(existing.optString("purchase_date")); condition.setText(existing.optString("condition"));
+        warranty.setText(existing.optString("warranty_until")); notes.setText(existing.optString("notes"));
+        LinearLayout form=new LinearLayout(activity); form.setOrientation(LinearLayout.VERTICAL); form.setPadding(24,8,24,8);
+        form.addView(name);form.addView(category);form.addView(purchase);form.addView(condition);form.addView(warranty);form.addView(notes);
+        ScrollView scroll=new ScrollView(activity);scroll.addView(form);
+        new AlertDialog.Builder(activity).setTitle("Edit inventory item").setView(scroll)
+          .setNegativeButton("Cancel",null).setPositiveButton("Save changes",(d,w)->{
+            String n=name.getText().toString().trim(), c=category.getText().toString().trim();
+            String p=purchase.getText().toString().trim(), q=condition.getText().toString().trim();
+            String wt=warranty.getText().toString().trim(), nt=notes.getText().toString().trim();
+            String error=PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,nt,wt);
+            if(error!=null){Toast.makeText(activity,error,Toast.LENGTH_LONG).show();return;}
+            JSONArray latest=readAssetInventory(activity); if(latest==null||index>=latest.length())return;
+            JSONObject current=latest.optJSONObject(index); if(current==null)return;
+            try {
+              JSONObject updated=new JSONObject(); updated.put("name",n);updated.put("category",c);
+              updated.put("purchase_date",p);updated.put("condition",q);updated.put("warranty_until",wt);
+              updated.put("notes",nt);updated.put("created_at",current.optLong("created_at",0L));
+              latest.put(index,updated);
+              boolean saved=preferences(activity).edit().putString(ASSET_INVENTORY_KEY,latest.toString()).commit();
+              Toast.makeText(activity,saved?"Inventory item updated.":"Could not update item.",Toast.LENGTH_SHORT).show();
+            } catch(Exception e){Toast.makeText(activity,"Item could not be updated.",Toast.LENGTH_SHORT).show();}
+          }).show();
+    }
+
+    /** Read-only combined category and condition filter. */
+    private static void filterAssets(Activity activity) {
+        EditText category=field(activity,"Category filter (blank = all)");
+        EditText condition=field(activity,"Condition filter (blank = all)");
+        LinearLayout form=new LinearLayout(activity);form.setOrientation(LinearLayout.VERTICAL);
+        form.addView(category);form.addView(condition);
+        new AlertDialog.Builder(activity).setTitle("Filter inventory").setView(form)
+          .setNegativeButton("Cancel",null).setPositiveButton("Apply",(d,w)->{
+            JSONArray records=readAssetInventory(activity);if(records==null)return;
+            List<String> labels=new ArrayList<>();
+            for(int i=0;i<records.length();i++){JSONObject item=records.optJSONObject(i);
+              if(item!=null&&AssetInventoryBatchRules.matchesFilters(item.optString("category"),category.getText().toString(),
+                  item.optString("condition"),condition.getText().toString()))
+                labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("condition"));
+            }
+            String result=labels.isEmpty()?"No matching items.":"Matching items • "+labels.size()+"\\n"+android.text.TextUtils.join("\\n",labels);
+            new AlertDialog.Builder(activity).setTitle("Filtered inventory").setMessage(result).setPositiveButton("OK",null).show();
+          }).show();
+    }
+
+    /** Sorts the displayed copy only; stored inventory order is unchanged. */
+    private static void sortAssets(Activity activity) {
+        String[] modes={"Name A–Z","Category then name","Warranty expiry (soonest first)"};
+        new AlertDialog.Builder(activity).setTitle("Sort inventory").setItems(modes,(d,mode)->{
+          JSONArray records=readAssetInventory(activity);if(records==null)return;
+          List<JSONObject> items=new ArrayList<>();
+          for(int i=0;i<records.length();i++){JSONObject item=records.optJSONObject(i);if(item!=null)items.add(item);}
+          java.util.Collections.sort(items,(left,right)->{
+            if(mode==0)return AssetInventoryBatchRules.compareNames(left.optString("name"),right.optString("name"));
+            if(mode==1)return AssetInventoryBatchRules.compareCategoriesThenNames(left.optString("category"),left.optString("name"),
+                right.optString("category"),right.optString("name"));
+            return AssetInventoryBatchRules.compareWarrantyDates(left.optString("warranty_until"),right.optString("warranty_until"));
+          });
+          List<String> labels=new ArrayList<>();
+          for(JSONObject item:items)labels.add(item.optString("name")+" • "+item.optString("category")+" • "+item.optString("warranty_until","No warranty date"));
+          new AlertDialog.Builder(activity).setTitle(modes[mode]).setMessage(labels.isEmpty()?"No inventory items saved.":android.text.TextUtils.join("\\n",labels))
+            .setPositiveButton("OK",null).show();
+        }).setNegativeButton("Close",null).show();
     }
 
     /** Owner-invoked local search over existing inventory records; nothing is uploaded. */
