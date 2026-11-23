@@ -59,4 +59,53 @@ public class PracticalIntelligenceRulesTest {
         assertEquals("Date unavailable", PracticalIntelligenceRules.warrantyStatus("bad-date", "2026-11-23"));
     }
 
-}
+
+    @Test public void inventorySearchIsCaseInsensitiveAndLocalRuleHandlesEmptyQuery() {
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Household", "Good", "Warm white", " LAMP "));
+        assertTrue(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Household", "Good", "", ""));
+        assertFalse(PracticalIntelligenceRules.matchesAssetQuery(
+                "Desk Lamp", "Household", "Good", "", "camera"));
+    }
+
+    @Test public void inventoryCategoryAndConditionFiltersAreOptionalAndCaseInsensitive() {
+        assertTrue(PracticalIntelligenceRules.matchesAssetCategory("Electronics", " electronics "));
+        assertFalse(PracticalIntelligenceRules.matchesAssetCategory("Household", "Electronics"));
+        assertTrue(PracticalIntelligenceRules.matchesAssetCategory("Household", ""));
+        assertTrue(PracticalIntelligenceRules.matchesAssetCondition("Needs Repair", "needs repair"));
+        assertFalse(PracticalIntelligenceRules.matchesAssetCondition("Good", "Needs Repair"));
+    }
+
+    @Test public void warrantyCountdownAndExpiringWindowAreCalendarBased() {
+        assertEquals(0L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-23", "2026-11-23"));
+        assertEquals(7L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-30", "2026-11-23"));
+        assertEquals(-1L, PracticalIntelligenceRules.warrantyDaysRemaining("2026-11-22", "2026-11-23"));
+        assertTrue(PracticalIntelligenceRules.isWarrantyExpiringWithin("2026-11-30", "2026-11-23", 7));
+        assertFalse(PracticalIntelligenceRules.isWarrantyExpiringWithin("2026-12-01", "2026-11-23", 7));
+        assertFalse(PracticalIntelligenceRules.isWarrantyExpiringWithin("bad", "2026-11-23", 30));
+    }
+
+    @Test public void warrantyCountsIgnoreInvalidTodayAndCountKnownStatuses() {
+        assertEquals(2, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
+                new String[]{"2026-12-01", "2026-11-01", "", "bad"}, "2026-11-23", "Active"));
+        assertEquals(1, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
+                new String[]{"2026-12-01", "2026-11-01", "", "bad"}, "2026-11-23", "Expired"));
+        assertEquals(0, PracticalIntelligenceRules.countAssetsWithWarrantyStatus(
+                new String[]{"2026-12-01"}, "bad", "Active"));
+    }
+
+    @Test public void inventorySummaryRejectsImpossibleCounts() {
+        assertTrue(PracticalIntelligenceRules.inventorySummary(5, 2, 1, 2).contains("Total: 5"));
+        assertEquals("Inventory summary unavailable",
+                PracticalIntelligenceRules.inventorySummary(2, 2, 1, 0));
+        assertEquals("Inventory summary unavailable",
+                PracticalIntelligenceRules.inventorySummary(-1, 0, 0, 0));
+    }
+
+    @Test public void assetExportSanitizesLineBreaksAndSeparators() {
+        assertEquals("Lamp / spare | Home | Good | 2026-12-31",
+                PracticalIntelligenceRules.safeAssetExportLine("Lamp | spare\\n", "Home",
+                        "Good", "2026-12-31"));
+    }
+\n}\n
