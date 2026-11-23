@@ -733,3 +733,20 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Not claimed implemented in B21:** full encrypted Secure Evidence Vault, covert/background evidence collection (not supported), full native live-data integrations that still require provider integration, and unconfigured account connectors.
 - Latest final CI: run `45058814748`, exact head `6196e48794d0807ce4527a6ca0e95a1a04c7af0e`; backend syntax, unit tests, debug APK build and artifact upload all passed.
 - PR #47 remains draft/open/unmerged. The next valid gate is owner-led physical device verification and Firebase setup where desired; do not mark either complete from CI alone.
+
+
+## B22 — Owner-controlled reminder scheduler (2026-11-23)
+
+- **Code-present:** extended the existing Tasks & Reminders hub; no duplicate task manager or task store.
+- Owners can create one-time reminders with a normalized title (maximum 100 characters) and a future local date/time.
+- Reminder records are stored in app-private preferences and scheduled through Android AlarmManager using inexact, Doze-sensitive delivery.
+- A non-exported local receiver posts a JARVIS reminder notification with a tap-to-open action.
+- A boot/package-replacement receiver restores only future owner-created reminders; expired or invalid records are discarded.
+- Notification channel creation occurs while the app is open so Android 13 notification-permission behavior can be presented at the appropriate time. Notification delivery still depends on the owner's Android notification settings.
+- Four pure-Java unit tests cover title normalization, empty/overlong title rejection, future-time validation and future-only restoration.
+- **CI:** run #870 passed on the immediately preceding branch head `4611a4cf963bfcf6f4b1581c7b93f662e941fc72`, including backend syntax validation, Android unit tests, debug APK build and artifact upload. Follow-up channel-initialization commit `bb8f97b37e6e4914d1ea2b4e5edc12b2ebd09281` requires its own final-head CI result before this batch is marked fully build-verified.
+- An intermediate run #866 failed because it checked an earlier commit snapshot before `ReminderReceiver.java` had been added; later complete snapshots passed. The final-head result is authoritative.
+- **Poco M4 Pro 4G physical-device testing:** pending — test notification permission, scheduled delivery, tap-to-open, Doze delay, reboot recovery and app-update recovery.
+- **Privacy boundary:** no NotificationListenerService was added; no other-app notification content, SMS content, contacts or background message scraping is read or stored.
+- Draft PR #48 is open against the B21 feature branch and remains unmerged. Do not merge without explicit owner approval.
+- JARVIS only; the separate Even project remains untouched.
