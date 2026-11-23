@@ -84,4 +84,23 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void conditionSummaryCountsCaseInsensitivelyAndHandlesMissingConditions() {
+        java.util.Map<String, Integer> counts = AssetInventoryBatchRules.countByCondition(
+                new String[]{"Good", " Needs Repair ", "needs repair", null, "   "});
+        assertEquals(3, counts.size());
+        assertEquals(Integer.valueOf(2), counts.get("Needs Repair"));
+        assertEquals(Integer.valueOf(1), counts.get("good"));
+        assertEquals(Integer.valueOf(2), counts.get("Unspecified"));
+        assertEquals("Good", counts.keySet().iterator().next());
+    }
+
+    @Test
+    public void conditionSummaryHandlesNullAndEmptyInventory() {
+        assertTrue(AssetInventoryBatchRules.countByCondition(null).isEmpty());
+        assertTrue(AssetInventoryBatchRules.countByCondition(new String[0]).isEmpty());
+    }
+
+
 }

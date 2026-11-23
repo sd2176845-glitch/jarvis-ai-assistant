@@ -244,7 +244,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Export inventory", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Export inventory", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -255,8 +255,9 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 4) filterAssets(activity);
                     else if (which == 5) sortAssets(activity);
                     else if (which == 6) assetCategorySummary(activity);
-                    else if (which == 7) exportAssetInventory(activity);
-                    else if (which == 8) clearAssetInventory(activity);
+                    else if (which == 7) assetConditionSummary(activity);
+                    else if (which == 8) exportAssetInventory(activity);
+                    else if (which == 9) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -585,6 +586,32 @@ public final class PracticalIntelligenceStudio {
             summary.append(entry.getKey()).append(": ").append(entry.getValue()).append('\n');
         }
         new AlertDialog.Builder(activity).setTitle("Inventory by category")
+                .setMessage(summary.toString())
+                .setPositiveButton("OK", null).show();
+    }
+
+    /** Read-only condition counts over the existing owner-entered inventory records. */
+    private static void assetConditionSummary(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        List<String> conditions = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item != null) conditions.add(item.optString("condition"));
+        }
+        java.util.Map<String, Integer> counts = AssetInventoryBatchRules.countByCondition(
+                conditions.toArray(new String[0]));
+        if (counts.isEmpty()) {
+            new AlertDialog.Builder(activity).setTitle("Inventory by condition")
+                    .setMessage("No valid inventory items are saved yet.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+        StringBuilder summary = new StringBuilder("Local item counts by condition\n\n");
+        for (java.util.Map.Entry<String, Integer> entry : counts.entrySet()) {
+            summary.append(entry.getKey()).append(": ").append(entry.getValue()).append('\n');
+        }
+        new AlertDialog.Builder(activity).setTitle("Inventory by condition")
                 .setMessage(summary.toString())
                 .setPositiveButton("OK", null).show();
     }
