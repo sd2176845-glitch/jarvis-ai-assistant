@@ -15,6 +15,11 @@ public class SmartNotificationRulesTest {
         return c.getTimeInMillis();
     }
 
+    @Test public void snoozeAddsTenMinutes() {
+        long now = 123456789L;
+        assertEquals(now + 10L * 60L * 1000L, SmartNotificationRules.snoozeUntil(now));
+    }
+
     @Test public void validatesQuietHourWindow() {
         assertTrue(SmartNotificationRules.isValidWindow(22 * 60, 7 * 60));
         assertFalse(SmartNotificationRules.isValidWindow(480, 480));
