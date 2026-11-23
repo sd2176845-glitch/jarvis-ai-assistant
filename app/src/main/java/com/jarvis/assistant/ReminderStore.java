@@ -119,9 +119,8 @@ public final class ReminderStore {
             android.app.NotificationManager notifications = (android.app.NotificationManager)
                     context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (notifications != null) notifications.cancel(id);
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .edit().remove(String.valueOf(id)).commit();
-            return true;
         } catch (Exception e) {
             return false;
         }
