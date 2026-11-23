@@ -819,3 +819,28 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Compatibility review:** warranty countdown uses UTC GregorianCalendar rather than java.time so the helper remains compatible with the app's minSdk 23 declaration.
 - **Draft PR:** #53, stacked on `feature/b25-owner-warranty-tracking`; open and unmerged. Latest code commit: `26fc303cbe3cf03ccc349759deb9829cf8f41428`.
 - **CI state:** no workflow run/status was returned for the latest head at the time of this update; build/test status is therefore unverified, not passed.
+
+
+## B26 Next 20 — M19 Smart Asset Inventory extension (in progress; 2026-11-23)
+
+**Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
+
+### Implemented in code (6/20 capability count; verification pending)
+1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
+2. **Category filtering** — owner-entered category filter; local/read-only.
+3. **Condition filtering** — owner-entered condition filter; local/read-only.
+4. **Alphabetical sorting** — case-insensitive name order for display only.
+5. **Category/name sorting** — category order with item name as tie-breaker; display only.
+6. **Warranty-expiry sorting** — valid ISO warranty dates earliest first; missing/invalid dates last; display only.
+
+### Files changed
+- Existing `PracticalIntelligenceStudio.java` upgraded in place; no second inventory page or storage key.
+- Added `AssetInventoryBatchRules.java` for deterministic pure rules.
+- Added `AssetInventoryBatchRulesTest.java` with focused JUnit tests for filter combinations, case-insensitive sorting, tie-breakers, warranty-date ordering and edit validation.
+
+### Safety and validation
+- All operations are owner-invoked and local; no new Android permissions, background collection, external uploads or changes to tasks/reminders/vehicle logs.
+- Filtering and sorting do not rewrite stored records. Editing changes only the selected existing record after validation.
+- **CI/build:** pending; no test or APK build pass is claimed yet.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+- **Progress:** 6/20 code-present capabilities in this next batch; this batch is not complete. Continue only after reviewing this branch's diff and running CI.
