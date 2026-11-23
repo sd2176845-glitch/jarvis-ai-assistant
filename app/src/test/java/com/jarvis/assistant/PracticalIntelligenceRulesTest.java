@@ -121,7 +121,7 @@ public class PracticalIntelligenceRulesTest {
 
     @Test
     public void assetExportSanitizesEscapedLineBreakSequences() {
-        assertEquals("Lamp shelf | Home | Good | 2026-12-31",
+        assertEquals("Lamp Shelf | Home | Good | 2026-12-31",
                 PracticalIntelligenceRules.safeAssetExportLine(
                         "Lamp\\nShelf", "Home", "Good", "2026-12-31"));
     }
