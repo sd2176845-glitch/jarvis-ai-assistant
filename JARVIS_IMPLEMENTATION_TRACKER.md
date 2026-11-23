@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (14/20; Feature 14 CI pending, Poco device verification pending)
+### Implemented in code (14/20; CI passed, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -864,7 +864,10 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **APK artifact:** `jarvis-debug-apk`, ID `14824286479`, size 23,251,197 bytes, SHA-256 `a6d9d4c3db2a65d4e192fb610ade29194a54068c6cd0c251546c90c23d728508`.
 - **CI/build:** PASS — GitHub Actions run #974 (`45187390922`) on exact head `4d85b4da1a36861b2d34ff9e9629996cb069fbce`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14824232261`, size 23,251,489 bytes, SHA-256 `da1b477dc57f63baf42846ef6ec163353faee1f39c00e9bd2da497d322c93570`.
-- **Progress:** 14/20 code-present capabilities; Features 8–13 passed CI. Feature 14 awaits its own unit-test and combined-build gate. Do not start Feature 15 until Feature 14 passes. Poco M4 Pro 4G physical-device verification remains pending.
+- **CI/build:** PASS — GitHub Actions run #977 (`45188308932`) on exact head `162d2ccac581f69ea311ace7ada16299640e0131`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14824248150`, size 23,252,221 bytes, SHA-256 `e92fc7722d013d069b727057f085b42f6454fc945d80bc832efff14a616ed053`.
+- **Failure/retest record:** run #976 exposed one incorrect blank-condition sort test expectation. The comparator's blank-label ordering was retained and the expectation corrected. Run #977 passed the full workflow.
+- **Progress:** 14/20 code-present capabilities; Features 8–14 automated CI gates passed. Feature 15 may start now. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -933,5 +936,5 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Data behavior:** sorts only an in-memory display copy; stored array order and records are unchanged.
 - **Tests:** covers condition ordering, case-insensitive comparisons, name tie-breakers, whitespace normalization and blank legacy conditions.
 - **Privacy:** no new permission, background activity, network request or external transfer.
-- **CI/build:** pending for Feature 14 commit. Feature 15 must not start until Android unit tests and debug APK build pass.
+- **CI/build:** PASS — run #977 (`45188308932`) on exact tested head `162d2ccac581f69ea311ace7ada16299640e0131`; unit tests, debug APK build and artifact upload passed.
 - **Poco M4 Pro 4G:** device verification pending.
