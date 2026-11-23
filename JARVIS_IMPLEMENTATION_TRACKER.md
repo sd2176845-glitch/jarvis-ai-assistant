@@ -599,7 +599,7 @@
 
 - **Branch:** `feature/jarvis-50-feature-megabatch`, created from B20 branch `feature/m17-battery-health-snapshot`.
 - **Scope:** one coordinated batch with 50 candidate capabilities across the canonical M01–M19 owners. Full scope and acceptance gates are in `JARVIS_50_FEATURE_BATCH_B21_PLAN.md`.
-- **Status:** planning/scope lock only at this commit. No B21 Android or backend feature is claimed implemented, built, tested, or verified yet.
+- **Historical status at initial scope-lock commit:** planning only. Superseded by the implementation and verification entries later in this tracker.
 - **Anti-duplication:** candidates must be audited against the existing B20 studios and stores before coding; overlapping items will upgrade the existing owner module rather than create duplicate engines, screens, schedulers, or databases.
 - **Delivery:** one draft PR for the integrated batch after implementation and automated validation. No merge into B20 or main without owner approval.
 - **Device verification:** target Poco M4 Pro 4G remains required for device-dependent capabilities.
@@ -722,3 +722,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Draft PR #47 head matches the successful run; PR remains open, draft, clean/mergeable, and unmerged.
 - This supersedes the earlier run #45058627982 noted above, whose head SHA was an earlier documentation commit.
 - Remaining release gate: physical install and functional checks on Poco M4 Pro 4G. This cannot be certified from CI and must be done on the actual device.
+
+
+### B21 final scope clarification and remaining master-backlog work
+
+- B21's **50/50 code-present capability-improvement quota** is complete on branch head `6196e48794d0807ce4527a6ca0e95a1a04c7af0e`; it is not a claim that every unchecked item in the full Master Blueprint is complete.
+- The Master Blueprint still contains a broad backlog. Its unchecked boxes include capabilities that overlap existing modules, provider-dependent integrations, and device-only acceptance checks; the raw checkbox count is not a unique-feature count.
+- **Not implemented because owner setup is required:** Firebase Google/phone OTP sign-in and provider-backed owner profile/session. See `OWNER_AUTH_SETUP.md`; the repository owner must configure Firebase and supply local-only Android configuration. No credentials or config files should be committed.
+- **Not physically verified:** Poco M4 Pro 4G install, background wake-word/screen-off behavior, MIUI battery-policy behavior, microphone/TTS language availability, OCR behavior, accessibility/media integrations, and app-specific launch/handoff behavior.
+- **Not claimed implemented in B21:** full encrypted Secure Evidence Vault, covert/background evidence collection (not supported), full native live-data integrations that still require provider integration, and unconfigured account connectors.
+- Latest final CI: run `45058814748`, exact head `6196e48794d0807ce4527a6ca0e95a1a04c7af0e`; backend syntax, unit tests, debug APK build and artifact upload all passed.
+- PR #47 remains draft/open/unmerged. The next valid gate is owner-led physical device verification and Firebase setup where desired; do not mark either complete from CI alone.
