@@ -87,4 +87,77 @@ public final class PracticalIntelligenceRules {
         return date.compareTo(todayIsoDate) >= 0 ? "Active" : "Expired";
     }
 
-}
+
+    /** B26: normalized local inventory search; query is never sent off-device. */
+    public static String normalizeAssetQuery(String query) {
+        return query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    public static boolean matchesAssetQuery(String name, String category, String condition,
+                                            String notes, String query) {
+        String q = normalizeAssetQuery(query);
+        if (q.isEmpty()) return true;
+        return contains(name, q) || contains(category, q) || contains(condition, q)
+                || contains(notes, q);
+    }
+
+    private static boolean contains(String value, String query) {
+        return value != null && value.toLowerCase(java.util.Locale.ROOT).contains(query);
+    }
+
+    /** Empty category means no category filter. */
+    public static boolean matchesAssetCategory(String category, String selectedCategory) {
+        String selected = normalizeAssetQuery(selectedCategory);
+        return selected.isEmpty() || normalizeAssetQuery(category).equals(selected);
+    }
+
+    /** Empty condition means no condition filter. */
+    public static boolean matchesAssetCondition(String condition, String selectedCondition) {
+        String selected = normalizeAssetQuery(selectedCondition);
+        return selected.isEmpty() || normalizeAssetQuery(condition).equals(selected);
+    }
+
+    public static int countAssetsWithWarrantyStatus(String[] warrantyDates, String today,
+                                                    String requestedStatus) {
+        if (warrantyDates == null || !isValidIsoDate(today)) return 0;
+        int count = 0;
+        for (String date : warrantyDates) {
+            if (warrantyStatus(date, today).equals(requestedStatus)) count++;
+        }
+        return count;
+    }
+
+    /** Days until expiry; negative means expired, zero means expires today, -1 means unavailable. */
+    public static long warrantyDaysRemaining(String warrantyUntil, String todayIsoDate) {
+        if (!isValidIsoDate(warrantyUntil) || !isValidIsoDate(todayIsoDate)) return -1L;
+        java.time.LocalDate expiry = java.time.LocalDate.parse(warrantyUntil);
+        java.time.LocalDate today = java.time.LocalDate.parse(todayIsoDate);
+        return java.time.temporal.ChronoUnit.DAYS.between(today, expiry);
+    }
+
+    public static boolean isWarrantyExpiringWithin(String warrantyUntil, String todayIsoDate,
+                                                    int days) {
+        if (days < 0) return false;
+        long remaining = warrantyDaysRemaining(warrantyUntil, todayIsoDate);
+        return remaining >= 0 && remaining <= days;
+    }
+
+    public static String inventorySummary(int total, int active, int expired, int notRecorded) {
+        if (total < 0 || active < 0 || expired < 0 || notRecorded < 0
+                || active + expired + notRecorded > total) return "Inventory summary unavailable";
+        return "Total: " + total + " • Active warranty: " + active
+                + " • Expired: " + expired + " • Not recorded: " + notRecorded;
+    }
+
+    public static String safeAssetExportLine(String name, String category, String condition,
+                                             String warrantyUntil) {
+        return cleanExportField(name) + " | " + cleanExportField(category) + " | "
+                + cleanExportField(condition) + " | " + cleanExportField(warrantyUntil);
+    }
+
+    private static String cleanExportField(String value) {
+        if (value == null) return "";
+        return value.replace("\\n", " ").replace("\\r", " ")
+                .replace("|", "/").trim();
+    }
+\n}\n
