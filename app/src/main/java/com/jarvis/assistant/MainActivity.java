@@ -388,9 +388,9 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String summary = structured;
         if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
-        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "New calendar event"};
+        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\n\nJARVIS reminders are stored locally and delivered as Android notifications. Delivery may be delayed by battery settings.")
+                .setMessage(summary + "\n\nJARVIS reminders are stored locally. Quiet hours and snooze apply only to reminders created inside JARVIS.")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) showStructuredTaskManager();
                     else if (which == 1) showCreateReminderDialog();
@@ -400,7 +400,8 @@ public class MainActivity extends Activity {
                             alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
                             startActivity(alarm);
                         } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                    } else showCalendarEventDraftDialog();
+                    } else if (which == 3) showNotificationPreferencesDialog();
+                    else showCalendarEventDraftDialog();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -479,6 +480,49 @@ public class MainActivity extends Activity {
                             chosen.get(java.util.Calendar.MONTH),
                             chosen.get(java.util.Calendar.DAY_OF_MONTH)).show();
                 }).show();
+    }
+
+
+    private void showNotificationPreferencesDialog() {
+        if (blockPrivateInGuestMode()) return;
+        android.content.SharedPreferences settings = getSharedPreferences(
+                "jarvis_notification_intelligence", MODE_PRIVATE);
+        boolean enabled = settings.getBoolean("quiet_hours_enabled", false);
+        String[] actions = enabled
+                ? new String[]{"Change quiet hours", "Turn quiet hours off", "Close"}
+                : new String[]{"Set quiet hours", "Close"};
+        new AlertDialog.Builder(this).setTitle("JARVIS • Notification settings")
+                .setMessage(enabled
+                        ? "Quiet hours are enabled for JARVIS reminders only. Reminders due during this window are deferred until it ends."
+                        : "Set a quiet window for JARVIS-created reminders. Other apps' notifications are not read or changed.")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) showQuietHoursTimePickers(settings);
+                    else if (enabled && which == 1) {
+                        settings.edit().putBoolean("quiet_hours_enabled", false).apply();
+                        status.setText("JARVIS QUIET HOURS DISABLED");
+                    }
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showQuietHoursTimePickers(android.content.SharedPreferences settings) {
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        int savedStart = settings.getInt("quiet_start_minute", 22 * 60);
+        int savedEnd = settings.getInt("quiet_end_minute", 7 * 60);
+        new android.app.TimePickerDialog(this, (startView, startHour, startMinute) -> {
+            int start = startHour * 60 + startMinute;
+            new android.app.TimePickerDialog(this, (endView, endHour, endMinute) -> {
+                int end = endHour * 60 + endMinute;
+                if (!SmartNotificationRules.isValidWindow(start, end)) {
+                    status.setText("QUIET HOURS START AND END MUST DIFFER");
+                    return;
+                }
+                settings.edit().putInt("quiet_start_minute", start)
+                        .putInt("quiet_end_minute", end)
+                        .putBoolean("quiet_hours_enabled", true).apply();
+                status.setText("JARVIS QUIET HOURS SAVED");
+                speak("Quiet hours saved for JARVIS reminders.");
+            }, savedEnd / 60, savedEnd % 60, false).show();
+        }, savedStart / 60, savedStart % 60, false).show();
     }
 
     private org.json.JSONArray readStructuredTasks() {
