@@ -825,7 +825,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 **Branch:** `feature/b26-next-20-inventory`, created from the current PR #53 head `9a5af18ddeb3f8507aea1500305072e15da86928`. This is a draft continuation branch; no merge to PR #53, its base, or `main` is authorized. Even remains untouched.
 
-### Implemented in code (7/20 capability count; verification pending)
+### Implemented in code (7/20; CI passed, Poco device verification pending)
 1. **Owner edit of an existing inventory record** — reuses the existing app-private inventory array; validates all edited fields and preserves the original `created_at` value.
 2. **Category filtering** — owner-entered category filter; local/read-only.
 3. **Condition filtering** — owner-entered condition filter; local/read-only.
@@ -841,7 +841,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 ### Safety and validation
 - All operations are owner-invoked and local; no new Android permissions, background collection, external uploads or changes to tasks/reminders/vehicle logs.
-- Filtering and sorting do not rewrite stored records. Editing changes only the selected existing record after validation.
-- **CI/build:** pending; no test or APK build pass is claimed yet.
+- Filtering and sorting do not rewrite stored records. Editing updates the selected existing JSON object in place, preserving `created_at` and any additional metadata.
+- **CI/build:** PASS — GitHub Actions run #960 (`45181577757`) on exact head `569ce99f796cf253d9bbf0ce1ffabb8a7949ac3b`; backend syntax, Android unit tests, `gradle assembleDebug`, and APK artifact upload all succeeded. Artifact `jarvis-debug-apk`, ID `14821886641` (23.2 MB).
 - **Poco M4 Pro 4G:** physical-device verification pending.
-- **Progress:** 7/20 code-present capabilities in this next batch; this batch is not complete. Continue only after reviewing this branch's diff and running CI.
+- **Progress:** 7/20 code-present capabilities; the CI gate passed. The batch is not complete. Next gate is physical verification on Poco M4 Pro 4G before adding further features.
