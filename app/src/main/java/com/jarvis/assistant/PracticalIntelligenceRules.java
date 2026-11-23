@@ -130,9 +130,25 @@ public final class PracticalIntelligenceRules {
     /** Days until expiry; negative means expired, zero means expires today, -1 means unavailable. */
     public static long warrantyDaysRemaining(String warrantyUntil, String todayIsoDate) {
         if (!isValidIsoDate(warrantyUntil) || !isValidIsoDate(todayIsoDate)) return -1L;
-        java.time.LocalDate expiry = java.time.LocalDate.parse(warrantyUntil);
-        java.time.LocalDate today = java.time.LocalDate.parse(todayIsoDate);
-        return java.time.temporal.ChronoUnit.DAYS.between(today, expiry);
+        java.util.TimeZone utc = java.util.TimeZone.getTimeZone("UTC");
+        java.util.GregorianCalendar expiry = new java.util.GregorianCalendar(utc, java.util.Locale.ROOT);
+        java.util.GregorianCalendar today = new java.util.GregorianCalendar(utc, java.util.Locale.ROOT);
+        expiry.clear();
+        today.clear();
+        expiry.setLenient(false);
+        today.setLenient(false);
+        try {
+            expiry.set(Integer.parseInt(warrantyUntil.substring(0, 4)),
+                    Integer.parseInt(warrantyUntil.substring(5, 7)) - 1,
+                    Integer.parseInt(warrantyUntil.substring(8, 10)));
+            today.set(Integer.parseInt(todayIsoDate.substring(0, 4)),
+                    Integer.parseInt(todayIsoDate.substring(5, 7)) - 1,
+                    Integer.parseInt(todayIsoDate.substring(8, 10)));
+            long dayMillis = 24L * 60L * 60L * 1000L;
+            return (expiry.getTimeInMillis() - today.getTimeInMillis()) / dayMillis;
+        } catch (IllegalArgumentException e) {
+            return -1L;
+        }
     }
 
     public static boolean isWarrantyExpiringWithin(String warrantyUntil, String todayIsoDate,
