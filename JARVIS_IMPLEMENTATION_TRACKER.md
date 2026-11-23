@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b25-owner-warranty-tracking`, stacked on B24 branch `feature/b24-owner-asset-inventory`.
+- Current continuation branch: `feature/b26-50-feature-batch-1`, stacked on B25 branch `feature/b25-owner-warranty-tracking`.
 - B25 extends the existing M19 Practical Intelligence Studio / B24 inventory; the B25 draft PR will target B24 after final-head CI passes.
 - B24 PR #50 remains open, draft and unmerged. B22 PR #48 and B23 PR #49 remain open draft PRs; none has been merged.
 - `main` has not been changed or merged by this work; the separate Even project remains untouched.
@@ -31,7 +31,7 @@
 1. Read this tracker and `JARVIS_MASTER_BLUEPRINT_CONSOLIDATED.md`.
 2. Inspect the current branch head and open PR before editing.
 3. Check whether a requested capability already exists; do not duplicate existing features.
-4. Implement three distinct, independently tracked sub-features per batch; keep their code paths and acceptance checks separate, then run a combined build/regression check. If a feature fails, record its result independently.
+4. Each user-requested feature batch contains 50 distinct, independently tracked features. Implement in small reviewable sub-groups, track each feature separately, and do not mark the 50-feature batch complete until all 50 are implemented and the combined checks pass. If a feature fails, record its result independently.
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
 ## Next technical steps
@@ -794,3 +794,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI:** final-head workflow pending. Runs #895 and #896 were triggered on earlier commits in this branch; only a successful run against the final documented branch head may verify the batch.
 - **Device verification:** pending on Poco M4 Pro 4G — add/view old and new records, verify status around expiry date, restart persistence, and confirm B24 inventory plus vehicle log/tasks/reminders remain intact.
 - Draft PR to be opened against B24 after final-head CI passes. JARVIS only; Even untouched.
+
+## B26 — 50-feature Batch 1 (in progress)
+
+- **Batch target:** 50 distinct new capabilities or meaningful extensions; progress is tracked individually. The batch is not complete until all 50 are implemented and the combined regression/build checks pass.
+- **Feature 1/50 — Warranty Reminder Integration:** added an owner-invoked “Set reminder” action to an inventory item with an active warranty. It reuses the existing B22/B23 ReminderStore, AlarmManager delivery, quiet-hours handling and snooze action; no second scheduler or reminder database is created.
+- The owner chooses a local date/time; the date picker is capped at the warranty expiry date. A reminder must be in the future and no later than the inclusive warranty-expiry day. The default suggestion is one day before expiry at 9 AM when possible.
+- The reminder title is normalized and bounded; only the item nickname and chosen reminder time are stored in the existing reminder store. No external sharing, cloud upload, background inventory scan or new Android permission.
+- Added a pure-Java unit test for reminder-title normalization and bounds.
+- **Branch:** feature/b26-50-feature-batch-1, based on B25; draft PR and CI pending.
+- **Verification:** pending branch-head CI and Poco M4 Pro 4G physical-device testing. Do not mark Feature 1 or the batch verified yet.
+- **Anti-duplication:** extends B24/B25 inventory details and reuses the existing reminder scheduler; no duplicate inventory, task, reminder or timeline module.
+- JARVIS only; Even untouched. No merge without explicit owner approval.
