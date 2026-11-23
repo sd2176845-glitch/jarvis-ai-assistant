@@ -422,4 +422,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Owner Reminder Manager:** the existing Tasks & reminders hub now includes a Manage reminders action. It lists valid upcoming reminders created inside JARVIS in scheduled-time order.
 - Selecting a reminder shows its title and local scheduled date/time. Cancellation requires an explicit confirmation and cancels only the matching JARVIS alarm, notification and stored record.
 - The view does not read other apps' notifications and does not mutate malformed/expired records while listing. It reuses the existing ReminderStore and adds no permissions or duplicate scheduler.
-- **Status:** code added on the B26 feature branch; CI and Poco M4 Pro 4G device verification pending.
+- **Status:** final-head CI PASS on commit `01a49811edd243f15110bdaa798c96a2d8174f3d`, workflow run #918; Android unit tests, debug APK build and artifact upload passed. Poco M4 Pro 4G device verification pending.
+
+## B26 implementation status — Feature 3/50
+
+- **Owner Reminder Rescheduling:** the existing reminder details view now offers an owner-invoked Reschedule action.
+- The new date/time must be in the future. The same reminder ID and existing local ReminderStore/AlarmManager are reused; if scheduling fails, JARVIS attempts to restore the previous time and alarm.
+- No duplicate scheduler or storage, no new permission, no access to other apps' notifications and no cloud upload.
+- **Status:** code added on the B26 branch; final-head CI and Poco M4 Pro 4G physical-device verification pending.
