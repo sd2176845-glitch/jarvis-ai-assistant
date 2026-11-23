@@ -803,6 +803,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - The reminder title is normalized and bounded; only the item nickname and chosen reminder time are stored in the existing reminder store. No external sharing, cloud upload, background inventory scan or new Android permission.
 - Added a pure-Java unit test for reminder-title normalization and bounds.
 - **Branch:** feature/b26-50-feature-batch-1, based on B25; draft PR and CI pending.
-- **Verification:** pending branch-head CI and Poco M4 Pro 4G physical-device testing. Do not mark Feature 1 or the batch verified yet.
+- **Verification:** branch-head CI PASS on commit `788f6be832051bf9d979a6799709e4804e5018a6` (unit tests, debug APK build and artifact upload); Poco M4 Pro 4G physical-device testing remains pending.
 - **Anti-duplication:** extends B24/B25 inventory details and reuses the existing reminder scheduler; no duplicate inventory, task, reminder or timeline module.
-- JARVIS only; Even untouched. No merge without explicit owner approval.\n## B26 — Feature 2/50 — Owner Reminder Manager\n\n- Added “Manage reminders” inside the existing Tasks & reminders hub; no second reminder hub or storage location.\n- Lists valid upcoming JARVIS-created reminders in scheduled-time order and shows each title and local date/time.\n- Owner can inspect a selected reminder and explicitly confirm cancellation. Cancellation removes only that JARVIS reminder's saved record, matching Android alarm and its notification.\n- Added pure-Java validation coverage for stored reminder records. Malformed/expired records are left untouched by the read-only list operation.\n- No access to other apps' notifications, no new permissions, no cloud upload or background collection.\n- **Status:** code added; final-head CI and Poco M4 Pro 4G physical-device testing pending.
+- JARVIS only; Even untouched. No merge without explicit owner approval.
+## B26 — Feature 2/50 — Owner Reminder Manager
+
+- Added “Manage reminders” inside the existing Tasks & reminders hub; no second reminder hub or storage location.
+- Lists valid upcoming JARVIS-created reminders in scheduled-time order and shows each title and local date/time.
+- Owner can inspect a selected reminder and explicitly confirm cancellation. Cancellation removes only that JARVIS reminder's saved record, matching Android alarm and its notification.
+- Added pure-Java validation coverage for stored reminder records. Malformed/expired records are left untouched by the read-only list operation.
+- No access to other apps' notifications, no new permissions, no cloud upload or background collection.
+- **Status:** code added; final-head CI for Feature 2 and Poco M4 Pro 4G physical-device testing pending.
