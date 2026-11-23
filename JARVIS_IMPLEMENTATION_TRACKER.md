@@ -831,3 +831,12 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added pure-Java unit coverage for matching title/time, same-ID exclusion, different time and different title.
 - No new permission, second scheduler, cloud upload, access to other apps' notifications or background collection.
 - **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device testing pending.
+
+## B26 — Feature 5/50 — Reminder Search & Filtering
+
+- Upgraded the existing Manage reminders view with an owner-controlled, live title search; matching is case-insensitive, whitespace-normalized and local-only.
+- Search filters only the already-loaded upcoming reminders. It does not alter stored reminders, scheduling, notification state or reminder ordering.
+- Selecting a filtered result continues to use the existing details, reschedule and explicit cancellation actions.
+- Added pure-Java tests for case-insensitive partial matching, whitespace normalization, empty queries and non-matches.
+- No second reminder manager, scheduler or store; no new permission, external notification access, cloud upload or background collection.
+- **Status:** code added; final-head CI pending; Poco M4 Pro 4G physical-device verification pending. JARVIS only; Even untouched.
