@@ -244,7 +244,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Export inventory", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -256,8 +256,9 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 5) sortAssets(activity);
                     else if (which == 6) assetCategorySummary(activity);
                     else if (which == 7) assetConditionSummary(activity);
-                    else if (which == 8) exportAssetInventory(activity);
-                    else if (which == 9) clearAssetInventory(activity);
+                    else if (which == 8) warrantyExpiryWatchlist(activity);
+                    else if (which == 9) exportAssetInventory(activity);
+                    else if (which == 10) clearAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -588,6 +589,49 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Inventory by category")
                 .setMessage(summary.toString())
                 .setPositiveButton("OK", null).show();
+    }
+
+    /** Owner-invoked read-only list using the existing warranty-window rule. */
+    private static void warrantyExpiryWatchlist(Activity activity) {
+        String[] windows = {"Next 7 days", "Next 30 days", "Next 90 days"};
+        int[] windowDays = {7, 30, 90};
+        new AlertDialog.Builder(activity).setTitle("Warranty expiry window")
+                .setItems(windows, (dialog, selectedWindow) -> {
+                    JSONArray records = readAssetInventory(activity);
+                    if (records == null) return;
+                    String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+                    String[] warrantyDates = new String[records.length()];
+                    for (int i = 0; i < records.length(); i++) {
+                        JSONObject item = records.optJSONObject(i);
+                        warrantyDates[i] = item == null ? "" : item.optString("warranty_until", "");
+                    }
+                    List<Integer> indexes = AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                            warrantyDates, today, windowDays[selectedWindow]);
+                    if (indexes.isEmpty()) {
+                        new AlertDialog.Builder(activity).setTitle("Warranty expiry watchlist")
+                                .setMessage("No recorded warranties expire within the next "
+                                        + windowDays[selectedWindow] + " days.")
+                                .setPositiveButton("OK", null).show();
+                        return;
+                    }
+                    List<String> labels = new ArrayList<>();
+                    for (Integer index : indexes) {
+                        JSONObject item = records.optJSONObject(index);
+                        if (item == null) continue;
+                        long remaining = PracticalIntelligenceRules.warrantyDaysRemaining(
+                                item.optString("warranty_until", ""), today);
+                        String timing = remaining == 0 ? "Expires today"
+                                : "Expires in " + remaining + " days";
+                        labels.add(item.optString("name") + " • " + item.optString("category")
+                                + " • " + item.optString("warranty_until") + " • " + timing);
+                    }
+                    String message = labels.isEmpty() ? "No valid inventory items found."
+                            : "Upcoming warranty dates • " + labels.size() + "\n\n"
+                                    + android.text.TextUtils.join("\n", labels)
+                                    + "\n\nDates are owner-entered; confirm details with the provider.";
+                    new AlertDialog.Builder(activity).setTitle("Warranty expiry watchlist")
+                            .setMessage(message).setPositiveButton("OK", null).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     /** Read-only condition counts over the existing owner-entered inventory records. */

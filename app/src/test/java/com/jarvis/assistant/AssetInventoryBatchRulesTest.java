@@ -103,4 +103,28 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void warrantyWatchlistReturnsIndexesForInclusiveExpiryWindowOnly() {
+        java.util.List<Integer> indexes = AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                new String[]{"2026-11-23", "2026-11-30", "2026-12-01",
+                        "2026-11-22", "", "bad-date", null},
+                "2026-11-23", 7);
+        assertEquals(java.util.Arrays.asList(0, 1), indexes);
+    }
+
+    @Test
+    public void warrantyWatchlistSupportsTodayAndRejectsInvalidWindows() {
+        assertEquals(java.util.Arrays.asList(0),
+                AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                        new String[]{"2026-11-23", "2026-11-24"}, "2026-11-23", 0));
+        assertTrue(AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                new String[]{"2026-11-23"}, "bad-date", 7).isEmpty());
+        assertTrue(AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                new String[]{"2026-11-23"}, "2026-11-23", -1).isEmpty());
+        assertTrue(AssetInventoryBatchRules.warrantyIndexesWithinWindow(
+                null, "2026-11-23", 7).isEmpty());
+    }
+
+
 }

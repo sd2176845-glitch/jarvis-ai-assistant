@@ -1,5 +1,7 @@
 package com.jarvis.assistant;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -19,6 +21,19 @@ public final class AssetInventoryBatchRules {
         boolean lv=PracticalIntelligenceRules.isValidIsoDate(left), rv=PracticalIntelligenceRules.isValidIsoDate(right);
         if(lv&&rv)return left.compareTo(right); if(lv)return -1; if(rv)return 1; return 0;
     }
+    /** Returns original record indexes whose valid warranties expire inclusively within the window. */
+    public static List<Integer> warrantyIndexesWithinWindow(String[] warrantyDates,
+                                                              String todayIsoDate, int days) {
+        List<Integer> indexes = new ArrayList<>();
+        if (warrantyDates == null || days < 0
+                || !PracticalIntelligenceRules.isValidIsoDate(todayIsoDate)) return indexes;
+        for (int i = 0; i < warrantyDates.length; i++) {
+            if (PracticalIntelligenceRules.isWarrantyExpiringWithin(
+                    warrantyDates[i], todayIsoDate, days)) indexes.add(i);
+        }
+        return indexes;
+    }
+
     /** Case-insensitive read-only category aggregation; blank legacy values are grouped safely. */
     public static Map<String, Integer> countByCategory(String[] categories) {
         Map<String, Integer> counts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
