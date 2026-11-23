@@ -415,4 +415,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - The action reuses the existing M07 reminder scheduler and notification receiver, including quiet-hours and snooze behavior; it does not create a second scheduler, database or notification service.
 - Owner selects a local date/time; the picker cannot go beyond the warranty expiry date, and the selected time must be future-dated. The default suggestion is one day before expiry at 9 AM when possible.
 - Reminder text is derived from the owner-entered item nickname and normalized through the existing reminder title rules. No new permission, external sharing, background inventory scan or cloud upload.
-- **Status:** code added on feature branch; CI and Poco M4 Pro 4G device verification pending. This entry does not imply the other 49 batch features are implemented.\n\n## B26 implementation status — Feature 2/50\n\n- **Owner Reminder Manager:** the existing Tasks & reminders hub now includes a Manage reminders action. It lists valid upcoming reminders created inside JARVIS in scheduled-time order.\n- Selecting a reminder shows its title and local scheduled date/time. Cancellation requires an explicit confirmation and cancels only the matching JARVIS alarm, notification and stored record.\n- The view does not read other apps' notifications and does not mutate malformed/expired records while listing. It reuses the existing ReminderStore and adds no permissions or duplicate scheduler.\n- **Status:** code added on the B26 feature branch; CI and Poco M4 Pro 4G device verification pending.
+- **Status:** CI PASS on commit `788f6be832051bf9d979a6799709e4804e5018a6` (unit tests, debug APK build and artifact upload); Poco M4 Pro 4G device verification pending. This entry does not imply the other 49 batch features are implemented.
+
+## B26 implementation status — Feature 2/50
+
+- **Owner Reminder Manager:** the existing Tasks & reminders hub now includes a Manage reminders action. It lists valid upcoming reminders created inside JARVIS in scheduled-time order.
+- Selecting a reminder shows its title and local scheduled date/time. Cancellation requires an explicit confirmation and cancels only the matching JARVIS alarm, notification and stored record.
+- The view does not read other apps' notifications and does not mutate malformed/expired records while listing. It reuses the existing ReminderStore and adds no permissions or duplicate scheduler.
+- **Status:** code added on the B26 feature branch; CI and Poco M4 Pro 4G device verification pending.
