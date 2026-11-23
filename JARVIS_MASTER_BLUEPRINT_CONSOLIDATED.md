@@ -439,3 +439,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - Added pure-Java tests for duplicate matching and allowed non-duplicates.
 - No new permission, duplicate scheduler, external notification access, cloud upload or background collection.
 - **Status:** code added on B26 branch; final-head CI and Poco M4 M4 Pro 4G physical-device verification pending.
+
+## B26 implementation status — Feature 5/50
+
+- **Reminder Search & Filtering:** upgraded the existing Manage reminders screen with local, live title filtering across upcoming JARVIS-created reminders.
+- Matching is case-insensitive, whitespace-normalized and read-only. The filter does not modify reminders or change scheduling; selecting a result reuses existing details, reschedule and cancellation actions.
+- Added pure-Java tests for partial matches, case-insensitivity, whitespace normalization, empty search and non-matches.
+- No duplicate reminder hub/store/scheduler, new permission, other-app notification access, cloud upload or background collection.
+- **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device verification pending.
