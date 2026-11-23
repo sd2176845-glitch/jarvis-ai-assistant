@@ -29,7 +29,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         if (manager == null) return;
 
         if (ACTION_SNOOZE.equals(intent.getAction())) {
-            long snoozeUntil = System.currentTimeMillis() + 10L * 60L * 1000L;
+            long snoozeUntil = SmartNotificationRules.snoozeUntil(System.currentTimeMillis());
             if (ReminderStore.updateTrigger(context, id, snoozeUntil)
                     && ReminderStore.schedule(context, id, title, snoozeUntil)) {
                 manager.cancel(id);
