@@ -108,4 +108,5 @@ public class PracticalIntelligenceRulesTest {
                 PracticalIntelligenceRules.safeAssetExportLine("Lamp | spare\\n", "Home",
                         "Good", "2026-12-31"));
     }
-\n}\n
+
+}
