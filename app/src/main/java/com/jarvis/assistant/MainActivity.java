@@ -388,20 +388,59 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String summary = structured;
         if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
-        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event"};
+        String[] actions = {"Manage tasks", "Manage reminders", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
                 .setMessage(summary + "\n\nJARVIS reminders are stored locally. Quiet hours and snooze apply only to reminders created inside JARVIS.")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) showStructuredTaskManager();
-                    else if (which == 1) showCreateReminderDialog();
-                    else if (which == 2) {
+                    else if (which == 1) showManageReminders();
+                    else if (which == 2) showCreateReminderDialog();
+                    else if (which == 3) {
                         try {
                             Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
                             alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
                             startActivity(alarm);
                         } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                    } else if (which == 3) showNotificationPreferencesDialog();
+                    } else if (which == 4) showNotificationPreferencesDialog();
                     else showCalendarEventDraftDialog();
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private void showManageReminders() {
+        if (blockPrivateInGuestMode()) return;
+        java.util.List<org.json.JSONObject> reminders = ReminderStore.getPending(this);
+        if (reminders.isEmpty()) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Manage reminders")
+                    .setMessage("No upcoming JARVIS reminders were found. Past or invalid entries are not changed by this view.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(
+                "EEE, dd MMM yyyy • hh:mm a", java.util.Locale.getDefault());
+        ArrayList<String> labels = new ArrayList<>();
+        for (org.json.JSONObject item : reminders) {
+            labels.add(item.optString("title", "Reminder") + "\\n"
+                    + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Upcoming reminders")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    if (which < 0 || which >= reminders.size()) return;
+                    org.json.JSONObject selected = reminders.get(which);
+                    int id = selected.optInt("id", -1);
+                    String title = selected.optString("title", "Reminder");
+                    long triggerAt = selected.optLong("triggerAt", 0L);
+                    new AlertDialog.Builder(this).setTitle("Reminder details")
+                            .setMessage(title + "\\n" + formatter.format(new java.util.Date(triggerAt))
+                                    + "\\n\\nCancel this JARVIS reminder?")
+                            .setNegativeButton("Keep", null)
+                            .setPositiveButton("Cancel reminder", (confirm, choice) -> {
+                                if (ReminderStore.cancel(this, id)) {
+                                    status.setText("JARVIS REMINDER CANCELLED");
+                                    speak("Reminder cancelled.");
+                                } else {
+                                    status.setText("REMINDER COULD NOT BE CANCELLED");
+                                }
+                            }).show();
                 }).setNegativeButton("Close", null).show();
     }
 
