@@ -4,6 +4,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class ReminderRulesTest {
+    @Test public void storedReminderValidationRequiresValidFutureRecord() {
+        long now = 1000L;
+        assertTrue(ReminderRules.isValidStoredReminder(1, "Pay bill", 1001L, now));
+        assertFalse(ReminderRules.isValidStoredReminder(0, "Pay bill", 1001L, now));
+        assertFalse(ReminderRules.isValidStoredReminder(1, "   ", 1001L, now));
+        assertFalse(ReminderRules.isValidStoredReminder(1, "Pay bill", 1000L, now));
+    }
+
     @Test public void trimsAndCollapsesTitleWhitespace() {
         assertEquals("Call the clinic", ReminderRules.normalizeTitle("  Call   the   clinic  "));
     }
