@@ -7,10 +7,10 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b24-owner-asset-inventory`, stacked on B23 code head `97daee97951ca9b7fc7e52b20990dc48533f1f01`.
-- B24 draft PR #50 targets B23 PR branch `feature/b23-private-notification-intelligence`; it remains open, draft and unmerged.
-- B22 PR #48 and B23 PR #49 remain open draft PRs; neither has been merged.
-- `main` has not been changed or merged by this work; the separate Even project remains untouched.
+- Current continuation branch: `feature/b26-next-20-inventory`, latest documentation/inventory head `9ad2673d7d7d76e1787339959efd618ad12b3128`; current in-progress B27 warranty-reminder implementation is being committed on this same branch.
+- B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
+- `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
+- The latest CI run before B27 work was #1025 on head `9ad2673d7d7d76e1787339959efd618ad12b3128` and passed backend syntax, Android unit tests, debug APK build and artifact upload.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -1049,3 +1049,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI correction note:** intermediate integration runs #1014–#1021 exposed a checked `JSONException` from the indexed JSON array update in the remove-reference path. The write was guarded and failure now leaves the stored reference and permission intact; final run #1022 passed all workflow steps.
 - **Poco M4 Pro 4G:** physical-device picker/open/replace/remove and permission-lifecycle verification remains pending.
 - **Priority 38 limitation:** this adds a local reference attachment only. Reminder integration, encrypted export/restore, and full Priority 38/device verification remain pending.
+
+
+### B27 — Priority 38 warranty reminder integration (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; extends the existing inventory menu and warranty-date records.
+- **Implementation:** adds an owner-invoked "Set warranty reminder" action. The owner selects an inventory item with a valid current/future warranty date, then chooses a date and time on or before that warranty end date.
+- **Scheduler reuse:** persists and schedules through the existing `ReminderStore`, `ReminderReceiver`, notification channel and snooze action. No second scheduler, reminder preference store, receiver, background collector or new Android permission is introduced.
+- **Controls:** scheduling requires a deliberate item selection and date/time choice. Past times and dates after warranty expiry are rejected. If Android notifications are disabled, JARVIS offers a system-settings handoff and does not claim a reminder was scheduled.
+- **Failure behavior:** if reminder persistence succeeds but alarm scheduling fails, the newly saved reminder record is rolled back. Existing reminders and inventory records are not modified.
+- **Data minimization:** reminder title contains only the inventory item name; notes, receipt/manual URI, provider filename and other metadata are excluded.
+- **Tests:** added focused coverage for bounded reminder-title generation and blank names. Runtime alarm/notification delivery still requires device verification.
+- **Status:** code-present; CI/build pending until a workflow completes on the final B27 head. Poco M4 Pro 4G notification delivery and reboot/snooze behavior remain pending.
+- **Anti-duplication:** reuses the already implemented M07/JARVIS reminder infrastructure rather than creating another scheduler. JARVIS only; Even untouched.
