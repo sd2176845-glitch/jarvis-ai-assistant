@@ -23,10 +23,26 @@ public final class AssetInventoryBatchRules {
         return conditionOrder != 0 ? conditionOrder : compareNames(leftName, rightName);
     }
 
-    /** Valid YYYY-MM-DD dates sort earliest first; missing/invalid dates sort last. */
+    /** Valid YYYY-MM-DD warranty dates sort earliest first; missing/invalid dates sort last. */
     public static int compareWarrantyDates(String left, String right) {
-        boolean lv=PracticalIntelligenceRules.isValidIsoDate(left), rv=PracticalIntelligenceRules.isValidIsoDate(right);
-        if(lv&&rv)return left.compareTo(right); if(lv)return -1; if(rv)return 1; return 0;
+        String l = safe(left), r = safe(right);
+        boolean lv = PracticalIntelligenceRules.isValidIsoDate(l);
+        boolean rv = PracticalIntelligenceRules.isValidIsoDate(r);
+        if (lv && rv) return l.compareTo(r);
+        if (lv) return -1;
+        if (rv) return 1;
+        return 0;
+    }
+
+    /** Valid YYYY-MM-DD purchase dates sort newest first; missing/invalid dates stay last. */
+    public static int comparePurchaseDatesNewestFirst(String left, String right) {
+        String l = safe(left), r = safe(right);
+        boolean lv = PracticalIntelligenceRules.isValidIsoDate(l);
+        boolean rv = PracticalIntelligenceRules.isValidIsoDate(r);
+        if (lv && rv) return r.compareTo(l);
+        if (lv) return -1;
+        if (rv) return 1;
+        return 0;
     }
     /** Applies the selected warranty status without storing or mutating any inventory data. */
     public static boolean matchesWarrantyStatus(String warrantyUntil, String todayIsoDate,
