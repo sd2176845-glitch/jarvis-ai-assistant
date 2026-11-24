@@ -870,7 +870,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Failure/retest record:** run #976 exposed one incorrect blank-condition sort test expectation. The comparator's blank-label ordering was retained and the expectation corrected. Run #977 passed the full workflow.
 - **CI/build:** PASS — GitHub Actions run #979 (`45188942045`) on exact head `5089769ab97527413fa3c0380abd5be08025c297`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14823994641`, size 23,252,508 bytes, SHA-256 `910900708272c5b5ee41851c909ede5007caffaeb3613f444e19be412d80d440`.
-- **Progress correction:** 18/20 M19 inventory capabilities are now code-present: original inventory capabilities 1–15, Feature 16 (data-quality audit), Feature 17 (purchase-age summary), and Feature 19 (purchase-date sort). Feature 18 (vehicle odometer consistency check) is separately tracked under M19 Vehicle Intelligence and is not counted toward the 20 inventory capabilities. Feature 20 remains pending. Poco M4 Pro 4G physical-device verification remains pending.
+- **Progress correction:** 19/20 M19 inventory capabilities are now code-present: original inventory capabilities 1–15, Feature 16 (data-quality audit), Feature 17 (purchase-age summary), Feature 19 (purchase-date sort), and Feature 20 (purchase-date range filter). Feature 18 (vehicle odometer consistency check) is separately tracked under M19 Vehicle Intelligence and is not counted toward the 20 inventory capabilities. One final distinct inventory capability remains to be defined/implemented. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -1017,4 +1017,18 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Implementation commits:** `c00478bee574002b2083abe52e6e43ed0982fbb2` (rules), `4d416a3027d1a7751342a53d672670e25164bf19` (tests), `68203ddc899974ec454223f91cf75cbd908b1ebe` (existing inventory UI).
 - **CI/build:** PASS — GitHub Actions run #1007 (`45350837605`) on exact feature-and-tracker head `6e05964e9ae2848bd562ac9c682c6c9bde443f3e`; backend JavaScript syntax validation, Android unit tests, `gradle assembleDebug`, and APK artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14900495794`, size 23,259,097 bytes, SHA-256 `b113fc4b7110a3d0686a40e7c8d5351133cc0beeb1b4882ebdfe2165a5c5c552`.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+
+
+### Feature 20 — Purchase-date range filtering (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; extends the existing Filter inventory dialog and existing `purchase_date` field.
+- **Implementation:** adds optional "purchased on/after" and "purchased on/before" boundaries in strict `YYYY-MM-DD` format. Bounds are inclusive and either boundary may be left blank. If both are blank, the purchase-date filter is inactive. Invalid or reversed bounds are rejected. When a range is active, missing or malformed legacy purchase dates do not match.
+- **Composition:** date range is combined with the existing category, condition and warranty-status filters using AND semantics; filtered results show the purchase date. No second filter screen was created.
+- **Data behavior:** read-only matching over the existing local inventory array; records are not edited, deleted, reordered or persisted.
+- **Tests:** focused unit tests cover inclusive boundaries, older/newer exclusions, open-ended ranges, both-blank behavior, invalid dates, reversed bounds, unavailable/legacy purchase dates and whitespace trimming.
+- **Privacy:** owner-invoked and local-only; no new preference key, Android permission, background work, network request or external sharing.
+- **Anti-duplication:** distinct from Feature 15 date-text search, Feature 17 purchase-age buckets and Feature 19 purchase-date sorting. JARVIS only; Even untouched.
+- **Implementation commits:** `40234d17fcde6b5ddfcb56d0b51d3fb9fbbedb63` (rules), `da81ae2f0599b6b1b3d3f4c87a80e60f0e79628a` (tests), `688e906e6ee2715de8a388a18dfeed2a9c5eeb07` (existing filter UI).
+- **CI/build:** PASS — GitHub Actions run #1011 (`45351360603`) on exact feature-code head `688e906e6ee2715de8a388a18dfeed2a9c5eeb07`; backend syntax, Android unit tests, `gradle assembleDebug` and APK artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14899249936`, size 23,260,104 bytes, SHA-256 `085960ed05ab0b2719ee89b6bd0c1c75eea6fbe79418379cff84d7ba2ee39740`.
 - **Poco M4 Pro 4G:** physical-device verification pending.
