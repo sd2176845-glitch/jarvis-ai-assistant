@@ -485,3 +485,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Artifact:** `jarvis-debug-apk`, ID `14906797649`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45366614260/artifacts/14906797649`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for existing notebook compatibility, saving/reloading progress status, setting/clearing revision dates and local date boundaries.
 - **Anti-duplication:** upgrades `learning_notebook_v1` and existing AI Learning Academy menu; no duplicate learning store or scheduler. JARVIS only; Even untouched.
+
+
+## B33 — Environmental Intelligence expansion (2026-11-24)
+- **Progress:** 1/20 net-new capabilities code-present and CI-verified. The existing manual CPCB AQI observation log remains baseline and is not duplicated or counted as a new B33 increment.
+- **Feature 1:** live modelled air-quality snapshot by owner-entered city, with selected geocoding match, U.S. AQI, European AQI, PM2.5, PM10, ozone, NO2, SO2, UV index, model time and timezone.
+- **Source/interpretation:** Open-Meteo Air Quality API CAMS model data. Modelled regional grid estimates are not CPCB monitoring-station readings; U.S./European indices are not India's CPCB National AQI scale.
+- **Privacy:** owner-invoked only; no GPS, location permission, background polling, automatic log writes or sharing. Existing weather city search is reused through a shared city-selection helper.
+- **Verification:** run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`. Poco M4 Pro 4G device test pending.
