@@ -201,4 +201,37 @@ public class AssetInventoryBatchRulesTest {
                         new String[]{"Lamp"}, new String[0], new String[]{"Good"}, new String[]{""}).get(0));
     }
 
+
+    @Test
+    public void purchaseAgeSummaryUsesCompletedCalendarYearsAndStableBuckets() {
+        java.util.Map<String, Integer> result = AssetInventoryBatchRules.purchaseAgeSummary(
+                new String[]{"2026-11-24", "2025-11-24", "2024-11-25",
+                        "2021-11-23", "", "bad-date", "2026-11-25"},
+                "2026-11-24");
+        assertEquals(Integer.valueOf(1), result.get("Under 1 year"));
+        assertEquals(Integer.valueOf(1), result.get("1–2 years"));
+        assertEquals(Integer.valueOf(1), result.get("2–5 years"));
+        assertEquals(Integer.valueOf(1), result.get("5+ years"));
+        assertEquals(Integer.valueOf(2), result.get("Date unavailable"));
+        assertEquals(Integer.valueOf(1), result.get("Future date"));
+    }
+
+    @Test
+    public void purchaseAgeSummaryHandlesLeapDayAndInvalidTodaySafely() {
+        java.util.Map<String, Integer> leap = AssetInventoryBatchRules.purchaseAgeSummary(
+                new String[]{"2024-02-29"}, "2025-02-28");
+        assertEquals(Integer.valueOf(1), leap.get("Under 1 year"));
+        java.util.Map<String, Integer> invalidToday = AssetInventoryBatchRules.purchaseAgeSummary(
+                new String[]{"2024-01-01", ""}, "not-a-date");
+        assertEquals(Integer.valueOf(2), invalidToday.get("Date unavailable"));
+    }
+
+    @Test
+    public void purchaseAgeSummaryHandlesNullAndEmptyArrays() {
+        assertEquals(Integer.valueOf(0),
+                AssetInventoryBatchRules.purchaseAgeSummary(null, "2026-11-24").get("5+ years"));
+        assertEquals(Integer.valueOf(0),
+                AssetInventoryBatchRules.purchaseAgeSummary(new String[0], "2026-11-24").get("Under 1 year"));
+    }
+
 }
