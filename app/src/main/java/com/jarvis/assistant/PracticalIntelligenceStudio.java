@@ -739,7 +739,7 @@ public final class PracticalIntelligenceStudio {
         }
         String[] options = {"Open " + savedName, "Replace document", "Remove attachment"};
         new AlertDialog.Builder(activity).setTitle("Saved document")
-                .setMessage(savedName + "\nStored as a local reference only. Opening hands this selected file to an installed viewer.")
+                .setMessage(savedName + "\nStored as a local reference only. Opening hands this selected file to an installed viewer."
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) openAssetDocument(activity, index);
                     else if (which == 1) chooseAssetDocument(activity, index);
@@ -788,8 +788,15 @@ public final class PracticalIntelligenceStudio {
         }
         Uri uri = data.getData();
         String uriText = uri.toString();
-        String mime = activity.getContentResolver().getType(uri);
-        String displayName = queryAssetDocumentName(activity, uri);
+        String mime;
+        String displayName;
+        try {
+            mime = activity.getContentResolver().getType(uri);
+            displayName = queryAssetDocumentName(activity, uri);
+        } catch (Exception e) {
+            Toast.makeText(activity, "The selected provider could not be read; nothing was attached.", Toast.LENGTH_LONG).show();
+            return true;
+        }
         if (mime == null || mime.trim().isEmpty()
                 || "application/octet-stream".equalsIgnoreCase(mime.trim())) {
             mime = mimeFromAssetDocumentName(displayName);
@@ -828,7 +835,7 @@ public final class PracticalIntelligenceStudio {
             // Persist read access only; JARVIS never requests write access to the selected file.
             activity.getContentResolver().takePersistableUriPermission(
                     uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } catch (SecurityException | IllegalArgumentException e) {
+        } catch (Exception e) {
             Toast.makeText(activity, "This provider cannot keep a saved document reference. Choose another provider.", Toast.LENGTH_LONG).show();
             return true;
         }
@@ -981,7 +988,7 @@ public final class PracticalIntelligenceStudio {
         try {
             activity.getContentResolver().releasePersistableUriPermission(
                     Uri.parse(rawUri), Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        } catch (SecurityException | IllegalArgumentException ignored) {
+        } catch (Exception ignored) {
             // Permission may already have been revoked by its provider or Android.
         }
     }
