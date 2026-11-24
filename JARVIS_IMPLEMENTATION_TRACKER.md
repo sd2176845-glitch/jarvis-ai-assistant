@@ -971,3 +971,14 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Privacy:** owner-invoked and on-device only; no new permission, background work, network request or external sharing.
 - **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
 - **Anti-duplication:** distinct from warranty status/countdown and the Feature 16 data-quality audit; uses purchase dates only for a read-only age distribution. JARVIS only; Even untouched.
+
+
+### Feature 18 — Vehicle odometer consistency check (2026-11-24)
+- **Canonical owner:** M19 Vehicle Intelligence; extends the existing Local Vehicle Maintenance Log menu.
+- **Implementation:** owner-invoked, read-only comparison of numeric odometer readings for the same vehicle nickname, ordered by valid ISO service date. Reports valid readings, comparable chronological pairs and potential decreases for owner review.
+- **Date handling:** records on the same date are not ordered because the existing log has no time-of-day field. Missing/malformed dates, blank/malformed readings and blank vehicle nicknames are excluded from comparisons.
+- **Data behavior:** uses the existing vehicle maintenance log and existing fields; no new storage, edits, deletes, automatic reminders or remote lookups.
+- **Tests:** covers decrease detection per vehicle, chronological ordering, same-day ambiguity, malformed/missing values and null/mismatched arrays.
+- **Safety/privacy:** report is a data-entry consistency aid only, not a mechanical diagnosis or safety clearance. No license plate, VIN, insurance or location data is requested; no new permission or network access.
+- **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
+- **Anti-duplication:** distinct from adding/viewing/removing service records and the Smart Asset Inventory purchase-age/warranty summaries. JARVIS only; Even untouched.
