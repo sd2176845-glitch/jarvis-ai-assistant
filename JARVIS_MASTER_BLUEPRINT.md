@@ -831,7 +831,7 @@ The owner approved the following ten additional concepts for inclusion in the JA
 
 **Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
 
-Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-present increments tracked in B26–B28, Life Management has a read-only overview increment in B29, Disaster Preparedness has an offline information-pack increment in B30, and Vehicle Intelligence has a service due-date tracker increment in B31. Target-phone verification remains pending; vehicle reminder integration and other Priority 38 modules remain planned. Keep JARVIS separate from Even; do not modify Even.
+Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-present increments tracked in B26–B28, Life Management has a read-only overview increment in B29, Disaster Preparedness has an offline information-pack increment in B30, Vehicle Intelligence has a service due-date tracker increment in B31, and AI Learning Academy has a progress/revision increment in B32. Target-phone verification remains pending; vehicle reminder integration and remaining Priority 38 modules remain planned. Keep JARVIS separate from Even; do not modify Even.
 
 
 ## Implementation status addendum — M05 Public Knowledge Lookups (Batch B05; 2026-11-22)
@@ -1023,3 +1023,15 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 - **Artifact:** `jarvis-debug-apk`, ID `14906612856`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45365706990/artifacts/14906612856`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for legacy record compatibility, date entry, service due overview and local date boundaries.
 - **Anti-duplication:** extends existing vehicle maintenance log and existing date-validation utilities; no duplicate inventory, reminder scheduler or vehicle data store. JARVIS only; Even untouched.
+
+
+## B32 implementation update — Learning Notebook Progress & Revision Planning (2026-11-24)
+- **Canonical owner:** Existing AI Learning Academy / `learning_notebook_v1`; expands the current Learning Notebook instead of creating another learning database.
+- **Progress states:** each saved lesson can be marked Not started, In progress or Completed. A progress overview counts each state and flags unknown/legacy values for review.
+- **Revision planning:** owner can set or clear an optional local `review_on` date using a date picker. The dashboard counts dates due, dates in the next 7 days and malformed values. Older lessons without the new field remain compatible.
+- **Boundaries:** local notebook data only; status/revision changes are owner-invoked. Revision dates are planning notes and do not create notifications, a new scheduler, background activity, external calendar events, network calls or new permissions.
+- **Tests:** focused JUnit coverage for progress status aggregation, unknown/empty statuses, revision date due/upcoming buckets, impossible dates and unreadable/mismatched data.
+- **CI/build:** PASS — GitHub Actions run #1046 (`45366614260`) on exact code head `11dfe5709a80c0ad48ccd9918db6c010e2f322ef`; backend syntax validation, Android unit tests, Java compilation, debug APK build and artifact upload succeeded.
+- **Artifact:** `jarvis-debug-apk`, ID `14906797649`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45366614260/artifacts/14906797649`.
+- **Poco M4 Pro 4G:** physical-device verification remains pending for existing notebook compatibility, saving/reloading progress status, setting/clearing revision dates and local date boundaries.
+- **Anti-duplication:** upgrades `learning_notebook_v1` and existing AI Learning Academy menu; no duplicate learning store or scheduler. JARVIS only; Even untouched.
