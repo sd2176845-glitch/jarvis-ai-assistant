@@ -6,6 +6,20 @@ import static org.junit.Assert.*;
 
 public class AssetInventoryBatchRulesTest {
     @Test
+    public void warrantyReminderTitleIsBoundedAndExcludesBlankNames() {
+        assertEquals("Warranty check: Laptop",
+                AssetInventoryBatchRules.warrantyReminderTitle(" Laptop "));
+        assertEquals("", AssetInventoryBatchRules.warrantyReminderTitle("  "));
+        assertTrue(AssetInventoryBatchRules.warrantyReminderTitle(repeat("A", 60)).length() <= 100);
+    }
+
+    private static String repeat(String value, int count) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < count; i++) result.append(value);
+        return result.toString();
+    }
+
+    @Test
     public void categoryAndConditionFiltersMustBothMatch() {
         assertTrue(AssetInventoryBatchRules.matchesFilters("Electronics", " electronics ", "Good", "good"));
         assertFalse(AssetInventoryBatchRules.matchesFilters("Home", "Electronics", "Good", "good"));
