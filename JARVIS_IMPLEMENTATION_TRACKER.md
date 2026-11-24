@@ -1015,5 +1015,6 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Privacy:** local and owner-invoked; no new preference key, permission, background work, network request or external sharing.
 - **Anti-duplication:** distinct from purchase-date text search (Feature 15) and purchase-age buckets (Feature 17); no second date store or summary engine. JARVIS only; Even untouched.
 - **Implementation commits:** `c00478bee574002b2083abe52e6e43ed0982fbb2` (rules), `4d416a3027d1a7751342a53d672670e25164bf19` (tests), `68203ddc899974ec454223f91cf75cbd908b1ebe` (existing inventory UI).
-- **CI/build:** pending final-head workflow verification at the time of this entry.
+- **CI/build:** PASS — GitHub Actions run #1007 (`45350837605`) on exact feature-and-tracker head `6e05964e9ae2848bd562ac9c682c6c9bde443f3e`; backend JavaScript syntax validation, Android unit tests, `gradle assembleDebug`, and APK artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14900495794`, size 23,259,097 bytes, SHA-256 `b113fc4b7110a3d0686a40e7c8d5351133cc0beeb1b4882ebdfe2165a5c5c552`.
 - **Poco M4 Pro 4G:** physical-device verification pending.
