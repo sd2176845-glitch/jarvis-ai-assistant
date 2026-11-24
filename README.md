@@ -35,3 +35,8 @@ This is an early implementation, not a complete movie-style JARVIS. A feature be
 Google sign-in, phone OTP login, and the owner profile are planned but are not implemented yet. Firebase project setup is required before secure authentication can be wired into the app. See [OWNER_AUTH_SETUP.md](OWNER_AUTH_SETUP.md) for the exact setup requirements, privacy rules, and release checks. Do not commit `google-services.json`, OTPs, passwords, or authentication tokens.
 
 See [JARVIS_MASTER_BLUEPRINT.md](JARVIS_MASTER_BLUEPRINT.md) for the implementation inventory and remaining backlog. The approved six-app suite is documented in [JARVIS_MASTER_BLUEPRINT_APP_SUITE_ADDENDUM.md](JARVIS_MASTER_BLUEPRINT_APP_SUITE_ADDENDUM.md).
+
+
+### Additional Command Center modules
+- **Personal Media Vault:** owner-selected copies of image, video and audio files in app-private local storage with restore/export/import/delete controls. This first version is not application-encrypted and is not cloud backup.
+- **R&D Innovation Lab:** an owner-invoked catalogue for eight future research modules. The catalogue is a roadmap scaffold, not proof that those advanced systems are implemented.

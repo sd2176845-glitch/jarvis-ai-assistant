@@ -2135,7 +2135,9 @@ public class MainActivity extends Activity {
                 "PDF Text Reader • First-page OCR",
                 "Guest Mode • Hide private data",
                 "Media Player Controls • Android media session",
-                "Math Calculator • Local arithmetic"
+                "Math Calculator • Local arithmetic",
+                "Personal Media Vault • Backup / Restore / Export",
+                "R&D Innovation Lab • Future module catalogue"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -2197,6 +2199,12 @@ public class MainActivity extends Activity {
                     else if (which == 42) showGuestModeOptions();
                     else if (which == 43) MediaControlStudio.show(MainActivity.this);
                     else if (which == 44) MathCalculatorStudio.show(MainActivity.this);
+                    else if (which == 45) {
+                        try { startActivity(new Intent(MainActivity.this, MediaVaultActivity.class)); }
+                        catch (Exception e) { status.setText("MEDIA VAULT IS NOT AVAILABLE"); }
+                    } else if (which == 46) {
+                        InnovationLab.show(MainActivity.this, message -> status.setText(message));
+                    }
                 }).setNegativeButton("Close", null).show();
     }
 

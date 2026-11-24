@@ -59,6 +59,7 @@
             android:name=".WakeWordService"
             android:exported="false"
             android:foregroundServiceType="microphone" />
+        <activity android:name=".MediaVaultActivity" android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

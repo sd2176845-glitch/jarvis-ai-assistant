@@ -1128,3 +1128,43 @@ Use authority and reliability of sources as a gate. Never relabel model-derived 
 - Accepts CAP links only from the exact HTTPS SACHET host and endpoint path. Stores CAP XML and ETag in the existing private preferences store; subsequent requests use `If-None-Match` and reuse the cached XML on 304, following the NDMA integration guide.
 - No GPS, location permission, background polling, push alerts, automatic emergency action, external sharing or location history. The existing offline emergency-preparedness pack remains unchanged.
 - GitHub Actions run #1079 (`45393701084`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`. Artifact `14919538306`; Poco M4 Pro 4G device verification remains pending.
+
+## Implementation update — 2026-11-20 (Personal Media Vault first code batch)
+
+The owner-selected Personal Media Vault screen is now integrated into main. CI passed on the integrated main commit; manual Poco M4 Pro 4G verification remains pending.
+
+- [x] Explicit file selection for images, videos and audio through Android's Storage Access Framework; no automatic gallery scan or broad storage permission.
+- [x] Copy selected files into JARVIS app-private storage, list copies and display their sizes.
+- [x] Restore/export a selected copy through the Android document picker; import selected media and delete only a chosen vault copy after confirmation.
+- [ ] Verify multi-select, large files, cancellation, low storage, SD-card/cloud providers, restore correctness and deletion boundaries on the target phone.
+
+**Limitations:** the working copy is app-private local storage but is not protected by an application-managed encryption layer. It is not cloud backup, does not provide automatic sync, resumable transfers, checksummed manifests or guaranteed off-device recovery. Uninstalling JARVIS, clearing app data or losing the phone can remove the local copy. Export important files to a separate trusted destination and verify that export before deleting originals. This feature is not an encrypted evidence vault.
+
+**Source:** implementation from PR #11, integrated into main on 2026-11-24.
+
+
+## Priority 37 — R&D Innovation Lab foundations (approved 2026-11-20)
+
+These eight modules are approved for the JARVIS product roadmap. The Android app now contains an owner-invoked catalogue scaffold with descriptions, phase labels and explicit implementation-status warnings. The catalogue is **not** the completed implementation of the modules.
+
+- [ ] **Digital Twin Simulator:** define versioned system models, assumptions, input parameters, scenario runs and comparison reports; label simulations as estimates and validate models before relying on them.
+- [ ] **3D Holographic Workspace:** build an interactive 3D project workspace where supported by the device; distinguish an on-screen 3D view from actual holographic hardware.
+- [ ] **Robotics Engineer Mode:** provide circuit/robot design references, control-logic authoring and offline simulation; keep physical actuator control disabled until hardware-specific safety review, explicit owner authorization and emergency stop are implemented.
+- [ ] **Autonomous Research Lab:** create owner-started research jobs that gather sources, compare claims, track freshness and generate cited reports; no unattended publishing or external account actions.
+- [ ] **Knowledge Galaxy:** implement an owner-controlled graph linking notes, concepts, sources and projects, with search, edit, export and deletion.
+- [ ] **Multi-Agent Intelligence:** coordinate bounded specialist agents for research, planning and code review; validate outputs, limit tools, prevent circular delegation and require approval for consequential actions.
+- [ ] **Project Time Machine:** store project milestones and version snapshots, compare changes and restore prior project documents with confirmation; never silently roll back live systems.
+- [ ] **Smart Environment Intelligence:** integrate only documented compatible devices through explicit setup and consent; preview actions, confirm sensitive/physical-world changes and provide a reliable stop/disconnect control.
+
+### Implementation phases
+1. Research Lab and Multi-Agent orchestration foundations.
+2. Knowledge Galaxy and Project Time Machine.
+3. Digital Twin and Robotics design/simulation (simulation only until hardware safety controls are reviewed).
+4. 3D workspace and Smart Environment integrations.
+
+### Acceptance rules
+- A catalogue entry or UI screen is not a completed feature.
+- Each module needs a separate implementation, unit/integration tests, failure handling, privacy review and target-device verification.
+- Offline catalogue browsing must work without Wi-Fi; online research, cloud agents and connected devices must clearly report when unavailable.
+- Do not claim a true holographic display, validated digital twin, autonomous physical robot control or smart-home compatibility without the required hardware and tests.
+- Keep all changes inside the JARVIS repository; do not modify Even.
