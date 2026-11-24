@@ -86,6 +86,13 @@ public final class AssetInventoryBatchRules {
         return indexes;
     }
 
+    /** Builds a bounded reminder label without including notes or document metadata. */
+    public static String warrantyReminderTitle(String assetName) {
+        String name = safe(assetName);
+        if (name.isEmpty()) return "";
+        return ReminderRules.normalizeTitle("Warranty check: " + name);
+    }
+
     /** Case-insensitive read-only category aggregation; blank legacy values are grouped safely. */
     public static Map<String, Integer> countByCategory(String[] categories) {
         Map<String, Integer> counts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
