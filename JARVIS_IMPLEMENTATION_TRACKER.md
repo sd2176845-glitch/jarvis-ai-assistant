@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`; B33 Environmental Intelligence expansion is at **1/20 net-new capabilities** (CI verified).
+- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `6435cad8bd405dd6f5f884e2c0611aadce5464d7`; B33 Environmental Intelligence expansion is at **1/20 net-new capabilities** (CI verified).
 - B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
 - B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged. Do not merge either PR without explicit owner approval.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
