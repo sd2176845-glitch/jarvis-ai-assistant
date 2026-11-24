@@ -1140,10 +1140,12 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 
 ### B33 Feature 2 — 24-hour modelled air-quality forecast (2026-11-24)
-- **Progress:** 2/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Progress:** 2/20 net-new Environmental Intelligence capabilities are code-present and CI-verified.
 - **Capability:** owner selects a city through the existing shared city picker and can view up to 24 hourly forecast points for U.S. AQI, European AQI, PM2.5 and PM10 from the Open-Meteo Air Quality API.
 - **Interpretation:** each point is timestamped in the selected location's time zone. U.S./European indices are labelled separately and are not India's CPCB National AQI. Model-grid estimates are not CPCB station observations, official alerts or medical advice.
 - **Privacy:** city-only, owner-invoked lookup with explicit disclosure; no GPS, location permission, home address, background polling, automatic log writes or sharing. Existing manual CPCB observation records remain unchanged.
 - **Anti-duplication:** adds a forecast view to the existing Environmental Intelligence menu and reuses the existing city picker and network helper; no second dashboard, location service, observation store or scheduler.
 - **Tests:** added unit coverage for missing/malformed values, sanitized place labels and the 24-entry output cap.
+- **CI/build:** PASS — GitHub Actions run #1060 (`45384556838`) on exact feature-code head `6435cad8bd405dd6f5f884e2c0611aadce5464d7`; backend syntax checks, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14914259944`, size 23,290,448 bytes, SHA-256 `6e8627614f079d08c8c62fd139c40648bdebc565abb417ce25b6acb5f3558595`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending.
