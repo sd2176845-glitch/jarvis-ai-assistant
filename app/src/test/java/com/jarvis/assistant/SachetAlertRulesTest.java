@@ -43,10 +43,10 @@ public class SachetAlertRulesTest {
     @Test
     public void absentAlertFieldsAreShownAsUnavailableAndTextIsSanitized() {
         String detail = SachetAlertRules.formatAlert(
-                "Feed\\nheadline", "", "", "", "", "", "", "", "", "", "", "",
+                "Feed\nheadline", "", "", "", "", "", "", "", "", "", "", "",
                 "", "", "", "", "", "");
         assertTrue(detail.contains("Feed headline"));
         assertTrue(detail.contains("Not supplied by the alert"));
-        assertFalse(detail.contains("Feed\\nheadline"));
+        assertFalse(detail.contains("Feed\nheadline"));
     }
 }
