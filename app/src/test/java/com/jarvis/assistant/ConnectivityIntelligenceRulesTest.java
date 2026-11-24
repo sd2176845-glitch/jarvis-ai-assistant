@@ -13,6 +13,36 @@ public class ConnectivityIntelligenceRulesTest {
         assertTrue(unvalidated.contains("does not read Wi-Fi names"));
     }
 
+    @Test public void liveMonitorLabelsAnActiveNonInternetRouteAsPotentiallyLocalOnly() {
+        String status = ConnectivityIntelligenceRules.liveConnectivityStatus(
+                true, true, "Wi-Fi", false, false, true, "Network became available");
+        assertTrue(status.contains("LIVE CONNECTIVITY"));
+        assertTrue(status.contains("POTENTIAL LOCAL-ONLY ROUTE"));
+        assertTrue(status.contains("does not confirm that another device"));
+        assertTrue(status.contains("LATEST EVENT: Network became available"));
+        assertTrue(status.contains("does not scan nearby networks"));
+    }
+
+    @Test public void liveMonitorDistinguishesUnvalidatedInternetFromNoNetwork() {
+        String unvalidated = ConnectivityIntelligenceRules.liveConnectivityStatus(
+                true, true, "Mobile data", true, false, false, "Capabilities changed");
+        assertTrue(unvalidated.contains("INTERNET STATUS"));
+        assertTrue(unvalidated.contains("not validated"));
+
+        String none = ConnectivityIntelligenceRules.liveConnectivityStatus(
+                false, false, "", false, false, false, "Network lost");
+        assertTrue(none.contains("No active default network"));
+        assertTrue(none.contains("LATEST EVENT: Network lost"));
+    }
+
+    @Test public void liveMonitorHandlesUnknownCapabilitiesWithoutExposingIdentifiers() {
+        String status = ConnectivityIntelligenceRules.liveConnectivityStatus(
+                true, false, "", false, false, false, "");
+        assertTrue(status.contains("capability details are unavailable"));
+        assertFalse(status.toLowerCase().contains("ssid"));
+        assertFalse(status.toLowerCase().contains("password"));
+    }
+
     @Test public void offlineMatrixSeparatesLocalAndOnlineCapabilities() {
         String matrix = ConnectivityIntelligenceRules.offlineCapabilityMatrix();
         assertTrue(matrix.contains("AVAILABLE LOCALLY"));
