@@ -68,7 +68,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
 - [ ] Add user-configurable wake-word/listening preferences only where the selected recognition engine supports them; explain battery and privacy trade-offs and retain a clear manual stop/pause control.
-- [ ] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data.
+- [x] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data (code present — device test needed).
 
 ### Priority 2 — Online intelligence and API integrations
 - [ ] Native weather integration using Open-Meteo; show location, units, timestamp and API errors clearly.
@@ -831,3 +831,12 @@ The owner approved the following ten additional concepts for inclusion in the JA
 **Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
 
 All Priority 38 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+## Implementation policy — capability upgrades and duplicate prevention
+
+- Treat every existing feature as the baseline. When a planned item is an advanced version or extension of an existing feature, implement only the missing advanced capabilities and integrate them into the existing module; do not create a second copy of the basic feature, duplicate screens, parallel command paths, or redundant storage.
+- Before coding each batch, inspect the current main/feature-branch source, README, blueprint checklist, and relevant services/classes to identify existing implementations and partial implementations.
+- Prefer extending/refactoring the existing class, service, UI, API contract, or data model. Reuse existing permissions, settings, event flows, and persistence where appropriate.
+- If a genuinely separate capability requires a separate module, document why it cannot be safely integrated, define its boundary and shared interfaces, and avoid repeating existing user-facing functionality.
+- Update checklist status only to the level supported by source inspection and build/device-test evidence. Code-present is not the same as tested or production-ready.
+- Preserve JARVIS as a project separate from Even. Do not change unrelated projects.

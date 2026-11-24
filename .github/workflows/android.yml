@@ -35,6 +35,8 @@ jobs:
         with:
           path: ~/.android/debug.keystore
           key: jarvis-debug-signing-key-v1
+      - name: Run Android unit tests
+        run: gradle testDebugUnitTest
       - name: Build debug APK
         run: gradle assembleDebug
       - name: Upload APK

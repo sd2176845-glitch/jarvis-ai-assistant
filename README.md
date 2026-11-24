@@ -8,7 +8,7 @@ A phone-first Android personal assistant project for the Poco M4 Pro 4G. This is
 - Tap-to-speak speech recognition and spoken replies.
 - An initial foreground-service listener for “Hey JARVIS”, with a visible notification and stop control.
 - Online AI chat through the Render backend and Groq. The Groq key belongs in the backend environment, never in Android source or the APK.
-- Basic local commands for common apps, time/date/battery, contacts/call flow, alarm handoff, web search, and message drafts.
+- Basic local commands for common apps, time/date/battery, device-health summary (battery, internal storage and network status), contacts/call flow, alarm handoff, web search, and message drafts.
 - Contact calling in the background listener asks for a spoken confirmation before calling.
 - Local notes, recent conversation context with a clear-memory control, eight assistant modes, a daily briefing, privacy controls, SOS/dialer options, phone-event announcements, and accessibility-based in-call controls.
 - Camera and Google Lens shortcuts; task/reminder and connected-system hubs.
@@ -27,7 +27,7 @@ This is an early implementation, not a complete movie-style JARVIS. A feature be
 - The reminder hub opens Android Clock; it does not schedule JARVIS-owned reminder notifications.
 - The vision option opens the camera or Google Lens; there is no in-app image-understanding pipeline yet.
 - Notes and recent chat history are local. Long-term editable preferences, structured task management, and a full offline AI fallback are not complete.
-- Actual installation, calls, SMS announcements, accessibility controls, background listening, and the UI still need a device test on the target Poco phone.
+- Actual installation, calls, SMS announcements, accessibility controls, background listening, device-health reporting and the UI still need a device test on the target Poco phone.
 - Grant microphone/contact/call/phone-event permissions only when needed. The foreground notification provides a way to stop listening.
 
 ## Owner login status
