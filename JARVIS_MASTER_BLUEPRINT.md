@@ -831,7 +831,7 @@ The owner approved the following ten additional concepts for inclusion in the JA
 
 **Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
 
-All Priority 38 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-present increments tracked in B26–B28; target-phone verification remains pending. Other Priority 38 modules remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
 
 
 ## Implementation status addendum — M05 Public Knowledge Lookups (Batch B05; 2026-11-22)
@@ -975,3 +975,15 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B27 verification update (2026-11-24):** final documented head `4a41e42681b855e2482926ab5d2806727f7a9d89` passed GitHub Actions run #1032 (`45360490561`): Android unit tests, debug APK build and artifact upload succeeded. An earlier intermediate run #1026 failed because the feature UI referenced a helper not yet present on that intermediate commit; the helper was subsequently included and the final documented head passed. Poco M4 Pro 4G notification delivery, reboot restoration and snooze behavior remain pending.
+
+
+## B28 implementation update — Encrypted Asset Inventory Backup & Restore (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; upgrades the existing inventory menu and uses the existing `owner_asset_inventory_v1` SharedPreferences key. No duplicate inventory store or backup subsystem was added.
+- **Export:** owner selects the destination through Android Storage Access Framework. The versioned `.jva` archive contains only allowlisted item name, category, purchase-date label, condition, warranty end date, notes and creation timestamp. Receipt/manual content URIs, provider filenames, MIME metadata, persisted document permissions, app credentials and unrelated JARVIS data are excluded.
+- **Encryption:** AES-256-GCM authenticated encryption with a fresh 16-byte salt, 12-byte IV, 128-bit authentication tag and PBKDF2-HMAC-SHA256 (150,000 iterations). Passphrase length is 12–128 characters; it is held transiently and is not saved. Lost passphrases cannot be recovered.
+- **Restore:** selected archive is size-bounded, decrypted and authenticated before JSON parsing; version, required fields, existing inventory validators and the 100-record limit are checked. A preview offers merge (adds only items without an existing same-name/category match) or replace (separate destructive confirmation). Replace releases old persisted document read grants only after the preference update succeeds; original provider files are never deleted. Existing warranty reminders remain unchanged.
+- **Failure behavior:** wrong passphrase, altered ciphertext, unsupported header/version, malformed records, oversized files or failed preference commits do not alter the existing inventory. No network transfer or new Android permission is used.
+- **Tests:** focused JUnit tests cover round-trip encryption, ciphertext confidentiality, wrong-passphrase rejection, tamper detection and malformed/short-password rejection.
+- **CI/build:** PASS — GitHub Actions run #1037 (`45362567473`) on exact final feature-code head `1c4c569220f627c76076bcf90a8e5439c1cf34ea`; backend syntax validation, Android unit tests, debug APK build and artifact upload succeeded. Artifact `jarvis-debug-apk`, ID `14904838906`, size 23,277,086 bytes; uploaded ZIP SHA-256 `ba55fb8809f04496d0606985111d52f13aaf7f73cf5ae51a25230f57f8ee597a`.
+- **Poco M4 Pro 4G:** physical-device verification remains pending: create/open archive through document providers, wrong-password/tamper rejection, merge/replace behavior, and document-permission release.
+- **Anti-duplication:** extends the existing asset inventory export/menu and preference key; does not create another scheduler, document manager, or data store. JARVIS only; Even untouched.
