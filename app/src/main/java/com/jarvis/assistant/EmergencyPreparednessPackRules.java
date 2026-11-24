@@ -18,7 +18,7 @@ public final class EmergencyPreparednessPackRules {
         StringBuilder out = new StringBuilder();
         out.append("OFFLINE EMERGENCY PREPAREDNESS GUIDE\n");
         out.append("TOPIC: ").append(topic.trim()).append("\n\n");
-        out.append("IMPORTANT\nThis is a saved, general preparedness reference, not an official warning or a live forecast, evacuation order or substitute for local emergency instructions. Stay with a parent, guardian or trusted adult and follow local authorities.\n\n");
+        out.append("IMPORTANT\nThis is a saved, general preparedness reference, not an official warning, not a live forecast, evacuation order or substitute for local emergency instructions. Stay with a parent, guardian or trusted adult and follow local authorities.\n\n");
         out.append("EMERGENCY HELP IN INDIA\nFor an immediate emergency, call 112 — the nationwide Emergency Response Support System number.\n\n");
 
         if (key.equals("general emergency") || key.equals("general")) {
