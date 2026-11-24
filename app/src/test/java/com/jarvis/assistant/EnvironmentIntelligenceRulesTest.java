@@ -38,7 +38,7 @@ public class EnvironmentIntelligenceRulesTest {
     @Test
     public void liveAirQualityReportLabelsModelEstimatesAndRejectsUnsafeFields() {
         String report = EnvironmentIntelligenceRules.formatLiveAirQuality(
-                "Kolkata\\nInjected", 87, 42, "18.5", "Not a number", "31.2",
+                "Kolkata\nInjected", 87, 42, "18.5", "Not a number", "31.2",
                 "4.0", "2.1", "3.4", "2026-11-24T16:00", "Asia/Kolkata");
         assertTrue(report.contains("Kolkata Injected"));
         assertTrue(report.contains("U.S. AQI: 87 • Moderate"));
