@@ -46,7 +46,7 @@ public final class PracticalIntelligenceStudio {
                 .setItems(hazards, (dialog, which) -> askText(activity, "Emergency readiness brief",
                         "Optional city/district and general household needs. Do not enter an exact address or personal details.",
                         500, brief -> confirmAi(activity, status, transcript, "EMERGENCY READINESS PLAN",
-                                PracticalIntelligenceRules.emergencyPrompt(hazards[which], "", brief),
+                                PracticalIntelligenceRules.emergencyPrompt(hazards[which], "Only the area you chose in your brief", brief),
                                 "Only the short brief you entered will be sent. This creates general preparedness guidance, not live alerts or official evacuation instructions.")))
                 .setNegativeButton("Cancel", null).show();
     }
@@ -101,8 +101,8 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static JSONArray readVehicleLog(Activity activity) {
-        String raw = preferences(activity).getString(VEHICLE_LOG_KEY, "[]");
         try {
+            String raw = preferences(activity).getString(VEHICLE_LOG_KEY, "[]");
             return new JSONArray(raw == null ? "[]" : raw);
         } catch (Exception e) {
             Toast.makeText(activity, "Vehicle log data is invalid; existing data was left unchanged.", Toast.LENGTH_LONG).show();
