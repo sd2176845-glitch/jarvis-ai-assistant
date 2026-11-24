@@ -28,13 +28,13 @@ public class CpcbStationRulesTest {
     @Test
     public void recordFormattingSanitizesLabelsAndDoesNotInventCombinedAqi() {
         String detail = CpcbStationRules.formatStationRecord(
-                "Victoria Memorial\\nStation", "Kolkata", "West Bengal", "PM2.5",
+                "Victoria Memorial\nStation", "Kolkata", "West Bengal", "PM2.5",
                 "18.4", "7", "31", "µg/m³", "24-11-2026 17:00");
         assertTrue(detail.contains("Victoria Memorial Station"));
         assertTrue(detail.contains("Pollutant: PM2.5"));
         assertTrue(detail.contains("Average: 18.4 µg/m³"));
         assertTrue(detail.contains("not a combined AQI value"));
-        assertFalse(detail.contains("Victoria Memorial\\nStation"));
+        assertFalse(detail.contains("Victoria Memorial\nStation"));
     }
 
     @Test
