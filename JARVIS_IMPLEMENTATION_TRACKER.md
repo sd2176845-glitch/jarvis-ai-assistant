@@ -182,3 +182,28 @@
 - **CI/build:** passed on final code head `4caf2cacef9ca55cac77b4ef05b990bee9c24545`; GitHub Actions run #547 (`45044601421`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762243808`, SHA-256 `6915af375edcef95663da8204b636c6ec971bf991a482461fb4c108be8d15eef`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Device acceptance:** test language voice availability, network-offline messaging, cancellation, text limit, and ensure the studio does not modify saved notes or conversation memory.
 - **Merge policy:** keep this stacked PR separate; do not merge to parent PR #24 or `main` without owner approval.
+
+
+## Batch B04 — M04 Universal App Intelligence (three independent read-only capabilities; 2026-11-22)
+
+**Branch:** `feature/m04-app-intelligence-3pack`, stacked on the M03 Language Studio branch / PR #25. Draft PR #26: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/26. Separate, unmerged batch.
+
+### Feature 1 — Installed App Catalogue
+- **Code-present:** lists apps Android exposes through the launcher intent, deduplicates by package name and sorts by visible app label. The catalogue does not launch apps; existing app-launch behavior remains owned by M05.
+- **Acceptance checks:** empty catalogue, duplicate launcher activities, long labels, package-visibility restrictions and app uninstall/update between list and selection.
+
+### Feature 2 — App Details & Update Information
+- **Code-present:** for an owner-selected visible app, displays public package metadata: package name, version name/code, target Android API, first-install time and last-update time.
+- **Acceptance checks:** missing version name, package removed between selection and lookup, system/user apps and date formatting.
+
+### Feature 3 — Permission Transparency
+- **Code-present:** displays permission names declared in the selected app's package manifest. Explicitly labels them as requested declarations only; it does not infer runtime grants or special access.
+- **Acceptance checks:** no requested permissions, long permission list, package lookup failure and verify wording never claims a permission is granted.
+
+### Privacy, platform and verification
+- Uses Android launcher-intent package visibility through a matching `<queries>` declaration; no `QUERY_ALL_PACKAGES` or new runtime permission.
+- Reads public PackageManager metadata only. No app-private files, screen contents, usage history, contacts, network scan, app launch, settings change or upload.
+- **Implementation files:** `AppIntelligenceStudio.java` (new), existing `MainActivity.java` (one Command Center entry), `AndroidManifest.xml` (launcher-intent query declaration).
+- **CI/build:** passed on code head `7d06870c70630171b69fbd9f6bc3935e6fb88fdc`; GitHub Actions run #553 (`45044836017`) completed backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762504922`, SHA-256 `77eb8572bc40e7e53c22515789486388cba95d9287e3c976ee4ff8387a2d7f65`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Device acceptance:** confirm Android 13 visibility results, catalogue count/labels, app update/uninstall race handling and permission declaration labels.
+- **Merge policy:** do not merge to parent PR #25 or `main` without owner approval.

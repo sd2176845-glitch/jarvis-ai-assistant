@@ -245,3 +245,13 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B03 verification update (2026-11-22):** final code head `4caf2cacef9ca55cac77b4ef05b990bee9c24545` passed GitHub Actions run #547 (`45044601421`): backend syntax validation, Gradle debug APK build and artifact upload. Artifact `14762243808`, SHA-256 `6915af375edcef95663da8204b636c6ec971bf991a482461fb4c108be8d15eef`. No separate unit-test/lint task ran; target-device testing remains pending. Draft PR #25 is open and unmerged.
+
+
+### M04 — Universal App Intelligence (Batch B04; implementation status tracked separately)
+- Added a read-only Installed App Catalogue using launcher-intent package visibility; app details (version, target API and install/update timestamps); and a requested-permission declaration viewer.
+- App knowledge is kept separate from app control. This module does not launch apps, inspect private app data, infer runtime permission grants, alter settings or upload data.
+- Uses a scoped launcher-intent `<queries>` declaration, not `QUERY_ALL_PACKAGES` or a new runtime permission.
+- **Status:** code added on `feature/m04-app-intelligence-3pack`; CI/build and target-device verification pending.
+
+
+**B04 verification update (2026-11-22):** code head `7d06870c70630171b69fbd9f6bc3935e6fb88fdc` passed GitHub Actions run #553 (`45044836017`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762504922`, SHA-256 `77eb8572bc40e7e53c22515789486388cba95d9287e3c976ee4ff8387a2d7f65`. No separate unit-test/lint task ran; target-device testing remains pending. Draft PR #26 is open and unmerged.
