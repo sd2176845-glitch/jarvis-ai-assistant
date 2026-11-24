@@ -290,7 +290,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary", "Manage receipt / manual"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary", "Manage receipt / manual", "Set warranty reminder"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded. Receipt/manual files stay in their provider; JARVIS saves only a local reference and never uploads them.")
                 .setItems(actions, (dialog, which) -> {
@@ -308,6 +308,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 11) auditAssetInventory(activity);
                     else if (which == 12) assetPurchaseAgeSummary(activity);
                     else if (which == 13) manageAssetDocuments(activity);
+                    else if (which == 14) scheduleWarrantyReminder(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1032,6 +1033,88 @@ public final class PracticalIntelligenceStudio {
     }
 
     /** Owner-invoked read-only list using the existing warranty-window rule. */
+    /** Owner-selected warranty reminder; reuses the existing ReminderStore/receiver. */
+    private static void scheduleWarrantyReminder(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        List<Integer> indexes = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            if (item == null) continue;
+            String warranty = item.optString("warranty_until", "").trim();
+            if (!PracticalIntelligenceRules.isValidIsoDate(warranty) || warranty.compareTo(today) < 0) continue;
+            indexes.add(i);
+            labels.add(item.optString("name", "Inventory item") + " • " + warranty);
+        }
+        if (indexes.isEmpty()) {
+            new AlertDialog.Builder(activity).setTitle("Set warranty reminder")
+                    .setMessage("No current or future valid warranty dates are recorded. Add a valid warranty end date first.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        new AlertDialog.Builder(activity).setTitle("Choose an item")
+                .setItems(labels.toArray(new String[0]), (dialog, selected) -> {
+                    int index = indexes.get(selected);
+                    JSONObject item = records.optJSONObject(index);
+                    if (item == null) return;
+                    showWarrantyReminderDateTime(activity, item.optString("name", "Inventory item"));
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private static void showWarrantyReminderDateTime(Activity activity, String assetName) {
+        java.util.Calendar initial = java.util.Calendar.getInstance();
+        initial.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        new android.app.DatePickerDialog(activity, (dateView, year, month, day) -> {
+            new android.app.TimePickerDialog(activity, (timeView, hour, minute) -> {
+                java.util.Calendar trigger = java.util.Calendar.getInstance();
+                trigger.set(year, month, day, hour, minute, 0);
+                trigger.set(java.util.Calendar.MILLISECOND, 0);
+                long triggerAt = trigger.getTimeInMillis();
+                if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
+                    Toast.makeText(activity, "Choose a future date and time.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                android.app.NotificationManager notifications =
+                        (android.app.NotificationManager) activity.getSystemService(Activity.NOTIFICATION_SERVICE);
+                if (android.os.Build.VERSION.SDK_INT >= 24
+                        && notifications != null && !notifications.areNotificationsEnabled()) {
+                    new AlertDialog.Builder(activity).setTitle("Enable JARVIS notifications")
+                            .setMessage("Android notifications are currently disabled for JARVIS. Enable them in system settings, then create the reminder again.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Open settings", (d, w) -> {
+                                try {
+                                    Intent settings = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                                    settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+                                    activity.startActivity(settings);
+                                } catch (Exception ignored) {
+                                    Toast.makeText(activity, "Could not open notification settings.", Toast.LENGTH_LONG).show();
+                                }
+                            }).show();
+                    return;
+                }
+                String title = AssetInventoryBatchRules.warrantyReminderTitle(assetName);
+                int reminderId = (int) (System.currentTimeMillis() % 1900000000L) + 100000000;
+                if (title.isEmpty() || !ReminderStore.save(activity, reminderId, title, triggerAt)) {
+                    Toast.makeText(activity, "Could not save the warranty reminder.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if (!ReminderStore.schedule(activity, reminderId, title, triggerAt)) {
+                    ReminderStore.remove(activity, reminderId);
+                    Toast.makeText(activity, "Could not schedule the warranty reminder; saved reminder was rolled back.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                new AlertDialog.Builder(activity).setTitle("Warranty reminder scheduled")
+                        .setMessage(title + "\\n" + new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+                                .format(new Date(triggerAt))
+                                + "\\n\nUses the existing JARVIS reminder notification and snooze controls.")
+                        .setPositiveButton("Done", null).show();
+            }, 9, 0, false).show();
+        }, initial.get(java.util.Calendar.YEAR), initial.get(java.util.Calendar.MONTH),
+                initial.get(java.util.Calendar.DAY_OF_MONTH)).show();
+    }
+
     private static void warrantyExpiryWatchlist(Activity activity) {
         String[] windows = {"Next 7 days", "Next 30 days", "Next 90 days"};
         int[] windowDays = {7, 30, 90};
