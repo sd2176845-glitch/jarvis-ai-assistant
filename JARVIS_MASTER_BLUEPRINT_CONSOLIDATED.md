@@ -235,3 +235,13 @@ Three separate capabilities have been added inside the existing Personal Memory 
 3. **Encrypted Digital Legacy Archive — code-present; CI passed; device test pending.** AES-GCM encrypted local snapshot using an Android Keystore device-bound key. Includes saved notes, owner-created timeline, graph and idea versions; excludes recent conversation, contacts, messages and call data. Owner can create/replace, authenticate/decrypt-verify, and delete. It is not a portable password-protected backup; loss of the device Keystore key can make it unrecoverable.
 
 **Scope:** no new Android permissions, no second memory database, no automatic capture, no background backup, and no remote upload. The three features passed backend syntax validation, Gradle debug APK build and artifact upload on run #537 (`45043884161`, artifact `14762177978`) and latest tracker-linked run #538 (`45043923314`, artifact `14762319147`). Android unit tests/lint were not separate workflow steps. All three remain physical-device test pending on the Poco M4 Pro 4G.
+
+
+### M03 — Language & Learning Studio (Batch B03; implementation status tracked separately)
+- Added three owner-invoked tools to the existing Command Center: Hindi/Bengali/English translation with optional user-triggered TTS playback; text summary/simple explanation; and a vocabulary learning card.
+- Uses the existing HTTPS backend through an isolated request method that does not attach or save recent conversation memory. Only text explicitly entered into the studio is submitted after a disclosure.
+- No clipboard/gallery auto-read, background capture, additional permission or persistent learning store.
+- **Status:** code added on `feature/m03-language-studio-3pack`; CI/build and target-device verification pending. TTS language support depends on installed Android voices.
+
+
+**B03 verification update (2026-11-22):** final code head `4caf2cacef9ca55cac77b4ef05b990bee9c24545` passed GitHub Actions run #547 (`45044601421`): backend syntax validation, Gradle debug APK build and artifact upload. Artifact `14762243808`, SHA-256 `6915af375edcef95663da8204b636c6ec971bf991a482461fb4c108be8d15eef`. No separate unit-test/lint task ran; target-device testing remains pending. Draft PR #25 is open and unmerged.

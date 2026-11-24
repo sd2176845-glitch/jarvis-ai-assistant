@@ -155,3 +155,30 @@
 - **Unit tests/lint:** not yet run as separate tasks; no claim of passing.
 - **Physical device:** pending on Poco M4 Pro 4G. Verify API 23+ Keystore AES-GCM support, create/verify/replace/delete archive, graph CRUD and idea-version restore.
 - **Merge:** keep stacked on parent PR #23 until reviewed; do not merge to parent or `main` without owner approval.
+
+
+## Batch B03 — M03 Language & Learning Studio (three independent owner-invoked tools; 2026-11-22)
+
+**Branch:** `feature/m03-language-studio-3pack`, stacked on the M09 memory-expansion branch / PR #24. Draft PR #25: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/25. This batch is separate and unmerged.
+
+### Feature 1 — Hindi / Bengali / English Translation
+- **Code-present:** added an owner-invoked translation workflow with explicit target-language selection (Hindi, Bengali, English), text entry, result preview and optional Android text-to-speech playback.
+- Speech playback depends on an installed Android TTS voice for the selected language; missing language data is reported rather than silently substituted.
+- **Acceptance checks:** translate each supported language pair; check punctuation/names/numbers; test missing TTS language data; confirm Speak is user-triggered and Stop/exit behavior is safe.
+
+### Feature 2 — Text Clarity (Summary / Simple Explanation)
+- **Code-present:** owner may paste text and choose concise key-point summary or a simple-language explanation. Output is shown in the app and is not saved as a note or memory.
+- **Acceptance checks:** test short/long text, empty input, 5,000-character limit, source text with uncertainty, server failure and cancellation.
+
+### Feature 3 — Vocabulary Builder
+- **Code-present:** owner enters one word or short phrase and receives a learning card with simple meaning, example sentence and pronunciation guidance when available. It does not claim unsupported etymology.
+- **Acceptance checks:** common word, ambiguous word, phrase, empty input, server failure and cancellation.
+
+### Privacy, dependencies and verification
+- The studio sends only the prompt constructed from the text the owner explicitly enters. It uses a new `JarvisAiClient.askStandalone` request path that does not attach or save recent conversation memory.
+- The dialog discloses backend processing before submission. No automatic clipboard/gallery access, background collection, local history, extra permission or new persistent data store.
+- Uses the existing HTTPS JARVIS backend and Android TTS engine; no API key is added to the APK.
+- **Implementation files:** `LanguageStudio.java` (new), `JarvisAiClient.java` (isolated request method), and `MainActivity.java` (one Command Center entry).
+- **CI/build:** passed on final code head `4caf2cacef9ca55cac77b4ef05b990bee9c24545`; GitHub Actions run #547 (`45044601421`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14762243808`, SHA-256 `6915af375edcef95663da8204b636c6ec971bf991a482461fb4c108be8d15eef`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Device acceptance:** test language voice availability, network-offline messaging, cancellation, text limit, and ensure the studio does not modify saved notes or conversation memory.
+- **Merge policy:** keep this stacked PR separate; do not merge to parent PR #24 or `main` without owner approval.

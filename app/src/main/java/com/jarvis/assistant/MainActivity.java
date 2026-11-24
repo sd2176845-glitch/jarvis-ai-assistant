@@ -1208,7 +1208,8 @@ public class MainActivity extends Activity {
                 "Focus & Productivity Session",
                 "Device Resource Intelligence",
                 "Workflow Studio • Manual checklists",
-                "Personal Memory & Knowledge Vault"
+                "Personal Memory & Knowledge Vault",
+                "Language & Learning Studio • Translate / Text / Vocabulary"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1251,6 +1252,7 @@ public class MainActivity extends Activity {
                     else if (which == 23) showDeviceResourceDashboard();
                     else if (which == 24) showWorkflowStudio();
                     else if (which == 25) showPersonalMemoryVault();
+                    else if (which == 26) LanguageStudio.show(MainActivity.this, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
