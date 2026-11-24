@@ -99,7 +99,12 @@ public final class AssetInventoryArchive {
 
     /** PBKDF2-HMAC-SHA256 built on Mac to support Android API 23. */
     private static byte[] deriveKey(char[] password, byte[] salt) throws GeneralSecurityException {
-        ByteBuffer encoded = StandardCharsets.UTF_8.encode(CharBuffer.wrap(password));
+        ByteBuffer encoded;
+        try {
+            encoded = StandardCharsets.UTF_8.encode(CharBuffer.wrap(password));
+        } catch (Exception e) {
+            throw new GeneralSecurityException("Passphrase encoding failed.", e);
+        }
         byte[] passwordBytes = new byte[encoded.remaining()];
         encoded.get(passwordBytes);
         if (encoded.hasArray()) Arrays.fill(encoded.array(), (byte) 0);
