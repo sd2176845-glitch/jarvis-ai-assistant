@@ -203,6 +203,28 @@ public class AssetInventoryBatchRulesTest {
 
 
     @Test
+    public void purchaseDateSortIsNewestFirstAndKeepsUnavailableDatesLast() {
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                "2026-01-01", "2025-12-31") < 0);
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                "2025-11-01", "2025-11-03") > 0);
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                "2025-12-31", "") < 0);
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                "2025-12-31", "not-a-date") < 0);
+        assertEquals(0, AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                "not-a-date", ""));
+    }
+
+    @Test
+    public void purchaseDateSortTrimsValuesAndHandlesNullSafely() {
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                " 2025-12-31 ", "2025-11-30") < 0);
+        assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                null, "2025-11-30") > 0);
+    }
+
+    @Test
     public void purchaseAgeSummaryUsesCompletedCalendarYearsAndStableBuckets() {
         java.util.Map<String, Integer> result = AssetInventoryBatchRules.purchaseAgeSummary(
                 new String[]{"2026-11-24", "2025-11-24", "2024-11-25",
