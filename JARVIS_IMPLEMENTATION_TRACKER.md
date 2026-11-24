@@ -994,3 +994,11 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - The final-head run #994 confirmed the remaining mismatch was the `2–5 years` expected count. The 2024-11-25 purchase date is still one completed year old on 2026-11-24, so that bucket must be zero.
 - Corrected the test expectation only; production calculation remains unchanged. The Feature 18 vehicle-audit tests were included in the 99-test run and no failures were reported for them.
 - Awaiting a fresh final-head run for all unit tests and APK build.
+
+
+### Feature 18 review correction — ambiguous duplicate service dates (2026-11-24)
+- A deeper code review found that simply skipping adjacent same-day pairs could still compare a later reading against an arbitrary one from a duplicated date.
+- Updated the audit to exclude an entire date group whenever a vehicle has multiple valid readings on that date. Comparisons now use only unique-date readings, avoiding arbitrary ordering when the log has no time-of-day field.
+- Added a regression test for an ambiguous middle date and adjusted the duplicate-date test expectation.
+- Corrected report line-break escaping so the Android dialog displays the report on separate lines.
+- CI re-run required; physical Poco verification remains pending.
