@@ -203,6 +203,41 @@ public class AssetInventoryBatchRulesTest {
 
 
     @Test
+    public void assetDocumentUriAcceptsContentUrisOnly() {
+        assertTrue(AssetInventoryBatchRules.isValidAssetDocumentUri(
+                "content://com.example.documents/document/primary%3Areceipt.pdf"));
+        assertFalse(AssetInventoryBatchRules.isValidAssetDocumentUri("file:///sdcard/receipt.pdf"));
+        assertFalse(AssetInventoryBatchRules.isValidAssetDocumentUri("https://example.com/receipt.pdf"));
+        assertFalse(AssetInventoryBatchRules.isValidAssetDocumentUri("content:///missing-authority"));
+        assertFalse(AssetInventoryBatchRules.isValidAssetDocumentUri("not a uri"));
+        assertFalse(AssetInventoryBatchRules.isValidAssetDocumentUri(null));
+    }
+
+    @Test
+    public void assetDocumentMimeAllowlistContainsOnlyDocumentAndImageFormats() {
+        assertTrue(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("application/pdf"));
+        assertTrue(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("image/jpeg"));
+        assertTrue(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("image/png"));
+        assertTrue(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("image/webp"));
+        assertTrue(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("IMAGE/PNG"));
+        assertFalse(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("application/octet-stream"));
+        assertFalse(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("text/html"));
+        assertFalse(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType("application/vnd.android.package-archive"));
+        assertFalse(AssetInventoryBatchRules.isSupportedAssetDocumentMimeType(""));
+    }
+
+    @Test
+    public void assetDocumentNameIsReducedToSafeBoundedDisplayName() {
+        assertEquals("receipt.jpg", AssetInventoryBatchRules.sanitizeAssetDocumentName(
+                "/private/provider/path/receipt.jpg"));
+        assertEquals("manual.pdf", AssetInventoryBatchRules.sanitizeAssetDocumentName(
+                "C:\\private\\manual.pdf"));
+        assertEquals("Selected document", AssetInventoryBatchRules.sanitizeAssetDocumentName("  "));
+        assertEquals(100, AssetInventoryBatchRules.sanitizeAssetDocumentName(
+                new String(new char[150]).replace('\\0', 'x')).length());
+    }
+
+    @Test
     public void purchaseDateRangeIsInclusiveAndCombinesWithOpenBounds() {
         assertTrue(AssetInventoryBatchRules.isValidPurchaseDateRange("2025-01-01", "2025-12-31"));
         assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
