@@ -171,8 +171,18 @@ public class PracticalIntelligenceRulesTest {
                 new String[]{"2026-01-01", "2026-01-01", "bad-date", "2026-02-01", "2026-02-01", "2026-03-01"},
                 new String[]{"10000", "9000", "8000", "7000", "", "11000"});
         assertEquals(3, result[0]);
-        assertEquals(1, result[1]);
+        assertEquals(0, result[1]);
         assertEquals(0, result[2]);
+    }
+
+    @Test public void vehicleOdometerAuditSkipsEntireAmbiguousDates() {
+        int[] result = PracticalIntelligenceRules.vehicleOdometerAudit(
+                new String[]{"Scooter", "Scooter", "Scooter", "Scooter"},
+                new String[]{"2026-01-01", "2026-02-01", "2026-02-01", "2026-03-01"},
+                new String[]{"10000", "12000", "8000", "11000"});
+        assertEquals(4, result[0]);
+        assertEquals(1, result[1]);
+        assertEquals(1, result[2]);
     }
 
     @Test public void vehicleOdometerAuditHandlesNullAndMismatchedArrays() {
