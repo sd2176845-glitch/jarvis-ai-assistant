@@ -121,13 +121,49 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void vehicleLogMenu(Activity activity) {
-        String[] actions = {"Add maintenance record", "View / remove records", "Clear maintenance log"};
+        String[] actions = {"Add maintenance record", "View / remove records", "Clear maintenance log", "Odometer consistency check"};
         new AlertDialog.Builder(activity).setTitle("Local Vehicle Maintenance Log")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) addVehicleRecord(activity);
                     else if (which == 1) viewVehicleRecords(activity);
-                    else clearVehicleLog(activity);
+                    else if (which == 2) clearVehicleLog(activity);
+                    else vehicleOdometerAudit(activity);
                 }).setNegativeButton("Close", null).show();
+    }
+
+    /** Owner-invoked, read-only check of chronological odometer consistency. */
+    private static void vehicleOdometerAudit(Activity activity) {
+        JSONArray records = readVehicleLog(activity);
+        if (records == null) return;
+        String[] vehicles = new String[records.length()];
+        String[] dates = new String[records.length()];
+        String[] readings = new String[records.length()];
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            vehicles[i] = item == null ? "" : item.optString("vehicle", "");
+            dates[i] = item == null ? "" : item.optString("date", "");
+            readings[i] = item == null ? "" : item.optString("odometer", "");
+        }
+        int[] result = PracticalIntelligenceRules.vehicleOdometerAudit(vehicles, dates, readings);
+        String message;
+        if (records.length() == 0) {
+            message = "No maintenance records are saved yet.";
+        } else if (result[1] == 0) {
+            message = "No comparable chronological odometer pairs were found. "
+                    + "Add numeric readings on valid YYYY-MM-DD service dates to enable this check.";
+        } else if (result[2] == 0) {
+            message = "Valid readings checked: " + result[0] + "\\n"
+                    + "Chronological comparisons: " + result[1] + "\\n"
+                    + "Decreases detected: 0\\n\\n"
+                    + "No decrease was found in the comparable records. This is not a mechanical inspection.";
+        } else {
+            message = "Valid readings checked: " + result[0] + "\\n"
+                    + "Chronological comparisons: " + result[1] + "\\n"
+                    + "Potential decreases: " + result[2] + "\\n\\n"
+                    + "Review the original entries for data-entry errors. This check does not diagnose vehicle condition.";
+        }
+        new AlertDialog.Builder(activity).setTitle("Odometer consistency check")
+                .setMessage(message).setPositiveButton("Close", null).show();
     }
 
     private static void addVehicleRecord(Activity activity) {
