@@ -1,4 +1,10 @@
 const http = require("node:http");
+const {
+  chooseProcessing,
+  normalizeWorkerResults,
+  buildWorkerNotes,
+  buildFallbackPrompt
+} = require("./ReasoningEngineRules");
 
 const PORT = Number(process.env.PORT || 3000);
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -23,17 +29,6 @@ const SYSTEM_PROMPT = [
   "Never claim you performed a phone action, saved a reminder, searched live information, or changed a setting unless a connected tool confirms it. Text generation alone does not execute phone actions.",
   "Be concise unless detail is requested. Be honest about uncertainty and capability limits, and ask at most one focused clarification when it is genuinely necessary."
 ].join(" ");
-
-function chooseProcessing(message, requestedMode) {
-  const text = String(message || "").toLowerCase();
-  const requested = String(requestedMode || "").toLowerCase();
-  if (["ultra", "advanced", "light"].includes(requested)) return requested;
-  const ultraSignals = /\b(research|analy[sz]e|architecture|debug|code|compare|strategy|multi.?step|deep dive|detailed plan|reasoning|complex|design a system)\b/i;
-  const advancedSignals = /\b(explain|why|how does|plan|summari[sz]e|recommend|calculate|help me decide)\b/i;
-  if (ultraSignals.test(text) || text.length > 1200) return "ultra";
-  if (advancedSignals.test(text) || text.length > 350) return "advanced";
-  return "light";
-}
 
 function processingConfig(tier) {
   if (tier === "ultra") return { model: GROQ_ULTRA_MODEL, maxTokens: 1800, temperature: 0.35 };
@@ -63,83 +58,91 @@ async function runParallelUltra(prompt) {
   const tasks = [
     {
       name: "planner",
-      instruction: "Identify the user's goal, break it into logical steps, and propose a clear approach. Do not answer beyond planning."
+      instruction: "Identify the user's goal and explicit constraints, then propose a concise solution outline. Do not expose hidden chain-of-thought or private deliberation."
     },
     {
       name: "analyst",
-      instruction: "Independently analyze the request. Identify important facts, assumptions, edge cases, and likely pitfalls. Do not write the final answer."
+      instruction: "Independently check relevant facts, assumptions, missing inputs and edge cases. Distinguish what is supported from what is uncertain. Do not expose hidden chain-of-thought."
     },
     {
       name: "reviewer",
-      instruction: "Review the request critically. Find missing information, safety or accuracy concerns, and ways to make the result practical. Do not write the final answer."
+      instruction: "Review the proposed approach for contradictions, unsupported claims, practical risks and safe boundaries. Do not expose hidden chain-of-thought."
     }
   ];
 
-  const results = await Promise.allSettled(tasks.map(async task => {
+  const settled = await Promise.allSettled(tasks.map(async task => {
     const result = await groqCompletion({
       model: GROQ_ADVANCED_MODEL,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT + " You are one independent JARVIS worker. " + task.instruction },
+        { role: "system", content: SYSTEM_PROMPT + " You are one bounded, independent JARVIS analysis worker. " + task.instruction + " Return only concise findings for the coordinator." },
         { role: "user", content: prompt.slice(0, 6000) }
       ],
       maxTokens: 420,
-      temperature: 0.25,
+      temperature: 0.2,
       timeoutMs: WORKER_TIMEOUT_MS
     });
     return { worker: task.name, text: result.text };
   }));
 
-  const completed = results
-    .filter(item => item.status === "fulfilled")
-    .map(item => item.value);
+  const completed = normalizeWorkerResults(settled);
+  const workerNotes = buildWorkerNotes(completed);
+  let synthesisFailure = null;
 
-  if (completed.length === 0) {
-    throw new Error("All parallel workers failed or timed out");
+  if (completed.length > 0) {
+    try {
+      const useUltraCoordinator = completed.length >= 2;
+      const coordinator = await groqCompletion({
+        model: useUltraCoordinator ? GROQ_ULTRA_MODEL : GROQ_DEFAULT_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT + " You are the final JARVIS answer coordinator. Use worker findings only as fallible private analysis; check them against the original request, resolve contradictions cautiously, identify uncertainty, and produce one coherent user-facing answer. Never reveal worker notes or hidden chain-of-thought."
+          },
+          { role: "user", content: buildFallbackPrompt(prompt, workerNotes) }
+        ],
+        maxTokens: 1400,
+        temperature: 0.25,
+        timeoutMs: useUltraCoordinator ? SYNTHESIS_TIMEOUT_MS : 18_000
+      });
+      return {
+        reply: coordinator.text,
+        model: coordinator.model,
+        workersCompleted: completed.length,
+        synthesisUsed: true,
+        fallbackUsed: !useUltraCoordinator,
+        fallbackReason: useUltraCoordinator ? null : "fewer_than_two_workers_completed"
+      };
+    } catch (error) {
+      synthesisFailure = error;
+      console.error("Reasoning synthesis failed:", error?.name || "unknown");
+    }
   }
 
-  if (completed.length === 1) {
-    return {
-      reply: completed[0].text,
-      model: GROQ_ADVANCED_MODEL,
-      workersCompleted: 1,
-      synthesisUsed: false
-    };
-  }
+  // If parallel analysis or synthesis is unavailable, retry through the existing default model.
+  const fallback = await groqCompletion({
+    model: GROQ_DEFAULT_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT + " You are JARVIS operating in reliable single-model fallback mode. Answer the original request directly; be clear about uncertainty and do not invent missing information."
+      },
+      { role: "user", content: buildFallbackPrompt(prompt, workerNotes) }
+    ],
+    maxTokens: 1000,
+    temperature: 0.45,
+    timeoutMs: 22_000
+  });
 
-  const workerNotes = completed.map(item => `[${item.worker.toUpperCase()}]\n${item.text}`).join("\n\n");
-  try {
-    const final = await groqCompletion({
-      model: GROQ_ULTRA_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: SYSTEM_PROMPT + " You are the lead JARVIS coordinator. Combine the independent worker notes into one accurate, useful answer. Resolve disagreements cautiously, do not invent facts, and answer in the user's language and script."
-        },
-        {
-          role: "user",
-          content: `Original request:\n${prompt.slice(0, 6000)}\n\nWorker notes:\n${workerNotes}`
-        }
-      ],
-      maxTokens: 1400,
-      temperature: 0.25,
-      timeoutMs: SYNTHESIS_TIMEOUT_MS
-    });
-    return {
-      reply: final.text,
-      model: final.model,
-      workersCompleted: completed.length,
-      synthesisUsed: true
-    };
-  } catch (error) {
-    console.error("Parallel synthesis failed:", error?.name || "unknown");
-    return {
-      reply: completed.map(item => item.text).join("\n\n"),
-      model: GROQ_ADVANCED_MODEL,
-      workersCompleted: completed.length,
-      synthesisUsed: false
-    };
-  }
+  return {
+    reply: fallback.text,
+    model: fallback.model,
+    workersCompleted: completed.length,
+    synthesisUsed: false,
+    fallbackUsed: true,
+    fallbackReason: synthesisFailure ? "synthesis_unavailable" : "parallel_workers_unavailable"
+  };
 }
+
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -227,21 +230,24 @@ const server = http.createServer(async (req, res) => {
   const prompt = String(body.message || body.prompt || "").trim();
   if (!prompt) { res.writeHead(400); return res.end(JSON.stringify({ error: "message is required" })); }
 
-  const tier = chooseProcessing(prompt, body.processing_mode);
+  const processingSelection = chooseProcessing(prompt, body.processing_mode);
+  const tier = processingSelection.tier;
   const config = processingConfig(tier);
   try {
     let reply;
     let model;
-    let parallelWorkers = { used: false, completed: 0, synthesisUsed: false };
+    let parallelWorkers = { used: false, completed: 0, synthesisUsed: false, fallbackUsed: false, fallbackReason: null };
 
     if (tier === "ultra") {
       const result = await runParallelUltra(prompt);
       reply = result.reply;
       model = result.model;
       parallelWorkers = {
-        used: true,
+        used: result.workersCompleted > 0,
         completed: result.workersCompleted,
-        synthesisUsed: result.synthesisUsed
+        synthesisUsed: result.synthesisUsed,
+        fallbackUsed: result.fallbackUsed,
+        fallbackReason: result.fallbackReason
       };
     } else {
       const result = await groqCompletion({
@@ -266,6 +272,18 @@ const server = http.createServer(async (req, res) => {
       model,
       processing_tier: tier,
       processing_mode: tier,
+      processing_selection: {
+        reason: processingSelection.reason,
+        explicit: processingSelection.explicit
+      },
+      reasoning_engine: {
+        mode: tier === "ultra"
+          ? (parallelWorkers.fallbackUsed ? "single_model_fallback" : "multi_agent_synthesis")
+          : "single_model",
+        workers_completed: parallelWorkers.completed,
+        synthesis_used: parallelWorkers.synthesisUsed,
+        fallback_used: parallelWorkers.fallbackUsed
+      },
       parallel_workers: parallelWorkers
     }));
   } catch (error) {
