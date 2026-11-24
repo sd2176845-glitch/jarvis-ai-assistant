@@ -293,3 +293,31 @@
 - **Implementation files:** `LearningAcademyStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on code/documentation head `a9cd77178709102a9bc746840f9c6e44b0f496b8`; GitHub Actions run #581 (`45045554373`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763640351`, SHA-256 `648188031f44642066caf26da29fe54d3a14dec55c84095f7468ed01a2672ccf`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #28; do not merge to parent PR #28 or `main` without owner approval.
+
+
+## Batch B08 — M11 Software Development Studio (three independent owner-invoked tools; 2026-11-22)
+
+**Branch:** `feature/m11-software-dev-studio-3pack`, stacked on M10 AI Learning Academy / PR #29. Separate, unmerged batch.
+
+### Feature 1 — Project Architect
+- **Code-present:** owner selects Android, website, backend API, desktop or cross-platform target and enters a project idea. JARVIS generates requirements, user stories, architecture, modular file tree, data model, privacy/security considerations, accessibility, offline/error handling and build/test sequence.
+- **Scope:** planning output only; it does not claim to create files, run code or deploy an app.
+- **Acceptance checks:** each platform, vague project brief, optional vs required feature separation, offline/server error and safe scope redirection.
+
+### Feature 2 — Bug & Error Explainer
+- **Code-present:** owner pastes an error message and optional small code excerpt. JARVIS explains the error, ranks plausible causes, suggests a minimal correction and lists verification steps.
+- **Privacy:** input capped at 5,000 characters; owner is reminded to remove secrets and personal data before submission.
+- **Acceptance checks:** Java compile error, runtime error, incomplete context, malformed excerpt, secret-removal warning, 5,000-character cap and no unsupported root-cause claims.
+
+### Feature 3 — Code Quality Review
+- **Code-present:** owner selects Java, Kotlin, Python, JavaScript/TypeScript or Other and submits a code excerpt. JARVIS reviews correctness, readability, performance, accessibility/usability where relevant and defensive security/privacy; findings are grouped by severity and tied to visible evidence.
+- **Scope:** no code execution, automatic edits, file-system access or whole-project security certification.
+- **Acceptance checks:** each language choice, clean snippet, obvious bug, long snippet, missing context and defensive-only security guidance.
+
+### Privacy, integration and verification
+- Uses existing `JarvisAiClient.askStandalone`; only owner-entered descriptions/errors/code are sent after explicit confirmation. No saved conversation, notes or contacts are attached or updated.
+- No new Android permission, background collection, persistent code archive or API key in APK.
+- Safety boundaries exclude malware, credential theft, covert surveillance, backdoors, evasion and unauthorized access.
+- **Implementation files:** `SoftwareDevelopmentStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** passed after correction on code head `b922a78b5e9c2956c7f4237331633939cb701861`; GitHub Actions run #591 (`45045770900`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763955311`, SHA-256 `84ef58a3e5e25fa086c270be6e4a8002019ec8143f903ce088a35a97b1f209fa`. Initial runs #586–#590 failed due two extra closing parentheses in nested dialog callbacks; corrected in this head. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #29; do not merge to parent PR #29 or `main` without owner approval.
