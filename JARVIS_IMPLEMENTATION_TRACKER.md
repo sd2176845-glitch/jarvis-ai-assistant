@@ -982,3 +982,9 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Safety/privacy:** report is a data-entry consistency aid only, not a mechanical diagnosis or safety clearance. No license plate, VIN, insurance or location data is requested; no new permission or network access.
 - **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
 - **Anti-duplication:** distinct from adding/viewing/removing service records and the Smart Asset Inventory purchase-age/warranty summaries. JARVIS only; Even untouched.
+
+
+### Feature 17 CI correction — purchase-age boundary expectation (2026-11-24)
+- GitHub Actions run #988 exposed one incorrect unit-test expectation, not a compilation failure: the purchase date `2024-11-25` evaluated on `2026-11-24` has completed one calendar year, not two, because its second anniversary is the following day.
+- Corrected the expected `1–2 years` bucket count from 1 to 2. Production age-bucketing logic was retained.
+- Feature 17 remains unverified until the final-head unit tests and APK build pass.
