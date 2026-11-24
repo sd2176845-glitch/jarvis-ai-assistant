@@ -18,15 +18,13 @@ public final class SimulationEngineeringStudio {
         String[] options = {
                 "Digital World Simulator • conceptual scenarios",
                 "Virtual Experiment Lab • safe science concepts",
-                "3D Invention Studio • product design brief",
-                "Virtual Experiment Notebook • saved studies"
+                "3D Invention Studio • product design brief"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Simulation & Engineering")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) chooseWorld(activity, status, transcript);
                     else if (which == 1) chooseExperiment(activity, status, transcript);
-                    else if (which == 2) chooseInvention(activity, status, transcript);
-                    else showNotebook(activity);
+                    else chooseInvention(activity, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -95,84 +93,8 @@ public final class SimulationEngineeringStudio {
                         status.setText(title + " • READY");
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + title)
-                                .setMessage(reply)
-                                .setPositiveButton("Save to notebook", (resultDialog, resultWhich) ->
-                                        saveNotebookEntry(activity, title, reply))
-                                .setNegativeButton("Done", null).show();
+                                .setMessage(reply).setPositiveButton("Done", null).show();
                     });
                 }).show();
-    }
-
-    private static final String NOTEBOOK_KEY = "simulation_notebook_v1";
-
-    private static void saveNotebookEntry(Activity activity, String title, String content) {
-        try {
-            android.content.SharedPreferences prefs = activity.getSharedPreferences(
-                    "jarvis_preferences", Activity.MODE_PRIVATE);
-            org.json.JSONArray entries = new org.json.JSONArray(prefs.getString(NOTEBOOK_KEY, "[]"));
-            if (entries.length() >= 25) {
-                Toast.makeText(activity, "Notebook limit reached. Delete old entries first.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            org.json.JSONObject item = new org.json.JSONObject();
-            item.put("title", title);
-            item.put("content", content);
-            item.put("created_at", System.currentTimeMillis());
-            item.put("label", "SIMULATION ONLY");
-            item.put("source_notes", "AI-generated educational content; verify concepts with textbooks or official references.");
-            entries.put(item);
-            prefs.edit().putString(NOTEBOOK_KEY, entries.toString()).apply();
-            Toast.makeText(activity, "Saved to this device's virtual notebook.", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(activity, "Notebook entry could not be saved.", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private static void showNotebook(Activity activity) {
-        android.content.SharedPreferences prefs = activity.getSharedPreferences(
-                "jarvis_preferences", Activity.MODE_PRIVATE);
-        org.json.JSONArray entries;
-        try {
-            entries = new org.json.JSONArray(prefs.getString(NOTEBOOK_KEY, "[]"));
-        } catch (Exception e) {
-            new AlertDialog.Builder(activity).setTitle("Virtual Experiment Notebook")
-                    .setMessage("Notebook data could not be read. Nothing was changed.")
-                    .setPositiveButton("Close", null).show();
-            return;
-        }
-        if (entries.length() == 0) {
-            new AlertDialog.Builder(activity).setTitle("Virtual Experiment Notebook")
-                    .setMessage("No saved studies yet. Generate a virtual study and choose Save to notebook.")
-                    .setPositiveButton("Close", null).show();
-            return;
-        }
-        String[] labels = new String[entries.length()];
-        for (int i = 0; i < entries.length(); i++) {
-            org.json.JSONObject item = entries.optJSONObject(i);
-            labels[i] = item == null ? "Unavailable entry"
-                    : item.optString("title", "Virtual study") + " • SIMULATION ONLY";
-        }
-        new AlertDialog.Builder(activity).setTitle("Virtual Experiment Notebook")
-                .setItems(labels, (dialog, which) -> {
-                    org.json.JSONObject item = entries.optJSONObject(which);
-                    if (item != null) {
-                        String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",
-                                java.util.Locale.getDefault()).format(
-                                new java.util.Date(item.optLong("created_at", 0L)));
-                        new AlertDialog.Builder(activity).setTitle(item.optString("title", "Virtual study"))
-                                .setMessage("SIMULATION ONLY • EDUCATIONAL TEXT\nSaved: " + date + "\n\n"
-                                        + item.optString("content", ""))
-                                .setPositiveButton("Close", null).show();
-                    }
-                })
-                .setNeutralButton("Delete all", (dialog, which) ->
-                        new AlertDialog.Builder(activity).setTitle("Delete saved studies?")
-                                .setMessage("This removes only the notebook entries stored by JARVIS on this device.")
-                                .setNegativeButton("Cancel", null)
-                                .setPositiveButton("Delete", (d, w) -> {
-                                    prefs.edit().remove(NOTEBOOK_KEY).apply();
-                                    Toast.makeText(activity, "Notebook cleared.", Toast.LENGTH_SHORT).show();
-                                }).show())
-                .setNegativeButton("Close", null).show();
     }
 }

@@ -101,7 +101,6 @@ final class MemoryExpansionStudio {
                     try {
                         item.put("kind", "node"); item.put("name", value);
                         item.put("detail", detail.getText().toString().trim());
-                        item.put("provenance", "Owner-entered");
                         item.put("createdAt", System.currentTimeMillis());
                         graph.put(item);
                         prefs.edit().putString(GRAPH_KEY, graph.toString()).apply();
@@ -135,8 +134,7 @@ final class MemoryExpansionStudio {
                     JSONObject edge = new JSONObject();
                     try {
                         edge.put("kind", "link"); edge.put("from", a); edge.put("relation", rel);
-                        edge.put("to", b); edge.put("provenance", "Owner-entered");
-                        edge.put("createdAt", System.currentTimeMillis());
+                        edge.put("to", b); edge.put("createdAt", System.currentTimeMillis());
                         latest.put(edge);
                         prefs.edit().putString(GRAPH_KEY, latest.toString()).apply();
                         toast(activity, "Relationship saved.");
@@ -153,11 +151,8 @@ final class MemoryExpansionStudio {
             JSONObject item = graph.optJSONObject(i);
             if (item == null) rows[i] = "Unavailable item";
             else if ("link".equals(item.optString("kind")))
-                rows[i] = item.optString("from") + " — " + item.optString("relation") + " → " + item.optString("to")
-                        + " • " + item.optString("provenance", "Legacy • source not recorded");
-            else rows[i] = "● " + item.optString("name")
-                    + (item.optString("detail").isEmpty() ? "" : " — " + item.optString("detail"))
-                    + " • " + item.optString("provenance", "Legacy • source not recorded");
+                rows[i] = item.optString("from") + " — " + item.optString("relation") + " → " + item.optString("to");
+            else rows[i] = "● " + item.optString("name") + (item.optString("detail").isEmpty() ? "" : " — " + item.optString("detail"));
         }
         new AlertDialog.Builder(activity).setTitle("Knowledge Graph • " + rows.length + " items")
                 .setItems(rows, (d, which) -> {
@@ -166,8 +161,7 @@ final class MemoryExpansionStudio {
                             "Created: " + item.optLong("createdAt") + "\n\n"
                                     + ("link".equals(item.optString("kind"))
                                     ? item.optString("from") + " — " + item.optString("relation") + " → " + item.optString("to")
-                                    : item.optString("name") + "\n" + item.optString("detail"))
-                                    + "\n\nProvenance: " + item.optString("provenance", "Legacy • source not recorded"));
+                                    : item.optString("name") + "\n" + item.optString("detail")));
                 }).setNegativeButton("Back", (d, w) -> showGraph(activity, prefs, onChanged)).show();
     }
 

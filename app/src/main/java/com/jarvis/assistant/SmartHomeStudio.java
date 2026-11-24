@@ -71,19 +71,11 @@ public final class SmartHomeStudio {
     }
 
     private static void inventoryMenu(Activity activity) {
-        String[] actions = {
-                "Add a room/device label",
-                "Add Bluetooth accessory label",
-                "Open Android Bluetooth settings",
-                "View / remove devices",
-                "Clear inventory"
-        };
-        new AlertDialog.Builder(activity).setTitle("Local Smart Home & Accessory Inventory")
+        String[] actions = {"Add a device", "View / remove devices", "Clear inventory"};
+        new AlertDialog.Builder(activity).setTitle("Local Smart Home Inventory")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) addInventoryItem(activity);
-                    else if (which == 1) addBluetoothAccessory(activity);
-                    else if (which == 2) openBluetoothSettings(activity);
-                    else if (which == 3) viewInventory(activity);
+                    else if (which == 1) viewInventory(activity);
                     else clearInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
@@ -125,47 +117,6 @@ public final class SmartHomeStudio {
                 });
     }
 
-    private static void addBluetoothAccessory(Activity activity) {
-        JSONArray current = readInventory(activity);
-        if (current == null) return;
-        if (current.length() >= MAX_ITEMS) {
-            Toast.makeText(activity, "Inventory limit is " + MAX_ITEMS + " items.", Toast.LENGTH_LONG).show();
-            return;
-        }
-        askText(activity, "Add Bluetooth accessory label",
-                "Example: Headphones — personal device. Do not enter serial numbers, MAC addresses, PINs or account details.",
-                100, details -> {
-                    String label = SmartHomeAccessoryRules.createBluetoothLabel(details);
-                    if (label == null) {
-                        Toast.makeText(activity, "Enter a short accessory label.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    JSONArray latest = readInventory(activity);
-                    if (latest == null) return;
-                    if (latest.length() >= MAX_ITEMS) {
-                        Toast.makeText(activity, "Inventory limit is " + MAX_ITEMS + " items.", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    latest.put(label);
-                    boolean saved = preferences(activity).edit().putString(INVENTORY_KEY, latest.toString()).commit();
-                    Toast.makeText(activity, saved ? "Bluetooth accessory label saved locally." : "Could not save inventory.", Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    private static void openBluetoothSettings(Activity activity) {
-        new AlertDialog.Builder(activity)
-                .setTitle("Open Android Bluetooth settings?")
-                .setMessage("You will pair or unpair accessories yourself in Android settings. JARVIS does not scan nearby devices, read device identifiers, or pair/connect automatically. To revoke a pairing, choose the accessory in Android Bluetooth settings and select Forget.")
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Open settings", (dialog, which) -> {
-                    try {
-                        activity.startActivity(new android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));
-                    } catch (Exception e) {
-                        Toast.makeText(activity, "Bluetooth settings could not be opened. Use Android Settings > Bluetooth.", Toast.LENGTH_LONG).show();
-                    }
-                }).show();
-    }
-
     private static void viewInventory(Activity activity) {
         JSONArray array = readInventory(activity);
         if (array == null) return;
@@ -181,9 +132,7 @@ public final class SmartHomeStudio {
         new AlertDialog.Builder(activity).setTitle("Saved device labels • tap to remove")
                 .setItems(items, (dialog, which) -> new AlertDialog.Builder(activity)
                         .setTitle("Remove this label?")
-                        .setMessage(items[which] + (SmartHomeAccessoryRules.isBluetoothLabel(array.optString(which, ""))
-                                ? "\n\nThis removes only the JARVIS inventory label. To unpair the accessory, open Android Bluetooth settings and choose Forget."
-                                : "\n\nThis removes only the locally saved label."))
+                        .setMessage(items[which])
                         .setNegativeButton("Cancel", null)
                         .setPositiveButton("Remove", (d, w) -> removeInventoryItem(activity, which))
                         .show())

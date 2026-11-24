@@ -28,46 +28,17 @@ public final class PublicKnowledgeStudio {
         String[] items = {
                 "Country Information • name or ISO code",
                 "India PIN Code • post offices and district",
-                "English Dictionary • meaning and pronunciation",
-                "Wikipedia Topic Lookup • sourced summary"
+                "English Dictionary • meaning and pronunciation"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Public Knowledge Studio")
                 .setItems(items, (dialog, which) -> {
                     if (which == 0) countryInput(activity);
                     else if (which == 1) pinInput(activity);
-                    else if (which == 2) dictionaryInput(activity);
-                    else wikipediaInput(activity);
+                    else dictionaryInput(activity);
                 })
                 .setNegativeButton("Close", null)
                 .show();
-    }
-
-    private static void wikipediaInput(Activity activity) {
-        showInput(activity, "Wikipedia Topic Lookup",
-                "Enter a topic or article title",
-                value -> request(activity,
-                        "https://en.wikipedia.org/api/rest_v1/page/summary/" + pathEncode(value),
-                        PublicKnowledgeStudio::parseWikipediaSummary));
-    }
-
-    private static String parseWikipediaSummary(String body) throws Exception {
-        JSONObject root = new JSONObject(body);
-        String title = root.optString("title", "Topic");
-        String description = root.optString("description", "");
-        String extract = root.optString("extract", "");
-        if (extract.trim().isEmpty()) return "No public summary was returned for this topic.";
-        if (extract.length() > 1200) extract = extract.substring(0, 1200) + "…";
-        JSONObject urls = root.optJSONObject("content_urls");
-        JSONObject desktop = urls == null ? null : urls.optJSONObject("desktop");
-        String page = desktop == null ? "" : desktop.optString("page", "");
-        String timestamp = root.optString("timestamp", "Not supplied");
-        return "TOPIC\\n" + title
-                + (description.isEmpty() ? "" : "\\n" + description)
-                + "\\n\\nSUMMARY\\n" + extract
-                + "\\n\\nSOURCE\\n" + (page.isEmpty() ? "Wikipedia article URL not supplied" : page)
-                + "\\nProvider timestamp: " + timestamp
-                + "\\n\\nWikipedia is a general reference source. Verify important or current facts with official and primary sources.";
     }
 
     private static void countryInput(Activity activity) {
@@ -265,7 +236,6 @@ public final class PublicKnowledgeStudio {
                             connection.setConnectTimeout(10000);
                             connection.setReadTimeout(15000);
                             connection.setRequestProperty("Accept", "application/json");
-                            connection.setRequestProperty("User-Agent", "JARVIS-Android/1.0 (public reference lookup)");
                             int status = connection.getResponseCode();
                             InputStream stream = status >= 200 && status < 300
                                     ? connection.getInputStream() : connection.getErrorStream();

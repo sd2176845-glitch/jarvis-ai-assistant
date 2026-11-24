@@ -68,7 +68,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Show microphone/listening state clearly and provide a reliable stop control.
 - [ ] Verify install, launch, voice, AI response, app commands, memory clear, and service stop on the actual phone.
 - [ ] Add user-configurable wake-word/listening preferences only where the selected recognition engine supports them; explain battery and privacy trade-offs and retain a clear manual stop/pause control.
-- [ ] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data.
+- [x] Add a device-health command for battery, storage and network connectivity using Android-supported data; avoid claiming access to hidden diagnostics or private app data (code present — device test needed).
 
 ### Priority 2 — Online intelligence and API integrations
 - [ ] Native weather integration using Open-Meteo; show location, units, timestamp and API errors clearly.
@@ -96,8 +96,7 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 ### Priority 4 — Memory and personal secretary
 - [ ] User-approved long-term preferences with review/edit/delete controls.
 - [ ] Structured notes and to-do lists with editing and deletion per item (current implementation stores and clears a simple local notes text list).
-- [x] One-time JARVIS-owned scheduled reminders with local Android notification delivery, app-private reminder records, and future-alarm recovery after device reboot or app replacement (code present; inexact/Doze-sensitive delivery and notification permission require Poco device testing).
-- [x] Owner-controlled quiet hours and a 10-minute snooze action for JARVIS-created reminder notifications; reminders due during quiet hours are deferred until the configured end time. This does not read or manage notifications from other apps (code present; CI/device verification tracked separately).
+- [ ] True scheduled reminders with JARVIS notification delivery (current reminder control only opens Android's alarm UI; it does not schedule JARVIS reminders).
 - [ ] Calendar-connected morning briefing and daily schedule.
 - [ ] Multi-step commands using supported actions, with confirmation for sensitive steps.
 - [ ] Expand multi-step command handling into a safe command-chain planner: parse the requested steps, show the proposed actions, execute reversible low-risk steps, and ask separately before calls, messages, purchases, sharing data or changing calendar events.
@@ -831,7 +830,16 @@ The owner approved the following ten additional concepts for inclusion in the JA
 
 **Relationship to existing priorities:** Priority 4 remains the reminders/calendar/memory foundation; Priority 7 remains diagnostics; Priority 17 remains scheduled research; Priority 22 remains knowledge and decision support; Priority 27 remains the Personal Knowledge Vault and life-event recall; Priority 34 remains the workspace/resource foundation; Priority 36 remains workflow orchestration; Priority 37 remains global research and connectivity. Priority 38 adds owner-facing personal and practical modules by reusing those foundations rather than duplicating them.
 
-Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-present increments tracked in B26–B28, Life Management has a read-only overview increment in B29, Disaster Preparedness has an offline information-pack increment in B30, Vehicle Intelligence has a service due-date tracker increment in B31, and AI Learning Academy has a progress/revision increment in B32. Target-phone verification remains pending; vehicle reminder integration and remaining Priority 38 modules remain planned. Keep JARVIS separate from Even; do not modify Even.
+All Priority 38 items remain planned until implemented, built, tested and verified on the target Poco M4 Pro 4G. Keep JARVIS separate from Even; do not modify Even.
+
+## Implementation policy — capability upgrades and duplicate prevention
+
+- Treat every existing feature as the baseline. When a planned item is an advanced version or extension of an existing feature, implement only the missing advanced capabilities and integrate them into the existing module; do not create a second copy of the basic feature, duplicate screens, parallel command paths, or redundant storage.
+- Before coding each batch, inspect the current main/feature-branch source, README, blueprint checklist, and relevant services/classes to identify existing implementations and partial implementations.
+- Prefer extending/refactoring the existing class, service, UI, API contract, or data model. Reuse existing permissions, settings, event flows, and persistence where appropriate.
+- If a genuinely separate capability requires a separate module, document why it cannot be safely integrated, define its boundary and shared interfaces, and avoid repeating existing user-facing functionality.
+- Update checklist status only to the level supported by source inspection and build/device-test evidence. Code-present is not the same as tested or production-ready.
+- Preserve JARVIS as a project separate from Even. Do not change unrelated projects.
 
 
 ## Implementation status addendum — M05 Public Knowledge Lookups (Batch B05; 2026-11-22)
@@ -884,6 +892,32 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
 
 
+## Implementation status addendum — M13 Personal Productivity Studio (Batch B10; 2026-11-22)
+- **Project Workspace:** code added; groups existing structured tasks by owner-assigned project label; no duplicate task store; CI/device verification pending.
+- **Priority Matrix:** code added; four priority labels saved on existing task objects; CI/device verification pending.
+- **Weekly Review:** code added; counts tasks created in the last seven days and their current status; does not infer completion dates; CI/device verification pending.
+- Reuses `structured_tasks_v1`; no new permissions or background scheduling.
+
+
+**B10 verification update (2026-11-22):** rebased code/documentation head `5c6b3929c99aafdfd589d83c0921cdf8a3684a4f` passed GitHub Actions run #615 (`45046258241`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764031146`, SHA-256 `ee320e43e1d627326173b5537b151eb7df29dd42b7c118dc2bb4bd3fe2c19582`. No separate unit-test/lint task ran; target-device verification remains pending.
+
+
+**B10 verification update (2026-11-22):** code/documentation head `f82347780326ecdc4a6bcfd10715a9488ba11f77` passed GitHub Actions run #620 (`45046350249`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762974382`, SHA-256 `3186014ea76112d07da2dde3e9595c5c5e70af900a5348522d7c881e12902571`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #33 is open and unmerged.
+
+
+## Implementation status addendum — M15 Creative Media Studio (Batch B11; 2026-11-22)
+- **Video Script Planner:** code added; original timed scripts and scene notes; text output only; final rebased CI/device verification pending.
+- **Storyboard & Shot List:** code added; numbered scene/framing/transition plans with accessibility notes; text output only; final rebased CI/device verification pending.
+- **Presentation Builder:** code added; slide outline, bullets, speaker notes and sources-to-verify; text output only; no PPTX generation; final rebased CI/device verification pending.
+- Uses memory-isolated AI request with explicit confirmation; no new permissions or persistent creative archive.
+
+
+**B11 verification update (2026-11-22):** rebased head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14` passed GitHub Actions run #636 (`45046654060`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #35 is open and unmerged.
+
+
+**B11 final verification update (2026-11-22):** rebased head `9afe85fc318780b6605f0808bd5042a53ecc2216` passed GitHub Actions run #639 (`45046733733`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763344964`, SHA-256 `155e413f753aaee977972cf8a5e5f7061f7c2dc38ea65a8c675ea8680d05f0ab`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #35 is open and unmerged.
+
+
 ## Implementation status addendum — M13 Creative Media Studio (Batch B10; 2026-11-22)
 - **Image Concept Builder:** code added; produces an original image prompt, format-specific composition and alt text; no image file is generated; CI/device verification pending.
 - **Video Storyboard Studio:** code added; produces a timed scene plan with visuals, narration and captions; no video file is rendered; CI/device verification pending.
@@ -931,165 +965,3 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 - Added a local Vehicle Maintenance Log with owner-entered service records and CRUD controls. It does not request vehicle identifiers, sync to cloud, schedule reminders or duplicate M07 tasks.
 - Three focused JUnit tests were added; CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
 - JARVIS only; Even remains untouched.
-
-
-## B24 implementation note — Smart Asset & Inventory Intelligence MVP (2026-11-23)
-
-- **MVP code-present; Priority 38 remains partially pending.** Added an owner-invoked local catalog for household items, electronics, tools and equipment inside the existing Practical Intelligence Studio.
-- Supports add, inspect, remove and clear operations; fields are item nickname, category, optional purchase-date label, condition and optional short notes. The list is bounded to 100 entries.
-- Uses a separate app-private preference key and does not reuse or alter the vehicle maintenance log, task store, reminders or Personal Knowledge Vault.
-- Privacy scope is deliberately narrower than the full blueprint: no serial numbers, registration/identity details, receipt/manual scanning, camera access, cloud sync or automatic collection. No new Android permission.
-- Full Priority 38 scope (warranty/manual attachments, reminder integration, encrypted export/restore and device testing) remains pending; do not mark the overall priority complete.
-- JARVIS only; Even remains untouched.
-
-
-## B25 implementation note — Owner-entered Warranty Tracking (2026-11-23)
-
-- **Code-present; device test pending.** Extended B24 Smart Asset Inventory with an optional warranty end date and an Active/Expired status shown in item details.
-- Uses strict Gregorian `YYYY-MM-DD` validation, including leap-year handling. The expiry date is treated as inclusive; missing/invalid values are not guessed.
-- Existing B24 records without a warranty field remain compatible and show `Not recorded`.
-- Reuses the existing inventory record and app-private preference key. No second inventory, receipt scanning, serial-number collection, background monitoring, cloud upload or new permission.
-- JUnit coverage added for leap years, invalid dates, malformed input, expiry-day inclusivity and missing data.
-- This is a partial Priority 38 increment only. Manual/receipt attachments, reminder integration, encrypted export/restore and physical Poco testing remain pending.
-- JARVIS only; Even remains untouched.
-
-
-## B26 continuation note — Owner-selected receipt/manual references (2026-11-24)
-
-- **Code-present; CI verified; device verification pending.** The existing M19 Smart Asset Inventory can now link one owner-selected PDF/JPEG/PNG/WebP receipt or manual to an existing item.
-- Uses Android's Storage Access Framework document picker. JARVIS stores a content URI, sanitized display name and MIME type in the existing inventory record; it does not copy, scan, OCR, upload or silently discover files.
-- Only a persistable read grant is retained. The owner can explicitly open, replace or remove the reference. Removal/deletion/clear releases the saved grant after a successful inventory update; the original provider file is never deleted by JARVIS.
-- No new storage permission, separate document database, background activity or network transfer. Existing inventory export excludes attachment metadata.
-- **CI:** GitHub Actions run #1022 (`45352808375`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `244ecd9a6da109de52744073ac0c40a21aa35868`.
-- **Scope limitation:** this completes the basic local receipt/manual-reference increment only. Priority 38 reminder integration, encrypted export/restore and Poco M4 Pro 4G physical-device verification remain pending. Do not mark the entire Priority 38 suite complete.
-
-
-## B27 implementation update — Priority 38 Warranty Reminder Integration (2026-11-24)
-- Extended the existing M19 Smart Asset Inventory menu with an owner-invoked warranty reminder action.
-- Owner selects an item with a valid current/future warranty date and chooses the reminder date/time; the selected date must not be after the recorded warranty end date.
-- Reuses the existing JARVIS ReminderStore, ReminderReceiver, notification channel, reboot restoration and snooze behavior. No duplicate scheduler, new reminder database, background collection or new Android permission.
-- Reminder content is limited to "Warranty check: [item name]"; notes and receipt/manual attachment metadata are excluded.
-- If notifications are disabled, JARVIS offers Android notification settings and does not claim success. A scheduling failure rolls back the newly saved reminder record.
-- Focused unit coverage added for reminder-title validation. CI and Poco M4 Pro 4G runtime verification are pending until recorded in the implementation tracker.
-- JARVIS only; Even remains untouched.
-
-
-**B27 verification update (2026-11-24):** final documented head `4a41e42681b855e2482926ab5d2806727f7a9d89` passed GitHub Actions run #1032 (`45360490561`): Android unit tests, debug APK build and artifact upload succeeded. An earlier intermediate run #1026 failed because the feature UI referenced a helper not yet present on that intermediate commit; the helper was subsequently included and the final documented head passed. Poco M4 Pro 4G notification delivery, reboot restoration and snooze behavior remain pending.
-
-
-## B28 implementation update — Encrypted Asset Inventory Backup & Restore (2026-11-24)
-- **Canonical owner:** M19 Smart Asset Inventory; upgrades the existing inventory menu and uses the existing `owner_asset_inventory_v1` SharedPreferences key. No duplicate inventory store or backup subsystem was added.
-- **Export:** owner selects the destination through Android Storage Access Framework. The versioned `.jva` archive contains only allowlisted item name, category, purchase-date label, condition, warranty end date, notes and creation timestamp. Receipt/manual content URIs, provider filenames, MIME metadata, persisted document permissions, app credentials and unrelated JARVIS data are excluded.
-- **Encryption:** AES-256-GCM authenticated encryption with a fresh 16-byte salt, 12-byte IV, 128-bit authentication tag and PBKDF2-HMAC-SHA256 (150,000 iterations). Passphrase length is 12–128 characters; it is held transiently and is not saved. Lost passphrases cannot be recovered.
-- **Restore:** selected archive is size-bounded, decrypted and authenticated before JSON parsing; version, required fields, existing inventory validators and the 100-record limit are checked. A preview offers merge (adds only items without an existing same-name/category match) or replace (separate destructive confirmation). Replace releases old persisted document read grants only after the preference update succeeds; original provider files are never deleted. Existing warranty reminders remain unchanged.
-- **Failure behavior:** wrong passphrase, altered ciphertext, unsupported header/version, malformed records, oversized files or failed preference commits do not alter the existing inventory. No network transfer or new Android permission is used.
-- **Tests:** focused JUnit tests cover round-trip encryption, ciphertext confidentiality, wrong-passphrase rejection, tamper detection and malformed/short-password rejection.
-- **CI/build:** PASS — GitHub Actions run #1037 (`45362567473`) on exact final feature-code head `1c4c569220f627c76076bcf90a8e5439c1cf34ea`; backend syntax validation, Android unit tests, debug APK build and artifact upload succeeded. Artifact `jarvis-debug-apk`, ID `14904838906`, size 23,277,086 bytes; uploaded ZIP SHA-256 `ba55fb8809f04496d0606985111d52f13aaf7f73cf5ae51a25230f57f8ee597a`.
-- **Poco M4 Pro 4G:** physical-device verification remains pending: create/open archive through document providers, wrong-password/tamper rejection, merge/replace behavior, and document-permission release.
-- **Anti-duplication:** extends the existing asset inventory export/menu and preference key; does not create another scheduler, document manager, or data store. JARVIS only; Even untouched.
-
-
-## B29 implementation update — Read-only Life Management Overview (2026-11-24)
-- **Canonical owner:** Priority 38 Life Management Intelligence; extends the existing Tasks & Reminders hub with an overview action rather than adding a second planner or dashboard store.
-- **Existing stores reused:** structured tasks (`structured_tasks_v1`), owner-created reminders (`jarvis_scheduled_reminders_v1`), manual checklists (`manual_workflows_v1`) and owner-curated personal timeline (`memory_timeline_v1`). No records are copied to a new store or changed by the overview.
-- **Summary:** open/completed tasks, overdue tasks, tasks due today and in the next 7 days, malformed non-empty due dates needing review, upcoming reminder counts and next reminder, saved manual checklist count and personal timeline entry count. Shows only the first five due-task lines and indicates additional items.
-- **Boundaries:** local read-only aggregation; no network, location, new permission, automatic calendar import, notification changes, task edits or reminder scheduling. Calendar events are explicitly described as not imported or monitored. Guest mode remains blocked from private overview data.
-- **Tests:** focused JUnit coverage for due-date buckets, completed/open states, malformed dates, upcoming and expired reminders, empty stores, unavailable optional stores and inconsistent inputs.
-- **CI/build:** PASS — GitHub Actions run #1039 (`45363566421`) on exact feature-code head `04c1f861290ed23ef780993f1b23218d80e7a2eb`; backend syntax validation, Android unit tests, Java compilation, debug APK build and artifact upload succeeded. Artifact `jarvis-debug-apk`, ID `14904734084`, size 23,275,421 bytes.
-- **Poco M4 Pro 4G:** physical-device verification remains pending for local date/time boundaries, actual reminder entries, the overview refresh action and guest-mode behavior.
-- **Anti-duplication:** extends the existing Tasks & Reminders hub and reuses canonical task/reminder/workflow/timeline stores. It does not create a new calendar, planner, task database, timeline or reminder scheduler. JARVIS only; Even untouched.
-
-
-## B30 implementation update — Offline Emergency Preparedness Pack (2026-11-24)
-- **Canonical owner:** Priority 38 Disaster Preparedness Intelligence; extends the existing Practical Intelligence / Emergency Readiness area with a separate offline reference option. It does not duplicate or replace the existing AI-generated preparedness brief.
-- **Topics:** General emergency, flood, cyclone/severe storm, earthquake and heatwave.
-- **Offline behavior:** static locally bundled guidance remains readable without network. It clearly states that the pack is not an official warning, live forecast or evacuation order. It directs the owner to follow local authorities and stay with a parent/guardian or trusted adult. India's nationwide emergency number 112 is included with the official MHA reference.
-- **Official-source handoff:** explicit buttons open NDMA SACHET and IMD pages in an installed browser for current bulletins; those links require internet. No automatic alert claim, background polling, location collection, new permission, network request from the offline guide or automatic emergency call was added.
-- **Source set:** MHA ERSS 112 information, NDMA SACHET alert portal and Do's & Don'ts, IMD weather/heat guidance. Source review date is 24 November 2026.
-- **Tests:** focused JUnit coverage for all supported topics, emergency number and official references, hazard-specific safe reminders, unsupported topics and the static/offline versus live-alert disclaimer.
-- **CI/build:** PASS — GitHub Actions run #1042 (`45364985871`) on exact code head `e643991636dc053fb4d8b87860f83c072a37d261`; backend syntax validation, Android unit tests (119 tests; all passed), Java compilation, debug APK build and artifact upload succeeded. The preceding intermediate run #1041 failed one disclaimer wording assertion; the wording was clarified and #1042 passed.
-- **Artifact:** `jarvis-debug-apk`, ID `14905373972`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45364985871/artifacts/14905373972`.
-- **Poco M4 Pro 4G:** physical-device verification remains pending for offline display/scrolling, browser handoff to SACHET/IMD, unavailable-network handling and checking that no location permission/network polling was introduced.
-- **Anti-duplication:** upgrades the existing Emergency Readiness Planner menu with a local static pack; no duplicate planner, alert monitor or forecast engine. JARVIS only; Even untouched.
-
-
-## B31 implementation update — Vehicle Service Due-Date Tracker (2026-11-24)
-- **Canonical owner:** M19 Vehicle Intelligence; extends the existing Local Vehicle Maintenance Log and `vehicle_service_log_v1` records. No second vehicle database or planner was added.
-- **Record upgrade:** optional `next_service_due` date in strict real `YYYY-MM-DD` format. Existing service date, vehicle nickname, odometer and maintenance summary fields remain compatible; old records without the new field continue to load.
-- **Overview:** read-only local report of due-date records, overdue, due today, next 30 days, later dates and malformed dates requiring correction. Vehicle nickname only is displayed; no licence plate, VIN, policy number or personal identity detail is requested.
-- **Boundaries:** this is a family/guardian-managed administrative record, not a mechanical diagnosis, roadworthiness check or driving instruction. No automatic reminder was added in B31; reminder integration remains pending and must reuse the existing JARVIS ReminderStore if added later. No new permission, network request or external vehicle account integration.
-- **Tests:** added validation tests for optional and malformed next-service dates, date-window count tests for overdue/today/next-30/later, invalid dates, empty data and mismatched inputs.
-- **CI/build:** PASS — GitHub Actions run #1044 (`45365706990`) on exact code head `770e35592394a48905f4efee140e4c6ac5f0713a`; backend syntax validation, Android unit tests, Java compilation, debug APK build and artifact upload succeeded.
-- **Artifact:** `jarvis-debug-apk`, ID `14906612856`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45365706990/artifacts/14906612856`.
-- **Poco M4 Pro 4G:** physical-device verification remains pending for legacy record compatibility, date entry, service due overview and local date boundaries.
-- **Anti-duplication:** extends existing vehicle maintenance log and existing date-validation utilities; no duplicate inventory, reminder scheduler or vehicle data store. JARVIS only; Even untouched.
-
-
-## B32 implementation update — Learning Notebook Progress & Revision Planning (2026-11-24)
-- **Canonical owner:** Existing AI Learning Academy / `learning_notebook_v1`; expands the current Learning Notebook instead of creating another learning database.
-- **Progress states:** each saved lesson can be marked Not started, In progress or Completed. A progress overview counts each state and flags unknown/legacy values for review.
-- **Revision planning:** owner can set or clear an optional local `review_on` date using a date picker. The dashboard counts dates due, dates in the next 7 days and malformed values. Older lessons without the new field remain compatible.
-- **Boundaries:** local notebook data only; status/revision changes are owner-invoked. Revision dates are planning notes and do not create notifications, a new scheduler, background activity, external calendar events, network calls or new permissions.
-- **Tests:** focused JUnit coverage for progress status aggregation, unknown/empty statuses, revision date due/upcoming buckets, impossible dates and unreadable/mismatched data.
-- **CI/build:** PASS — GitHub Actions run #1046 (`45366614260`) on exact code head `11dfe5709a80c0ad48ccd9918db6c010e2f322ef`; backend syntax validation, Android unit tests, Java compilation, debug APK build and artifact upload succeeded.
-- **Artifact:** `jarvis-debug-apk`, ID `14906797649`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45366614260/artifacts/14906797649`.
-- **Poco M4 Pro 4G:** physical-device verification remains pending for existing notebook compatibility, saving/reloading progress status, setting/clearing revision dates and local date boundaries.
-- **Anti-duplication:** upgrades `learning_notebook_v1` and existing AI Learning Academy menu; no duplicate learning store or scheduler. JARVIS only; Even untouched.
-
-
-## B33 — Environmental Intelligence expansion (2026-11-24)
-- **Progress: 5/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
-- **Feature 1:** owner-entered city search and selected-place lookup for modelled U.S. AQI, European AQI, PM2.5, PM10, ozone, nitrogen dioxide, sulphur dioxide and UV index using Open-Meteo Air Quality API. Provider model timestamp and timezone are shown.
-- **Important distinction:** modelled regional estimates are not CPCB station readings. U.S./European AQI scales are not India's CPCB National AQI scale. No official alert or medical advice is implied.
-- **Privacy:** no GPS, location permission, home address, background polling, automatic storage or sharing. Existing manual CPCB observations remain separately available.
-- **Verification:** GitHub Actions run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`. Poco M4 Pro 4G physical-device verification remains pending.
-- Priority 38 remains in progress; this is one increment of the B33 20-capability milestone, not completion of the full environmental module.
-
-
-## B33 implementation status — Feature 2 (2026-11-24)
-
-
-### B33 Feature 2 — 24-hour modelled air-quality forecast (2026-11-24)
-- **Progress:** 2/20 net-new Environmental Intelligence capabilities are code-present and CI-verified.
-- **Capability:** owner selects a city through the existing shared city picker and can view up to 24 hourly forecast points for U.S. AQI, European AQI, PM2.5 and PM10 from the Open-Meteo Air Quality API.
-- **Interpretation:** each point is timestamped in the selected location's time zone. U.S./European indices are labelled separately and are not India's CPCB National AQI. Model-grid estimates are not CPCB station observations, official alerts or medical advice.
-- **Privacy:** city-only, owner-invoked lookup with explicit disclosure; no GPS, location permission, home address, background polling, automatic log writes or sharing. Existing manual CPCB observation records remain unchanged.
-- **Anti-duplication:** adds a forecast view to the existing Environmental Intelligence menu and reuses the existing city picker and network helper; no second dashboard, location service, observation store or scheduler.
-- **Tests:** added unit coverage for missing/malformed values, sanitized place labels and the 24-entry output cap.
-- **CI/build:** PASS — GitHub Actions run #1060 (`45384556838`) on exact feature-code head `6435cad8bd405dd6f5f884e2c0611aadce5464d7`; backend syntax checks, Android unit tests, debug APK build and artifact upload all succeeded.
-- **APK artifact:** `jarvis-debug-apk`, ID `14914259944`, size 23,290,448 bytes, SHA-256 `6e8627614f079d08c8c62fd139c40648bdebc565abb417ce25b6acb5f3558595`.
-- **Poco M4 Pro 4G:** physical-device verification remains pending.
-
-
-## B33 implementation status — Feature 3 (2026-11-24)
-
-
-### B33 Feature 3 — 24-hour modelled UV-index forecast (2026-11-24)
-- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present and CI-verified (run #1064 / `45386198143`); Poco M4 Pro 4G physical-device verification remains pending.
-- **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly UV-index estimates plus a separately labelled clear-sky reference from the Open-Meteo Air Quality API.
-- **Interpretation:** uses WHO Global Solar UV Index exposure bands (Low, Moderate, High, Very high, Extreme). Protection guidance begins at UVI 3; very high/extreme levels are highlighted. This is general public-safety information, not a personal exposure calculation or medical advice.
-- **Data limits:** CAMS model-grid estimates are not direct ground measurements. Clear-sky values assume cloud-free conditions and are not presented as expected actual exposure.
-- **Privacy:** owner-invoked city-only lookup; reuses existing geocoder/network helper; no GPS, location permission, home address, background polling, saved location or automatic history.
-- **Anti-duplication:** a distinct UV outlook, not another air-quality dashboard or AQI forecast; no new data store, location system, scheduler or permissions.
-- **Tests:** added JUnit coverage for WHO UV band boundaries, missing/malformed values, sanitized labels and the 24-entry output cap.
-- **Poco M4 Pro 4G:** physical-device verification remains pending.
-
-
-### B33 Feature 4 — 24-hour modelled weather watch outlook (2026-11-24)
-- Added an owner-invoked 24-hour city forecast for thunderstorm/hail, heavy precipitation, wind, apparent-temperature and visibility planning indicators.
-- Reuses the existing Environmental Intelligence menu, city picker and network helper. No duplicate weather dashboard, location service, GPS permission, saved location, background monitoring or automatic alerts.
-- Thresholds are planning heuristics, not official IMD warning levels or emergency alerts. CI run #1070 (`45392316586`) passed backend syntax, Android unit tests, debug APK build and artifact upload. Poco physical-device testing pending.
-
-### B33 priority order for remaining capabilities
-1. Official NDMA SACHET disaster-alert feed reader with source attribution, timestamp handling, CAP details and ETag/304 caching.
-2. Additional high-impact environmental preparedness based on authoritative observations and warnings, including flood, heat and pollution context.
-3. Forecast interpretation and historical context.
-4. Lower-impact environmental reference and convenience features.
-Use authority and reliability of sources as a gate. Never relabel model-derived estimates or heuristics as official alerts.
-
-### B33 Feature 5 — Official NDMA SACHET CAP disaster-alert reader (2026-11-24)
-- Adds an owner-invoked read-only reader for All-India SACHET RSS entries and their linked CAP alert records, with optional local state/district filtering based on CAP affected-area descriptions.
-- Displays sender, sent/effective/expiry times, status, event, urgency, severity, certainty, headline, description, official instruction and affected area when supplied by the source.
-- Accepts CAP links only from the exact HTTPS SACHET host and endpoint path. Stores CAP XML and ETag in the existing private preferences store; subsequent requests use `If-None-Match` and reuse the cached XML on 304, following the NDMA integration guide.
-- No GPS, location permission, background polling, push alerts, automatic emergency action, external sharing or location history. The existing offline emergency-preparedness pack remains unchanged.
-- GitHub Actions run #1079 (`45393701084`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`. Artifact `14919538306`; Poco M4 Pro 4G device verification remains pending.
