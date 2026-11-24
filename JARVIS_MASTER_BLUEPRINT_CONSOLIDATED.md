@@ -414,3 +414,11 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Receipt/manual reference behavior:** one owner-selected PDF/JPEG/PNG/WebP content URI per existing asset record; stores only sanitized name, MIME and URI in the existing local inventory record. Uses Android's Storage Access Framework and a persistable READ grant only; no broad storage permission, file copy, scan, OCR, network upload or new storage key. Explicit open/replace/remove actions; removal and inventory deletion/clear release the saved read grant after successful local update. Existing export excludes attachment metadata.
 - **Verification:** GitHub Actions run #1022 (`45352808375`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `244ecd9a6da109de52744073ac0c40a21aa35868`. Poco M4 Pro 4G physical-device testing remains pending.
 - **Remaining Priority 38 scope:** reminder integration and encrypted export/restore remain separate pending work. B26 inventory code completion does not mark the entire M19 or Priority 38 suite complete.
+
+
+## B27 — Priority 38 warranty reminder integration (2026-11-24)
+- **Code-present:** owner can choose a valid current/future warranty item and set a reminder date/time no later than the warranty end date.
+- **Integration:** reuses existing ReminderStore/ReminderReceiver, notification channel, reboot restoration and snooze controls; no duplicate scheduler or new permission.
+- **Privacy/reliability:** reminder title contains only the item name; notifications-disabled state is handled with a settings handoff; failed scheduling rolls back the new reminder record.
+- **Tests:** bounded reminder-title helper covered by focused JUnit test. CI/build and Poco M4 Pro 4G runtime verification pending.
+- JARVIS only; Even untouched.
