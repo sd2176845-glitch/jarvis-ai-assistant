@@ -7,11 +7,12 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/priority-4-independent-connectivity`, stacked on Priority 3; current implementation head before the tracker update is `98461a97427d1400560bab38a7d69348980a81b7`.
+- Current continuation branch: `feature/priority-5-adaptive-network-failover`, stacked on Priority 4; current implementation head before the tracker update is `3d1d2cebce48e70e9ee25be1357879885c35e734`.
 - Priority 1 draft PR #56 remains open, draft and unmerged. Final tracker head `1d642d9703f5c2b4d4775875bc71e73811dbc9cd` passed CI run #1107 (`45404473584`).
 - Priority 2 draft PR #57 remains open, draft and unmerged. Final tracker head `dcaa66e481e8135b12f4324cd9ed089142b07cb5` passed CI run #1117 (`45406022969`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload.
 - Priority 3 draft PR #58 remains open, draft and unmerged. Final tracker head `21004ecab3432d4a29a1f572a0a0e2b2483b8556` passed CI run #1124 (`45407321077`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload.
-- Priority 4 Independent Connectivity CI: run #1130 (`45408537407`) passed on exact implementation head `98461a97427d1400560bab38a7d69348980a81b7`: backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14926853322`.
+- Priority 4 draft PR #59 remains open, draft and unmerged. Final tracker head `3afb07801b4fc245170e4392b4c952a1ff3fffce` passed CI run #1131 (`45408924743`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload. Implementation head `98461a97427d1400560bab38a7d69348980a81b7` passed run #1130 (`45408537407`).
+- Priority 5 Adaptive Network-Aware AI Failover: implementation head `3d1d2cebce48e70e9ee25be1357879885c35e734` passed CI run #1135 (`45409604272`), including backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14926233271`.
 - B26 draft PR #54 and B33 draft PR #55 remain open, draft and unmerged.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched. Do not merge any draft PR without explicit owner approval.
 
@@ -1243,3 +1244,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **APK artifact:** `jarvis-debug-apk`, ID `14926853322`, size 23,320,689 bytes.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for Wi-Fi/mobile/VPN transitions, local-only network behavior, monitoring stop on close/background, and API 23 callback fallback.
 - **Anti-duplication / scope:** extends the existing Connectivity Intelligence / Network Health Snapshot and reuses the existing permission. This is a foreground monitor of Android-reported default connectivity, not a private mesh network, peer discovery, LAN file transfer or independent internet service. Those require separate, explicitly authorized hardware/protocol implementations. JARVIS only; Even untouched.
+
+## Priority sequence — Feature 5/15: Adaptive Network-Aware AI Failover (2026-11-24)
+- **Canonical owner:** existing `JarvisAiClient`, `ConnectivityIntelligenceRules`, the saved Local/Global/Hybrid mode in the existing `jarvis_preferences`, and the current `ACCESS_NETWORK_STATE` permission.
+- **Cloud route decision:** before AI chat, standalone AI prompts or speech-transcript correction are sent, JARVIS checks Android's active default network. Local mode continues to block cloud requests. Global and Hybrid only proceed when a default network exists and Android reports the INTERNET capability.
+- **Unknown-state behavior:** if Android cannot provide capability details, or access to network-state information is unavailable, JARVIS fails open and allows the existing bounded HTTP request. An INTERNET capability is treated as a route hint, not proof that the JARVIS provider is reachable; an unvalidated internet-capable route is still allowed to attempt the request.
+- **No-route behavior:** Hybrid and Global return mode-specific, truthful offline/network messages immediately without opening a cloud request. Speech correction returns the original transcript to the existing local confirmation-aware command router.
+- **Privacy / permissions:** reuses the existing network-state permission and existing preferences; no new permission, persistent listener, background service, network scan, credential collection, network connection attempt or local data store.
+- **Tests:** added JUnit coverage for Local-mode blocking, missing active route, active local-only route, internet-capable route, unknown-capability fail-open behavior, and mode-specific no-internet responses.
+- **CI/build:** PASS — GitHub Actions run #1135 (ID `45409604272`) on exact implementation head `3d1d2cebce48e70e9ee25be1357879885c35e734`; backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14926233271`, size 23,321,180 bytes.
+- **Poco M4 Pro 4G:** physical-device tests remain pending for Local/Global/Hybrid routing with Wi-Fi disconnected, mobile data active, local-only Wi-Fi, captive portal/unvalidated network and Android capability-state unavailable cases.
+- **Anti-duplication / scope:** extends Feature 3's existing Local/Global/Hybrid mode and reuses Feature 4's Android network-state foundation. It does not add another connectivity monitor, scheduler, AI client, local model or memory store. JARVIS only; Even untouched.
