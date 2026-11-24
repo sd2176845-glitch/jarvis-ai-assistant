@@ -163,6 +163,57 @@ public class EnvironmentIntelligenceRulesTest {
     }
 
     @Test
+    public void weatherWatchFlagsThunderstormRainWindHeatAndLowVisibility() {
+        String report = EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
+                "Kolkata", new String[]{"17:00", "18:00", "19:00", "20:00"},
+                new String[]{"95", "65", "0", "0"},
+                new String[]{"85", "75", "10", "10"},
+                new String[]{"8.0", "22.5", "0.0", "0.0"},
+                new String[]{"20", "25", "42", "10"},
+                new String[]{"35", "61", "50", "10"},
+                new String[]{"30", "31", "39.5", "29"},
+                new String[]{"8000", "5000", "5000", "900"},
+                "Asia/Kolkata");
+        assertTrue(report.contains("Thunderstorm signal"));
+        assertTrue(report.contains("Heavy-rain or intense-shower signal"));
+        assertTrue(report.contains("High hourly precipitation estimate (22.5 mm)"));
+        assertTrue(report.contains("Strong wind-gust indicator (61 km/h)"));
+        assertTrue(report.contains("High apparent-temperature indicator (39.5 °C)"));
+        assertTrue(report.contains("Low-visibility indicator (900 m)"));
+        assertTrue(report.contains("not official IMD warnings"));
+    }
+
+    @Test
+    public void weatherWatchTreatsMissingAndMalformedValuesAsUnavailable() {
+        String report = EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
+                "Kolkata\\nInjected", new String[]{"17:00"},
+                new String[]{"bad"}, new String[]{"unknown"}, new String[]{"NaN"},
+                null, new String[]{"Infinity"}, new String[]{"not-a-temperature"},
+                new String[]{"-1"}, "Asia/Kolkata");
+        assertTrue(report.contains("Kolkata Injected"));
+        assertTrue(report.contains("No configured watch indicator crossed"));
+        assertTrue(report.contains("Precipitation probability: Not supplied"));
+        assertTrue(report.contains("Wind / gust: Not supplied / Not supplied"));
+        assertFalse(report.contains("not-a-temperature"));
+        assertFalse(report.contains("Infinity"));
+    }
+
+    @Test
+    public void weatherWatchIsLimitedTo24HourlyEntries() {
+        String[] times = new String[25];
+        String[] codes = new String[25];
+        for (int i = 0; i < 25; i++) {
+            times[i] = "Hour " + i;
+            codes[i] = "0";
+        }
+        times[24] = "EXTRA_25TH_HOUR";
+        String report = EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
+                "Kolkata", times, codes, null, null, null, null, null, null, "Asia/Kolkata");
+        assertTrue(report.contains("Showing 24 hourly model estimates"));
+        assertFalse(report.contains("EXTRA_25TH_HOUR"));
+    }
+
+    @Test
     public void manualObservationRequiresBroadAreaValidValueAndLocalTimestamp() {
         assertNull(EnvironmentIntelligenceRules.validateObservation(
                 "Kolkata / Victoria Memorial", "87", "2026-11-24 15:30"));
