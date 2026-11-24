@@ -35,6 +35,7 @@ public final class EnvironmentIntelligenceStudio {
                 "24-hour modelled air-quality forecast",
                 "24-hour UV index forecast • city search",
                 "24-hour weather hazard outlook • city search",
+                "7-day city weather outlook • daily summary",
                 "Official NDMA SACHET disaster alerts • live feed",
                 "CWC flood forecasts & 7-day basin advisory",
                 "Live CPCB station pollutant readings • city/state",
@@ -50,12 +51,13 @@ public final class EnvironmentIntelligenceStudio {
                     else if (which == 1) LiveInfoStudio.showAirQualityForecast(activity);
                     else if (which == 2) LiveInfoStudio.showUvForecast(activity);
                     else if (which == 3) LiveInfoStudio.showWeatherHazardOutlook(activity);
-                    else if (which == 4) SachetAlertStudio.show(activity);
-                    else if (which == 5) CwcFloodForecastStudio.show(activity);
-                    else if (which == 6) CpcbStationStudio.show(activity);
-                    else if (which == 7) openOfficialSource(activity);
-                    else if (which == 8) addObservation(activity);
-                    else if (which == 9) showObservations(activity);
+                    else if (which == 4) LiveInfoStudio.showSevenDayWeatherOutlook(activity);
+                    else if (which == 5) SachetAlertStudio.show(activity);
+                    else if (which == 6) CwcFloodForecastStudio.show(activity);
+                    else if (which == 7) CpcbStationStudio.show(activity);
+                    else if (which == 8) openOfficialSource(activity);
+                    else if (which == 9) addObservation(activity);
+                    else if (which == 10) showObservations(activity);
                     else showCategoryGuide(activity);
                 }).setNegativeButton("Close", null).show();
     }
