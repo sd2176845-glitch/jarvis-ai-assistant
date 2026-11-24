@@ -1038,7 +1038,7 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 
 
 ## B33 — Environmental Intelligence expansion (2026-11-24)
-- **Progress: 1/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
+- **Progress: 4/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
 - **Feature 1:** owner-entered city search and selected-place lookup for modelled U.S. AQI, European AQI, PM2.5, PM10, ozone, nitrogen dioxide, sulphur dioxide and UV index using Open-Meteo Air Quality API. Provider model timestamp and timezone are shown.
 - **Important distinction:** modelled regional estimates are not CPCB station readings. U.S./European AQI scales are not India's CPCB National AQI scale. No official alert or medical advice is implied.
 - **Privacy:** no GPS, location permission, home address, background polling, automatic storage or sharing. Existing manual CPCB observations remain separately available.
@@ -1065,7 +1065,7 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 
 
 ### B33 Feature 3 — 24-hour modelled UV-index forecast (2026-11-24)
-- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present and CI-verified (run #1064 / `45386198143`); Poco M4 Pro 4G physical-device verification remains pending.
 - **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly UV-index estimates plus a separately labelled clear-sky reference from the Open-Meteo Air Quality API.
 - **Interpretation:** uses WHO Global Solar UV Index exposure bands (Low, Moderate, High, Very high, Extreme). Protection guidance begins at UVI 3; very high/extreme levels are highlighted. This is general public-safety information, not a personal exposure calculation or medical advice.
 - **Data limits:** CAMS model-grid estimates are not direct ground measurements. Clear-sky values assume cloud-free conditions and are not presented as expected actual exposure.
@@ -1073,3 +1073,16 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 - **Anti-duplication:** a distinct UV outlook, not another air-quality dashboard or AQI forecast; no new data store, location system, scheduler or permissions.
 - **Tests:** added JUnit coverage for WHO UV band boundaries, missing/malformed values, sanitized labels and the 24-entry output cap.
 - **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+
+### B33 Feature 4 — 24-hour modelled weather watch outlook (2026-11-24)
+- Added an owner-invoked 24-hour city forecast for thunderstorm/hail, heavy precipitation, wind, apparent-temperature and visibility planning indicators.
+- Reuses the existing Environmental Intelligence menu, city picker and network helper. No duplicate weather dashboard, location service, GPS permission, saved location, background monitoring or automatic alerts.
+- Thresholds are planning heuristics, not official IMD warning levels or emergency alerts. CI run #1070 (`45392316586`) passed backend syntax, Android unit tests, debug APK build and artifact upload. Poco physical-device testing pending.
+
+### B33 priority order for remaining capabilities
+1. Official NDMA SACHET disaster-alert feed reader with source attribution, timestamp handling, CAP details and ETag/304 caching.
+2. Additional high-impact environmental preparedness based on authoritative observations and warnings, including flood, heat and pollution context.
+3. Forecast interpretation and historical context.
+4. Lower-impact environmental reference and convenience features.
+Use authority and reliability of sources as a gate. Never relabel model-derived estimates or heuristics as official alerts.
