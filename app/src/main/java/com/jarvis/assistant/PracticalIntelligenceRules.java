@@ -83,6 +83,11 @@ public final class PracticalIntelligenceRules {
     }
 
     public static String validateVehicleEntry(String vehicle, String date, String odometer, String summary) {
+        return validateVehicleEntry(vehicle, date, odometer, summary, "");
+    }
+
+    public static String validateVehicleEntry(String vehicle, String date, String odometer,
+                                              String summary, String nextServiceDue) {
         if (vehicle == null || vehicle.trim().isEmpty() || vehicle.trim().length() > 40)
             return "Enter a vehicle nickname between 1 and 40 characters.";
         if (date == null || date.trim().isEmpty() || date.trim().length() > 24)
@@ -92,7 +97,74 @@ public final class PracticalIntelligenceRules {
             return "Odometer must be digits only (up to 9 digits), or left blank.";
         if (summary == null || summary.trim().isEmpty() || summary.trim().length() > 300)
             return "Enter a maintenance summary between 1 and 300 characters.";
+        String due = nextServiceDue == null ? "" : nextServiceDue.trim();
+        if (!due.isEmpty() && !isValidIsoDate(due))
+            return "Next service/review date must be a real YYYY-MM-DD date, or left blank.";
         return null;
+    }
+
+    /** Read-only local administrative watchlist for owner/guardian-entered service dates. */
+    public static String vehicleServiceDueSummary(String[] vehicles, String[] dueDates, String today) {
+        if (vehicles == null || dueDates == null || vehicles.length != dueDates.length
+                || !isValidIsoDate(today)) return "Vehicle service overview unavailable.";
+        java.util.Calendar end = java.util.Calendar.getInstance();
+        try {
+            java.text.SimpleDateFormat format =
+                    new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+            format.setLenient(false);
+            java.util.Date parsedToday = format.parse(today);
+            if (parsedToday == null || !format.format(parsedToday).equals(today))
+                return "Vehicle service overview unavailable.";
+            end.setTime(parsedToday);
+            end.add(java.util.Calendar.DAY_OF_YEAR, 30);
+        } catch (java.text.ParseException e) {
+            return "Vehicle service overview unavailable.";
+        }
+        String endDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(end.getTime());
+        int recorded = 0, overdue = 0, dueToday = 0, next30 = 0, later = 0, invalid = 0;
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        for (int i = 0; i < dueDates.length; i++) {
+            String due = dueDates[i] == null ? "" : dueDates[i].trim();
+            if (due.isEmpty()) continue;
+            if (!isValidIsoDate(due)) {
+                invalid++;
+                continue;
+            }
+            recorded++;
+            String nickname = vehicles[i] == null || vehicles[i].trim().isEmpty()
+                    ? "Unspecified vehicle" : vehicles[i].trim().replaceAll("[\\r\\n\\t]+", " ");
+            if (due.compareTo(today) < 0) {
+                overdue++;
+                lines.add("OVERDUE • " + nickname + " — " + due);
+            } else if (due.equals(today)) {
+                dueToday++;
+                lines.add("DUE TODAY • " + nickname);
+            } else if (due.compareTo(endDate) <= 0) {
+                next30++;
+                lines.add("NEXT 30 DAYS • " + nickname + " — " + due);
+            } else {
+                later++;
+            }
+        }
+        StringBuilder report = new StringBuilder("VEHICLE SERVICE / REVIEW DATES\n\n");
+        report.append("Valid dates recorded: ").append(recorded)
+                .append("\nOverdue: ").append(overdue)
+                .append(" • Due today: ").append(dueToday)
+                .append(" • Next 30 days: ").append(next30)
+                .append(" • Later: ").append(later)
+                .append("\nDates needing correction: ").append(invalid).append("\n");
+        if (lines.isEmpty()) {
+            report.append("\nNo valid service/review dates are due or overdue.\n");
+        } else {
+            report.append("\nNEEDS REVIEW\n");
+            int limit = Math.min(10, lines.size());
+            for (int i = 0; i < limit; i++) report.append("• ").append(lines.get(i)).append("\n");
+            if (lines.size() > limit) report.append("…and ").append(lines.size() - limit).append(" more\n");
+        }
+        report.append("\nLocal administrative record only. This is not a mechanical diagnosis or safety inspection. "
+                + "A responsible adult should coordinate any service with a qualified provider.");
+        return report.toString();
     }
     public static String validateAssetEntry(String name, String category, String purchaseDate,
                                              String condition, String notes) {

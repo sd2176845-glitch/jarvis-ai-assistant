@@ -131,13 +131,14 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void vehicleLogMenu(Activity activity) {
-        String[] actions = {"Add maintenance record", "View / remove records", "Clear maintenance log", "Odometer consistency check"};
+        String[] actions = {"Add maintenance record", "View / remove records", "Clear maintenance log", "Odometer consistency check", "Service due overview"};
         new AlertDialog.Builder(activity).setTitle("Local Vehicle Maintenance Log")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) addVehicleRecord(activity);
                     else if (which == 1) viewVehicleRecords(activity);
                     else if (which == 2) clearVehicleLog(activity);
-                    else vehicleOdometerAudit(activity);
+                    else if (which == 3) vehicleOdometerAudit(activity);
+                    else vehicleServiceDueOverview(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -176,6 +177,22 @@ public final class PracticalIntelligenceStudio {
                 .setMessage(message).setPositiveButton("Close", null).show();
     }
 
+    /** Read-only summary of optional owner/guardian-entered service review dates. */
+    private static void vehicleServiceDueOverview(Activity activity) {
+        JSONArray records = readVehicleLog(activity);
+        if (records == null) return;
+        String[] vehicles = new String[records.length()];
+        String[] dueDates = new String[records.length()];
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            vehicles[i] = item == null ? "" : item.optString("vehicle", "");
+            dueDates[i] = item == null ? "" : item.optString("next_service_due", "");
+        }
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        String report = PracticalIntelligenceRules.vehicleServiceDueSummary(vehicles, dueDates, today);
+        new AlertDialog.Builder(activity).setTitle("Vehicle service due overview")
+                .setMessage(report).setPositiveButton("Close", null).show();
+    }
     private static void addVehicleRecord(Activity activity) {
         JSONArray current = readVehicleLog(activity);
         if (current == null) return;
@@ -190,6 +207,7 @@ public final class PracticalIntelligenceStudio {
         EditText summary = field(activity, "Maintenance summary");
         summary.setMinLines(2);
         summary.setMaxLines(4);
+        EditText nextServiceDue = field(activity, "Next service / review date (optional YYYY-MM-DD)");
         LinearLayout form = new LinearLayout(activity);
         form.setOrientation(LinearLayout.VERTICAL);
         form.setPadding(24, 8, 24, 8);
@@ -197,10 +215,11 @@ public final class PracticalIntelligenceStudio {
         form.addView(date);
         form.addView(odometer);
         form.addView(summary);
+        form.addView(nextServiceDue);
         ScrollView scroll = new ScrollView(activity);
         scroll.addView(form);
         new AlertDialog.Builder(activity).setTitle("Add service record")
-                .setMessage("Store only a nickname and maintenance summary. Do not enter registration numbers, VINs, insurance details or personal information.")
+                .setMessage("Store only a nickname and maintenance summary. Do not enter registration numbers, VINs, policy numbers or personal information. The optional next date is an administrative review date, not a mechanical diagnosis.")
                 .setView(scroll)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save locally", (dialog, which) -> {
@@ -208,7 +227,8 @@ public final class PracticalIntelligenceStudio {
                     String d = date.getText().toString().trim();
                     String o = odometer.getText().toString().trim();
                     String s = summary.getText().toString().trim();
-                    String error = PracticalIntelligenceRules.validateVehicleEntry(v, d, o, s);
+                    String due = nextServiceDue.getText().toString().trim();
+                    String error = PracticalIntelligenceRules.validateVehicleEntry(v, d, o, s, due);
                     if (error != null) {
                         Toast.makeText(activity, error, Toast.LENGTH_LONG).show();
                         return;
@@ -221,6 +241,7 @@ public final class PracticalIntelligenceStudio {
                         item.put("date", d);
                         item.put("odometer", o);
                         item.put("summary", s);
+                        item.put("next_service_due", due);
                         item.put("created_at", System.currentTimeMillis());
                         latest.put(item);
                         boolean saved = preferences(activity).edit().putString(VEHICLE_LOG_KEY, latest.toString()).commit();
@@ -251,7 +272,9 @@ public final class PracticalIntelligenceStudio {
             JSONObject item = records.optJSONObject(i);
             if (item == null) labels.add((i + 1) + ". Invalid record");
             else labels.add((i + 1) + ". " + item.optString("vehicle") + " • "
-                    + item.optString("date") + " • " + item.optString("summary"));
+                    + item.optString("date") + " • " + item.optString("summary")
+                    + (item.optString("next_service_due", "").isEmpty() ? ""
+                    : " • Next review " + item.optString("next_service_due")));
         }
         String[] choices = labels.toArray(new String[0]);
         new AlertDialog.Builder(activity).setTitle("Saved records • tap to remove")

@@ -191,4 +191,43 @@ public class PracticalIntelligenceRulesTest {
                 new String[]{"Scooter"}, new String[0], new String[]{"100"})[0]);
     }
 
+
+    @Test public void vehicleNextServiceDueDateIsOptionalButMustBeRealIsoDate() {
+        assertNull(PracticalIntelligenceRules.validateVehicleEntry(
+                "Family car", "2026-11-01", "12000", "Routine service", ""));
+        assertNull(PracticalIntelligenceRules.validateVehicleEntry(
+                "Family car", "2026-11-01", "12000", "Routine service", "2026-12-24"));
+        assertNotNull(PracticalIntelligenceRules.validateVehicleEntry(
+                "Family car", "2026-11-01", "12000", "Routine service", "2026-02-30"));
+        assertNotNull(PracticalIntelligenceRules.validateVehicleEntry(
+                "Family car", "2026-11-01", "12000", "Routine service", "next month"));
+    }
+
+    @Test public void vehicleServiceDueSummaryBucketsOverdueTodayNextThirtyAndLater() {
+        String report = PracticalIntelligenceRules.vehicleServiceDueSummary(
+                new String[]{"Family car", "Family scooter", "Shared van", "Household car", "Bad date", "No date"},
+                new String[]{"2026-11-23", "2026-11-24", "2026-12-24", "2026-12-25", "2026-02-30", ""},
+                "2026-11-24");
+        assertTrue(report.contains("Valid dates recorded: 4"));
+        assertTrue(report.contains("Overdue: 1 • Due today: 1 • Next 30 days: 1 • Later: 1"));
+        assertTrue(report.contains("Dates needing correction: 1"));
+        assertTrue(report.contains("OVERDUE • Family car"));
+        assertTrue(report.contains("DUE TODAY • Family scooter"));
+        assertTrue(report.contains("NEXT 30 DAYS • Shared van"));
+        assertTrue(report.contains("not a mechanical diagnosis"));
+    }
+
+    @Test public void vehicleServiceDueSummaryHandlesEmptyAndInvalidInputs() {
+        String empty = PracticalIntelligenceRules.vehicleServiceDueSummary(
+                new String[0], new String[0], "2026-11-24");
+        assertTrue(empty.contains("Valid dates recorded: 0"));
+        assertTrue(empty.contains("No valid service/review dates are due or overdue"));
+        assertTrue(PracticalIntelligenceRules.vehicleServiceDueSummary(
+                null, null, "2026-11-24").contains("overview unavailable"));
+        assertTrue(PracticalIntelligenceRules.vehicleServiceDueSummary(
+                new String[]{"Car"}, new String[0], "2026-11-24").contains("overview unavailable"));
+        assertTrue(PracticalIntelligenceRules.vehicleServiceDueSummary(
+                new String[]{"Car"}, new String[]{"2026-12-01"}, "bad-date").contains("overview unavailable"));
+    }
+
 }
