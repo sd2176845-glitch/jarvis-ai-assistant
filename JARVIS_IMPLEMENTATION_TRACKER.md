@@ -321,3 +321,30 @@
 - **Implementation files:** `SoftwareDevelopmentStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed after correction on code head `b922a78b5e9c2956c7f4237331633939cb701861`; GitHub Actions run #591 (`45045770900`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763955311`, SHA-256 `84ef58a3e5e25fa086c270be6e4a8002019ec8143f903ce088a35a97b1f209fa`. Initial runs #586–#590 failed due two extra closing parentheses in nested dialog callbacks; corrected in this head. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #29; do not merge to parent PR #29 or `main` without owner approval.
+
+
+## Batch B09 — M12 Data Intelligence Center (three local-first CSV tools; 2026-11-22)
+
+**Branch:** `feature/m12-data-intelligence-3pack`, stacked on M11 Software Development Studio / PR #30. Separate, unmerged batch.
+
+### Feature 1 — Dataset Profiler
+- **Code-present:** owner pastes CSV text (first row treated as headers); JARVIS parses locally and reports data row count, column count, non-empty cells and numeric min/max/average where a column is fully numeric.
+- **Limits:** 50,000 characters, 1,000 rows, 50 columns. Supports quoted commas and escaped double-quotes; malformed/unclosed quoted fields are rejected.
+- **Acceptance checks:** quoted cells, empty cells, numeric/text/mixed columns, CRLF/LF, malformed quote, row/column/character caps and empty input.
+
+### Feature 2 — Data Quality Inspector
+- **Code-present:** local checks for missing cells, inconsistent row widths, duplicate data rows, empty headers and duplicate headers.
+- **Scope:** structural checks only; does not prove factual accuracy, detect every semantic anomaly or validate business rules.
+- **Acceptance checks:** each warning type, no-issue dataset, inconsistent row lengths, duplicate rows, duplicate/empty headers and blank lines.
+
+### Feature 3 — Aggregate AI Insight Report
+- **Code-present:** builds an aggregate profile and quality summary locally, then shows the exact summary preview and asks for confirmation before sending it to the existing AI backend for a cautious narrative report.
+- **Privacy:** original CSV rows are not sent. AI payload uses anonymized labels such as Column 1/Column 2 and structural counts/numeric aggregates only. No raw row values, contacts, notes or recent conversation are attached.
+- **Acceptance checks:** inspect preview/payload, verify raw cell values are absent, cancel flow, low-data dataset, unsupported values, offline/backend error and no memory changes.
+
+### Privacy, integration and verification
+- Local-only parsing; original CSV is not saved. User is warned not to paste passwords, contact details, health/financial identifiers or confidential records.
+- Aggregate AI report uses existing `JarvisAiClient.askStandalone` after explicit confirmation. No new Android permission, persistent dataset store, API key or background collection.
+- **Implementation files:** `DataIntelligenceStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** passed on final code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a`; GitHub Actions run #602 (`45046009488`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #30; do not merge to parent PR #30 or `main` without owner approval.
