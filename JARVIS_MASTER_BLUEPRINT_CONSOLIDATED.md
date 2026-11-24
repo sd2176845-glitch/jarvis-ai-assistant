@@ -422,3 +422,6 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Privacy/reliability:** reminder title contains only the item name; notifications-disabled state is handled with a settings handoff; failed scheduling rolls back the new reminder record.
 - **Tests:** bounded reminder-title helper covered by focused JUnit test. CI/build and Poco M4 Pro 4G runtime verification pending.
 - JARVIS only; Even untouched.
+
+
+**B27 verification update (2026-11-24):** final documented head `4a41e42681b855e2482926ab5d2806727f7a9d89` passed GitHub Actions run #1032 (`45360490561`): Android unit tests, debug APK build and artifact upload succeeded. Poco M4 Pro 4G runtime verification of notification delivery, reboot restoration and snooze behavior remains pending.
