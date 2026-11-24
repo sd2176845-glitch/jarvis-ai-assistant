@@ -47,33 +47,33 @@ public final class EnvironmentIntelligenceRules {
         String safePlace = safeLabel(place, 80);
         String safeTime = safeLabel(modelTime, 40);
         String safeZone = safeLabel(timezone, 60);
-        return "MODELLED AIR QUALITY SNAPSHOT\\n\\n"
-                + "Place: " + safePlace + "\\n"
-                + "U.S. AQI: " + (usAqi < 0 ? "Not supplied" : usAqi + " • " + usAqiCategory(usAqi)) + "\\n"
-                + "European AQI: " + (europeanAqi < 0 ? "Not supplied" : String.valueOf(europeanAqi)) + "\\n\\n"
-                + "Pollutants (model estimates)\\n"
-                + "PM2.5: " + safeMeasurement(pm25) + " µg/m³\\n"
-                + "PM10: " + safeMeasurement(pm10) + " µg/m³\\n"
-                + "Ozone: " + safeMeasurement(ozone) + " µg/m³\\n"
-                + "Nitrogen dioxide: " + safeMeasurement(nitrogenDioxide) + " µg/m³\\n"
-                + "Sulphur dioxide: " + safeMeasurement(sulphurDioxide) + " µg/m³\\n"
-                + "UV index: " + safeMeasurement(uvIndex) + "\\n\\n"
-                + "Model time: " + (safeTime.isEmpty() ? "Not supplied" : safeTime) + "\\n"
-                + "Time zone: " + (safeZone.isEmpty() ? "Not supplied" : safeZone) + "\\n\\n"
-                + "Source: Open-Meteo Air Quality API • CAMS model data.\\n"
+        return "MODELLED AIR QUALITY SNAPSHOT\n\n"
+                + "Place: " + safePlace + "\n"
+                + "U.S. AQI: " + (usAqi < 0 ? "Not supplied" : usAqi + " • " + usAqiCategory(usAqi)) + "\n"
+                + "European AQI: " + (europeanAqi < 0 ? "Not supplied" : String.valueOf(europeanAqi)) + "\n\n"
+                + "Pollutants (model estimates)\n"
+                + "PM2.5: " + safeMeasurement(pm25) + " µg/m³\n"
+                + "PM10: " + safeMeasurement(pm10) + " µg/m³\n"
+                + "Ozone: " + safeMeasurement(ozone) + " µg/m³\n"
+                + "Nitrogen dioxide: " + safeMeasurement(nitrogenDioxide) + " µg/m³\n"
+                + "Sulphur dioxide: " + safeMeasurement(sulphurDioxide) + " µg/m³\n"
+                + "UV index: " + safeMeasurement(uvIndex) + "\n\n"
+                + "Model time: " + (safeTime.isEmpty() ? "Not supplied" : safeTime) + "\n"
+                + "Time zone: " + (safeZone.isEmpty() ? "Not supplied" : safeZone) + "\n\n"
+                + "Source: Open-Meteo Air Quality API • CAMS model data.\n"
                 + "Important: These are modelled grid estimates, not CPCB monitoring-station readings. "
                 + "U.S. and European AQI scales are not India's CPCB National AQI scale. "
                 + "Coverage, resolution and local conditions vary; this is not an official alert or medical advice.";
     }
 
     private static String safeMeasurement(String value) {
-        if (value == null || !value.matches("[0-9]{1,6}(\\\\.[0-9]{1,3})?")) return "Not supplied";
+        if (value == null || !value.matches("[0-9]{1,6}(\\.[0-9]{1,3})?")) return "Not supplied";
         return value;
     }
 
     private static String safeLabel(String value, int maxLength) {
         if (value == null) return "";
-        String cleaned = value.replace('\\\\n', ' ').replace('\\\\r', ' ').replace('\\\\t', ' ').trim();
+        String cleaned = value.replace((char) 10, ' ').replace((char) 13, ' ').replace((char) 9, ' ').trim();
         if (cleaned.length() > maxLength) cleaned = cleaned.substring(0, maxLength);
         return cleaned;
     }
