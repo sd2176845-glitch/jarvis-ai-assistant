@@ -59,12 +59,20 @@ public final class PracticalIntelligenceRules {
                 int byDate = dates[left].trim().compareTo(dates[right].trim());
                 return byDate != 0 ? byDate : Integer.compare(left, right);
             });
-            for (int i = 1; i < indexes.size(); i++) {
-                int previous = indexes.get(i - 1);
-                int current = indexes.get(i);
-                String previousDate = dates[previous].trim();
-                String currentDate = dates[current].trim();
-                if (previousDate.equals(currentDate)) continue;
+            // A date with multiple readings is ambiguous: exclude that whole date
+            // instead of arbitrarily comparing its first or last entry.
+            java.util.List<Integer> uniqueDateIndexes = new java.util.ArrayList<>();
+            for (int start = 0; start < indexes.size();) {
+                int end = start + 1;
+                String date = dates[indexes.get(start)].trim();
+                while (end < indexes.size()
+                        && date.equals(dates[indexes.get(end)].trim())) end++;
+                if (end - start == 1) uniqueDateIndexes.add(indexes.get(start));
+                start = end;
+            }
+            for (int i = 1; i < uniqueDateIndexes.size(); i++) {
+                int previous = uniqueDateIndexes.get(i - 1);
+                int current = uniqueDateIndexes.get(i);
                 result[1]++;
                 long previousReading = Long.parseLong(readings[previous].trim());
                 long currentReading = Long.parseLong(readings[current].trim());
