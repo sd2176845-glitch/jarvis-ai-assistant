@@ -179,7 +179,7 @@ public class PracticalIntelligenceRulesTest {
         int[] result = PracticalIntelligenceRules.vehicleOdometerAudit(
                 new String[]{"Scooter", "Scooter", "Scooter", "Scooter"},
                 new String[]{"2026-01-01", "2026-02-01", "2026-02-01", "2026-03-01"},
-                new String[]{"10000", "12000", "8000", "11000"});
+                new String[]{"10000", "12000", "8000", "9000"});
         assertEquals(4, result[0]);
         assertEquals(1, result[1]);
         assertEquals(1, result[2]);
