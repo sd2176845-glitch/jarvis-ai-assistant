@@ -90,6 +90,57 @@ public final class LiveInfoStudio {
         });
     }
 
+    /** Owner-invoked seven-day daily weather overview; reuses the existing city selector. */
+    public static void showSevenDayWeatherOutlook(Activity activity) {
+        chooseCity(activity, "7-day Weather Outlook • City Search",
+                "Only the city name you enter is used to find matching places. After you select one, its approximate "
+                        + "coordinates are sent to Open-Meteo for a seven-day daily forecast. No GPS, home address, "
+                        + "background monitoring, automatic history or alerts are used. These are model estimates, not official warnings.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://api.open-meteo.com/v1/forecast?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,"
+                            + "precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,"
+                            + "uv_index_max,sunrise,sunset&forecast_days=7&timezone=auto&wind_speed_unit=kmh";
+                    get(forecastUrl, data -> showResult(activity,
+                            "7-day Weather Outlook • " + placeName,
+                            parseSevenDayWeatherOutlook(data, placeName)));
+                });
+    }
+
+    private static String parseSevenDayWeatherOutlook(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject daily = root.optJSONObject("daily");
+            if (daily == null) return "The provider did not include a daily weather outlook.";
+            JSONArray timeValues = daily.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No daily weather estimates were returned for this location.";
+            }
+            int count = Math.min(7, timeValues.length());
+            String[] dates = new String[count];
+            for (int i = 0; i < count; i++) dates[i] = timeValues.optString(i, "");
+            JSONObject units = root.optJSONObject("daily_units");
+            return WeatherOutlookRules.formatSevenDay(
+                    placeName, root.optString("timezone", ""), dates,
+                    weatherValues(daily, "weather_code", count),
+                    weatherValues(daily, "temperature_2m_max", count),
+                    weatherValues(daily, "temperature_2m_min", count),
+                    weatherValues(daily, "precipitation_sum", count),
+                    weatherValues(daily, "precipitation_probability_max", count),
+                    weatherValues(daily, "wind_speed_10m_max", count),
+                    weatherValues(daily, "wind_gusts_10m_max", count),
+                    weatherValues(daily, "uv_index_max", count),
+                    weatherValues(daily, "sunrise", count),
+                    weatherValues(daily, "sunset", count),
+                    unit(units, "temperature_2m_max", "°C"),
+                    unit(units, "precipitation_sum", "mm"),
+                    unit(units, "wind_speed_10m_max", "km/h"));
+        } catch (Exception e) {
+            return "The seven-day weather provider returned an unexpected response. No forecast history was saved.";
+        }
+    }
+
     private static void weatherInput(Activity activity) {
         chooseCity(activity, "Weather • City Search",
                 "Only the city name you enter will be sent to Open-Meteo to find matching places. "
