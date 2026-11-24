@@ -24,4 +24,13 @@ public class SimulationEngineeringRulesTest {
         assertTrue(prompt.contains("Do not design weapons"));
         assertTrue(prompt.contains("not a CAD file or manufacturing-ready design"));
     }
+
+    @Test public void virtualExperimentRequiresAssumptionsUnitsAndSourceNotes() {
+        String prompt = SimulationEngineeringRules.experimentPrompt("Physics concepts", "motion");
+        assertTrue(prompt.contains("assumptions"));
+        assertTrue(prompt.contains("units"));
+        assertTrue(prompt.contains("source notes"));
+        assertTrue(prompt.contains("SIMULATION ONLY"));
+        assertTrue(prompt.contains("Do not provide real-world experiment procedures"));
+    }
 }

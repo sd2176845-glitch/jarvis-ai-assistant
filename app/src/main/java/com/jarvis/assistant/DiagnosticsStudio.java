@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.Locale;
 
@@ -34,6 +35,7 @@ final class DiagnosticsStudio {
     static void show(Activity activity, SharedPreferences preferences, boolean ttsReady) {
         String[] actions = {
                 "Run app health check",
+                "Check JARVIS backend health",
                 "Export sanitized report",
                 "View saved diagnostic history",
                 "Clear diagnostic history"
@@ -43,12 +45,63 @@ final class DiagnosticsStudio {
                 .setMessage("Owner-started checks only. Reports exclude contacts, messages, conversation text, call data and raw logs.")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) showReport(activity, preferences, ttsReady, false);
-                    else if (which == 1) showReport(activity, preferences, ttsReady, true);
-                    else if (which == 2) showHistory(activity, preferences, ttsReady);
+                    else if (which == 1) checkBackendHealth(activity);
+                    else if (which == 2) showReport(activity, preferences, ttsReady, true);
+                    else if (which == 3) showHistory(activity, preferences, ttsReady);
                     else clearHistory(activity, preferences);
                 })
                 .setNegativeButton("Close", null)
                 .show();
+    }
+
+    private static void checkBackendHealth(Activity activity) {
+        Toast.makeText(activity, "Checking JARVIS backend health…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            String report;
+            try {
+                connection = (HttpURLConnection) new java.net.URL(
+                        "https://jarvis-ai-backend-bq4m.onrender.com/health").openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(6000);
+                connection.setReadTimeout(6000);
+                connection.setRequestProperty("Accept", "application/json");
+                int code = connection.getResponseCode();
+                if (code != 200) {
+                    report = "BACKEND STATUS: HTTP " + code + "\\nAI availability was not confirmed.";
+                } else {
+                    java.io.InputStream input = connection.getInputStream();
+                    java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int count;
+                    while ((count = input.read(buffer)) != -1 && bytes.size() < 16000) {
+                        bytes.write(buffer, 0, count);
+                    }
+                    input.close();
+                    JSONObject root = new JSONObject(bytes.toString("UTF-8"));
+                    boolean ok = root.optBoolean("ok", false);
+                    boolean configured = root.optBoolean("aiConfigured", false);
+                    report = "JARVIS BACKEND HEALTH\\n\\n"
+                            + "Service: " + root.optString("service", "Not reported") + "\\n"
+                            + "HTTP: " + code + "\\n"
+                            + "Service response: " + (ok ? "OK" : "Not confirmed") + "\\n"
+                            + "Provider: " + root.optString("provider", "Not reported") + "\\n"
+                            + "Model: " + root.optString("model", "Not reported") + "\\n"
+                            + "AI configured: " + (configured ? "Yes" : "No / not reported")
+                            + "\\n\\nThis is a point-in-time public health endpoint check. It does not test a full AI response, account access or private data. No API key or user content was sent.";
+                }
+            } catch (Exception e) {
+                report = "BACKEND STATUS: UNAVAILABLE\\nCould not confirm a response. Check internet access or try again later. No user content or credentials were sent.";
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final String result = report;
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                new AlertDialog.Builder(activity).setTitle("JARVIS • Backend health")
+                        .setMessage(result).setPositiveButton("Close", null).show();
+            });
+        }).start();
     }
 
     private static void showReport(Activity activity, SharedPreferences preferences,
