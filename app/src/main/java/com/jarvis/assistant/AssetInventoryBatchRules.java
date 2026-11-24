@@ -44,6 +44,26 @@ public final class AssetInventoryBatchRules {
         if (rv) return 1;
         return 0;
     }
+
+    /** Validates an optional inclusive purchase-date range. Blank bounds are open-ended. */
+    public static boolean isValidPurchaseDateRange(String fromIsoDate, String toIsoDate) {
+        String from = safe(fromIsoDate), to = safe(toIsoDate);
+        if (!from.isEmpty() && !PracticalIntelligenceRules.isValidIsoDate(from)) return false;
+        if (!to.isEmpty() && !PracticalIntelligenceRules.isValidIsoDate(to)) return false;
+        return from.isEmpty() || to.isEmpty() || from.compareTo(to) <= 0;
+    }
+
+    /** Matches an existing purchase date against an inclusive range; active ranges exclude invalid dates. */
+    public static boolean matchesPurchaseDateRange(String purchaseDate,
+                                                   String fromIsoDate, String toIsoDate) {
+        String purchase = safe(purchaseDate);
+        String from = safe(fromIsoDate), to = safe(toIsoDate);
+        if (from.isEmpty() && to.isEmpty()) return true;
+        if (!isValidPurchaseDateRange(from, to)
+                || !PracticalIntelligenceRules.isValidIsoDate(purchase)) return false;
+        return (from.isEmpty() || purchase.compareTo(from) >= 0)
+                && (to.isEmpty() || purchase.compareTo(to) <= 0);
+    }
     /** Applies the selected warranty status without storing or mutating any inventory data. */
     public static boolean matchesWarrantyStatus(String warrantyUntil, String todayIsoDate,
                                                 String selectedStatus) {
