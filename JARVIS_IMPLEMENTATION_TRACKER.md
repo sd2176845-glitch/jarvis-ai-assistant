@@ -1059,5 +1059,5 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Failure behavior:** if reminder persistence succeeds but alarm scheduling fails, the newly saved reminder record is rolled back. Existing reminders and inventory records are not modified.
 - **Data minimization:** reminder title contains only the inventory item name; notes, receipt/manual URI, provider filename and other metadata are excluded.
 - **Tests:** added focused coverage for bounded reminder-title generation and blank names. Runtime alarm/notification delivery still requires device verification.
-- **Status:** code-present; CI/build pending until a workflow completes on the final B27 head. Poco M4 Pro 4G notification delivery and reboot/snooze behavior remain pending.
+- **Status:** code-present; CI/build PASS — GitHub Actions run #1032 (`45360490561`) on documented head `4a41e42681b855e2482926ab5d2806727f7a9d89`; Android unit tests, debug APK build and artifact upload succeeded. Poco M4 Pro 4G notification delivery, reboot restoration and snooze behavior remain pending.
 - **Anti-duplication:** reuses the already implemented M07/JARVIS reminder infrastructure rather than creating another scheduler. JARVIS only; Even untouched.
