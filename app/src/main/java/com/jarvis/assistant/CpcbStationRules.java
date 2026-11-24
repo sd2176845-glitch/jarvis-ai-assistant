@@ -87,6 +87,23 @@ public final class CpcbStationRules {
         return out.toString();
     }
 
+    /** A station-specific comparison label; values are never combined across stations. */
+    public static String comparisonLabel(String station, String pollutant, String average, String unit) {
+        StringBuilder out = new StringBuilder();
+        out.append(displayValue(pollutant)).append(" • ")
+                .append(displayValue(station)).append(" • Avg ")
+                .append(displayMeasurement(average));
+        String unitLabel = clean(unit, 32);
+        if (!unitLabel.isEmpty()) out.append(" ").append(unitLabel);
+        return out.toString();
+    }
+
+    public static String comparisonDisclaimer() {
+        return "Station comparison only: each pollutant value remains tied to its named monitoring station. "
+                + "JARVIS does not average readings across stations or treat a pollutant concentration as a combined AQI score. "
+                + "One station may not represent the entire city.";
+    }
+
     public static String buildSummary(String city, String state, int records, String latestUpdate) {
         StringBuilder out = new StringBuilder("OFFICIAL CPCB STATION DATA\n\n");
         out.append("Requested city: ").append(displayValue(city)).append("\n");
