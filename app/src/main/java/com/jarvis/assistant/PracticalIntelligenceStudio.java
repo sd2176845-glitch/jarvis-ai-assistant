@@ -1059,34 +1059,59 @@ public final class PracticalIntelligenceStudio {
                     int index = indexes.get(selected);
                     JSONObject item = records.optJSONObject(index);
                     if (item == null) return;
-                    showWarrantyReminderDateTime(activity, item.optString("name", "Inventory item"));
+                    showWarrantyReminderDateTime(activity, item.optString("name", "Inventory item"), item.optString("warranty_until", ""));
                 }).setNegativeButton("Cancel", null).show();
     }
 
-    private static void showWarrantyReminderDateTime(Activity activity, String assetName) {
+    private static void showWarrantyReminderDateTime(Activity activity, String assetName, String warrantyUntil) {
         java.util.Calendar initial = java.util.Calendar.getInstance();
-        initial.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        try {
+            int year = Integer.parseInt(warrantyUntil.substring(0, 4));
+            int month = Integer.parseInt(warrantyUntil.substring(5, 7)) - 1;
+            int day = Integer.parseInt(warrantyUntil.substring(8, 10));
+            initial.set(year, month, day, 9, 0, 0);
+            initial.set(java.util.Calendar.MILLISECOND, 0);
+            if (initial.getTimeInMillis() - System.currentTimeMillis() > 7L * 24L * 60L * 60L * 1000L) {
+                initial.add(java.util.Calendar.DAY_OF_MONTH, -7);
+            }
+            if (initial.get(java.util.Calendar.YEAR) < java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+                    || initial.getTimeInMillis() < System.currentTimeMillis() - 24L * 60L * 60L * 1000L) {
+                initial = java.util.Calendar.getInstance();
+            }
+        } catch (Exception invalidDate) {
+            initial.add(java.util.Calendar.DAY_OF_MONTH, 1);
+        }
         new android.app.DatePickerDialog(activity, (dateView, year, month, day) -> {
             new android.app.TimePickerDialog(activity, (timeView, hour, minute) -> {
                 java.util.Calendar trigger = java.util.Calendar.getInstance();
                 trigger.set(year, month, day, hour, minute, 0);
                 trigger.set(java.util.Calendar.MILLISECOND, 0);
                 long triggerAt = trigger.getTimeInMillis();
+                String selectedDate = String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day);
+                if (selectedDate.compareTo(warrantyUntil) > 0) {
+                    Toast.makeText(activity, "Choose a reminder date on or before the warranty end date.", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
                     Toast.makeText(activity, "Choose a future date and time.", Toast.LENGTH_LONG).show();
                     return;
                 }
                 android.app.NotificationManager notifications =
                         (android.app.NotificationManager) activity.getSystemService(Activity.NOTIFICATION_SERVICE);
-                if (android.os.Build.VERSION.SDK_INT >= 24
-                        && notifications != null && !notifications.areNotificationsEnabled()) {
+                if (notifications == null || (android.os.Build.VERSION.SDK_INT >= 24 && !notifications.areNotificationsEnabled())) {
                     new AlertDialog.Builder(activity).setTitle("Enable JARVIS notifications")
                             .setMessage("Android notifications are currently disabled for JARVIS. Enable them in system settings, then create the reminder again.")
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton("Open settings", (d, w) -> {
                                 try {
-                                    Intent settings = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-                                    settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+                                    Intent settings;
+                                    if (android.os.Build.VERSION.SDK_INT >= 26) {
+                                        settings = new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                                        settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+                                    } else {
+                                        settings = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.parse("package:" + activity.getPackageName()));
+                                    }
                                     activity.startActivity(settings);
                                 } catch (Exception ignored) {
                                     Toast.makeText(activity, "Could not open notification settings.", Toast.LENGTH_LONG).show();
