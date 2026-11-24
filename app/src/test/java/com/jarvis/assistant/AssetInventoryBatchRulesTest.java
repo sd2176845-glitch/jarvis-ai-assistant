@@ -173,4 +173,32 @@ public class AssetInventoryBatchRulesTest {
     }
 
 
+
+    @Test
+    public void dataQualityAuditFindsMissingRequiredFieldsAndInvalidWarrantyDates() {
+        java.util.List<String> issues = AssetInventoryBatchRules.inventoryDataQualityIssues(
+                new String[]{"Lamp", " ", "Cable"},
+                new String[]{"Home", "Electronics", ""},
+                new String[]{"Good", "Working", " "},
+                new String[]{"2026-12-31", "2026-02-30", ""});
+        assertEquals(2, issues.size());
+        assertEquals("Item 2: missing name, invalid warranty date", issues.get(0));
+        assertEquals("Item 3: missing category, missing condition", issues.get(1));
+    }
+
+    @Test
+    public void dataQualityAuditDoesNotFlagOptionalBlankWarrantyDates() {
+        assertTrue(AssetInventoryBatchRules.inventoryDataQualityIssues(
+                new String[]{"Lamp"}, new String[]{"Home"}, new String[]{"Good"}, new String[]{""}).isEmpty());
+    }
+
+    @Test
+    public void dataQualityAuditHandlesEmptyAndInconsistentInputSafely() {
+        assertTrue(AssetInventoryBatchRules.inventoryDataQualityIssues(
+                new String[0], new String[0], new String[0], new String[0]).isEmpty());
+        assertEquals("Audit unavailable: inventory fields could not be read consistently.",
+                AssetInventoryBatchRules.inventoryDataQualityIssues(
+                        new String[]{"Lamp"}, new String[0], new String[]{"Good"}, new String[]{""}).get(0));
+    }
+
 }
