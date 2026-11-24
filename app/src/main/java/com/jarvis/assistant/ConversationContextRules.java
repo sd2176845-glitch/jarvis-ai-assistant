@@ -66,7 +66,7 @@ public final class ConversationContextRules {
     private static String cleanEntry(String value) {
         if (value == null) return "";
         String cleaned = value.replace("\r\n", " ⏎ ")
-                .replace('\r', ' ').replace('\n', " ⏎ ").replace('\t', ' ').trim();
+                .replace('\r', ' ').replace("\n", " ⏎ ").replace('\t', ' ').trim();
         if (cleaned.length() > MAX_ENTRY_CHARS) {
             cleaned = cleaned.substring(0, MAX_ENTRY_CHARS);
         }
