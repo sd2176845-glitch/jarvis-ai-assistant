@@ -3,6 +3,9 @@ package com.jarvis.assistant;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.content.SharedPreferences;
 import android.view.Gravity;
 import android.widget.ArrayAdapter;
@@ -31,6 +34,12 @@ public final class PracticalIntelligenceStudio {
     private static final String ASSET_INVENTORY_KEY = "owner_asset_inventory_v1";
     private static final int MAX_RECORDS = 50;
     private static final int MAX_ASSETS = 100;
+    private static final int ASSET_DOCUMENT_PICK_REQUEST = 7317;
+    private static final long MAX_ASSET_DOCUMENT_BYTES = 25L * 1024L * 1024L;
+    private static int pendingDocumentIndex = -1;
+    private static long pendingDocumentCreatedAt = -1L;
+    private static String pendingDocumentName = "";
+    private static String pendingDocumentCategory = "";
 
     private interface TextAction { void submit(String value); }
 
@@ -282,9 +291,9 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary", "Manage receipt / manual"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
-                .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
+                .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded. Receipt/manual files stay in their provider; JARVIS saves only a local reference and never uploads them.")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) addAsset(activity);
                     else if (which == 1) viewAssets(activity);
@@ -299,6 +308,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 10) clearAssetInventory(activity);
                     else if (which == 11) auditAssetInventory(activity);
                     else if (which == 12) assetPurchaseAgeSummary(activity);
+                    else if (which == 13) manageAssetDocuments(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -428,6 +438,8 @@ public final class PracticalIntelligenceStudio {
                             + "\nWarranty end: " + (warranty.isEmpty() ? "Not recorded" : warranty)
                             + "\nWarranty status: " + warrantyState
                             + "\nWarranty countdown: " + warrantyCountdown
+                            + "\nReceipt / manual: " + (selected == null
+                                    ? "Not attached" : selected.optString("document_name", "Not attached"))
                             + "\nNotes: " + selected.optString("notes");
                     new AlertDialog.Builder(activity).setTitle("Inventory item")
                             .setMessage(details).setNegativeButton("Close", null)
@@ -439,10 +451,13 @@ public final class PracticalIntelligenceStudio {
     private static void removeAsset(Activity activity, int index) {
         JSONArray current = readAssetInventory(activity);
         if (current == null || index < 0 || index >= current.length()) return;
+        JSONObject removed = current.optJSONObject(index);
         JSONArray updated = new JSONArray();
         for (int i = 0; i < current.length(); i++) if (i != index) updated.put(current.opt(i));
         boolean saved = preferences(activity).edit()
                 .putString(ASSET_INVENTORY_KEY, updated.toString()).commit();
+        if (saved && removed != null) releaseAssetDocumentPermission(activity,
+                removed.optString("document_uri", ""));
         Toast.makeText(activity, saved ? "Inventory item removed." : "Could not update inventory.",
                 Toast.LENGTH_SHORT).show();
     }
@@ -452,7 +467,15 @@ public final class PracticalIntelligenceStudio {
                 .setMessage("This deletes only the locally saved inventory items. It does not change vehicle records, tasks or reminders.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Clear", (dialog, which) -> {
+                    JSONArray oldRecords = readAssetInventory(activity);
                     boolean saved = preferences(activity).edit().remove(ASSET_INVENTORY_KEY).commit();
+                    if (saved && oldRecords != null) {
+                        for (int i = 0; i < oldRecords.length(); i++) {
+                            JSONObject item = oldRecords.optJSONObject(i);
+                            if (item != null) releaseAssetDocumentPermission(activity,
+                                    item.optString("document_uri", ""));
+                        }
+                    }
                     Toast.makeText(activity, saved ? "Local asset inventory cleared." : "Could not clear inventory.",
                             Toast.LENGTH_SHORT).show();
                 }).show();
@@ -676,6 +699,302 @@ public final class PracticalIntelligenceStudio {
                 .setPositiveButton("OK", null).show();
     }
 
+
+    /** Owner-controlled receipt/manual references stored inside the selected existing inventory record. */
+    private static void manageAssetDocuments(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        if (records.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Receipt / manual")
+                    .setMessage("Add an inventory item first, then attach its receipt or manual.")
+                    .setPositiveButton("OK", null).show();
+            return;
+        }
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            labels.add(item == null ? (i + 1) + ". Invalid item"
+                    : (i + 1) + ". " + item.optString("name") + " • "
+                            + item.optString("category") + (item.optString("document_uri").isEmpty()
+                                    ? " • No document" : " • Document attached"));
+        }
+        new AlertDialog.Builder(activity).setTitle("Choose inventory item")
+                .setMessage("Select a receipt or manual for one item. Supported files: PDF, JPEG, PNG and WebP. The original file remains in its current provider; JARVIS stores only a local content reference. Do not attach documents you are not allowed to access.")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    JSONObject item = records.optJSONObject(which);
+                    if (item == null) return;
+                    showAssetDocumentActions(activity, which, item);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private static void showAssetDocumentActions(Activity activity, int index, JSONObject item) {
+        String savedName = item.optString("document_name", "");
+        String savedUri = item.optString("document_uri", "");
+        if (savedUri.isEmpty()) {
+            new AlertDialog.Builder(activity).setTitle(item.optString("name"))
+                    .setMessage("No receipt or manual is attached. Choose a PDF or image you own or are authorized to use.")
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Choose document", (d, w) -> chooseAssetDocument(activity, index))
+                    .show();
+            return;
+        }
+        String[] options = {"Open " + savedName, "Replace document", "Remove attachment"};
+        new AlertDialog.Builder(activity).setTitle("Saved document")
+                .setMessage(savedName + "\\nStored as a local reference only. Opening hands this selected file to an installed viewer.")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) openAssetDocument(activity, index);
+                    else if (which == 1) chooseAssetDocument(activity, index);
+                    else confirmRemoveAssetDocument(activity, index);
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private static void chooseAssetDocument(Activity activity, int index) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null || index < 0 || index >= records.length()) return;
+        JSONObject item = records.optJSONObject(index);
+        if (item == null) return;
+        pendingDocumentIndex = index;
+        pendingDocumentCreatedAt = item.optLong("created_at", -1L);
+        pendingDocumentName = item.optString("name", "");
+        pendingDocumentCategory = item.optString("category", "");
+
+        Intent pick = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        pick.addCategory(Intent.CATEGORY_OPENABLE);
+        pick.setType("*/*");
+        pick.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                "application/pdf", "image/jpeg", "image/png", "image/webp"
+        });
+        pick.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        try {
+            activity.startActivityForResult(pick, ASSET_DOCUMENT_PICK_REQUEST);
+        } catch (Exception e) {
+            clearPendingDocumentSelection();
+            Toast.makeText(activity, "No compatible document picker is available.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /** MainActivity delegates this request code here; returns true only for our picker result. */
+    public static boolean handleAssetDocumentPickerResult(Activity activity, int requestCode,
+                                                           int resultCode, Intent data) {
+        if (requestCode != ASSET_DOCUMENT_PICK_REQUEST) return false;
+        int requestedIndex = pendingDocumentIndex;
+        long expectedCreatedAt = pendingDocumentCreatedAt;
+        String expectedName = pendingDocumentName;
+        String expectedCategory = pendingDocumentCategory;
+        clearPendingDocumentSelection();
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            Toast.makeText(activity, "Document selection cancelled; inventory unchanged.", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        Uri uri = data.getData();
+        String uriText = uri.toString();
+        String mime = activity.getContentResolver().getType(uri);
+        String displayName = queryAssetDocumentName(activity, uri);
+        if (mime == null || mime.trim().isEmpty()
+                || "application/octet-stream".equalsIgnoreCase(mime.trim())) {
+            mime = mimeFromAssetDocumentName(displayName);
+        }
+        displayName = AssetInventoryBatchRules.sanitizeAssetDocumentName(displayName);
+        if (!AssetInventoryBatchRules.isValidAssetDocumentUri(uriText)
+                || !AssetInventoryBatchRules.isSupportedAssetDocumentMimeType(mime)) {
+            Toast.makeText(activity, "Unsupported document. Choose PDF, JPEG, PNG or WebP.", Toast.LENGTH_LONG).show();
+            return true;
+        }
+        long size = queryAssetDocumentSize(activity, uri);
+        if (size > MAX_ASSET_DOCUMENT_BYTES) {
+            Toast.makeText(activity, "Document is larger than the 25 MB reference limit.", Toast.LENGTH_LONG).show();
+            return true;
+        }
+        int grantFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        if ((grantFlags & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
+            Toast.makeText(activity, "The provider did not grant read access; nothing was attached.", Toast.LENGTH_LONG).show();
+            return true;
+        }
+        try {
+            activity.getContentResolver().takePersistableUriPermission(uri, grantFlags);
+        } catch (SecurityException | IllegalArgumentException e) {
+            Toast.makeText(activity, "This provider cannot keep a saved document reference. Choose another provider.", Toast.LENGTH_LONG).show();
+            return true;
+        }
+        boolean saved = saveAssetDocumentReference(activity, requestedIndex, expectedCreatedAt,
+                expectedName, expectedCategory, uriText, mime, displayName);
+        if (!saved) releaseAssetDocumentPermission(activity, uriText);
+        return true;
+    }
+
+    private static boolean saveAssetDocumentReference(Activity activity, int requestedIndex,
+                                                       long expectedCreatedAt, String expectedName,
+                                                       String expectedCategory, String uriText,
+                                                       String mime, String displayName) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return false;
+        int target = findPendingDocumentItem(records, requestedIndex, expectedCreatedAt,
+                expectedName, expectedCategory);
+        if (target < 0) {
+            Toast.makeText(activity, "The selected inventory item changed; document was not attached.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject other = records.optJSONObject(i);
+            if (i != target && other != null
+                    && uriText.equals(other.optString("document_uri", ""))) {
+                Toast.makeText(activity, "That document is already linked to another inventory item.", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        JSONObject item = records.optJSONObject(target);
+        String oldUri = item.optString("document_uri", "");
+        try {
+            item.put("document_uri", uriText);
+            item.put("document_name", displayName);
+            item.put("document_mime", mime);
+            records.put(target, item);
+            boolean saved = preferences(activity).edit()
+                    .putString(ASSET_INVENTORY_KEY, records.toString()).commit();
+            if (!saved) {
+                Toast.makeText(activity, "Document reference could not be saved.", Toast.LENGTH_LONG).show();
+                return false;
+            }
+            if (!oldUri.isEmpty() && !oldUri.equals(uriText)) {
+                releaseAssetDocumentPermission(activity, oldUri);
+            }
+            Toast.makeText(activity, "Receipt / manual linked locally to " + expectedName + ".", Toast.LENGTH_LONG).show();
+            return true;
+        } catch (Exception e) {
+            Toast.makeText(activity, "Document reference could not be saved.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    private static int findPendingDocumentItem(JSONArray records, int requestedIndex,
+                                               long expectedCreatedAt, String expectedName,
+                                               String expectedCategory) {
+        if (expectedCreatedAt >= 0L) {
+            for (int i = 0; i < records.length(); i++) {
+                JSONObject item = records.optJSONObject(i);
+                if (item != null && item.optLong("created_at", -2L) == expectedCreatedAt
+                        && expectedName.equals(item.optString("name", ""))
+                        && expectedCategory.equals(item.optString("category", ""))) return i;
+            }
+            return -1;
+        }
+        if (requestedIndex >= 0 && requestedIndex < records.length()) {
+            JSONObject item = records.optJSONObject(requestedIndex);
+            if (item != null && expectedName.equals(item.optString("name", ""))
+                    && expectedCategory.equals(item.optString("category", ""))) return requestedIndex;
+        }
+        return -1;
+    }
+
+    private static void openAssetDocument(Activity activity, int index) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null || index < 0 || index >= records.length()) return;
+        JSONObject item = records.optJSONObject(index);
+        if (item == null) return;
+        String uriText = item.optString("document_uri", "");
+        String mime = item.optString("document_mime", "");
+        if (!AssetInventoryBatchRules.isValidAssetDocumentUri(uriText)
+                || !AssetInventoryBatchRules.isSupportedAssetDocumentMimeType(mime)) {
+            Toast.makeText(activity, "Saved document reference is invalid. Remove and attach it again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        try {
+            Intent view = new Intent(Intent.ACTION_VIEW);
+            view.setDataAndType(Uri.parse(uriText), mime);
+            view.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activity.startActivity(Intent.createChooser(view, "Open receipt / manual"));
+        } catch (Exception e) {
+            Toast.makeText(activity, "No compatible viewer found, or the original document is unavailable.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void confirmRemoveAssetDocument(Activity activity, int index) {
+        new AlertDialog.Builder(activity).setTitle("Remove receipt / manual reference?")
+                .setMessage("This removes only the JARVIS link and releases its saved read access. The original file in its provider is not deleted.")
+                .setNegativeButton("Keep", null)
+                .setPositiveButton("Remove", (d, w) -> removeAssetDocumentReference(activity, index))
+                .show();
+    }
+
+    private static void removeAssetDocumentReference(Activity activity, int index) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null || index < 0 || index >= records.length()) return;
+        JSONObject item = records.optJSONObject(index);
+        if (item == null) return;
+        String uri = item.optString("document_uri", "");
+        item.remove("document_uri");
+        item.remove("document_name");
+        item.remove("document_mime");
+        records.put(index, item);
+        boolean saved = preferences(activity).edit()
+                .putString(ASSET_INVENTORY_KEY, records.toString()).commit();
+        if (saved) releaseAssetDocumentPermission(activity, uri);
+        Toast.makeText(activity, saved ? "Document reference removed; original file kept."
+                : "Could not remove document reference.", Toast.LENGTH_SHORT).show();
+    }
+
+    private static String queryAssetDocumentName(Activity activity, Uri uri) {
+        Cursor cursor = null;
+        try {
+            cursor = activity.getContentResolver().query(uri,
+                    new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int column = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (column >= 0) return cursor.getString(column);
+            }
+        } catch (Exception ignored) {
+            // A provider may not expose a display name; fall back to the URI segment.
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        String fallback = uri.getLastPathSegment();
+        return fallback == null ? "Selected document" : fallback;
+    }
+
+    private static long queryAssetDocumentSize(Activity activity, Uri uri) {
+        Cursor cursor = null;
+        try {
+            cursor = activity.getContentResolver().query(uri,
+                    new String[]{OpenableColumns.SIZE}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int column = cursor.getColumnIndex(OpenableColumns.SIZE);
+                if (column >= 0 && !cursor.isNull(column)) return cursor.getLong(column);
+            }
+        } catch (Exception ignored) {
+            // Unknown size is allowed; JARVIS does not read or copy the file contents.
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return -1L;
+    }
+
+    private static String mimeFromAssetDocumentName(String name) {
+        String lower = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".pdf")) return "application/pdf";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "";
+    }
+
+    private static void releaseAssetDocumentPermission(Activity activity, String rawUri) {
+        if (!AssetInventoryBatchRules.isValidAssetDocumentUri(rawUri)) return;
+        try {
+            activity.getContentResolver().releasePersistableUriPermission(
+                    Uri.parse(rawUri), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (SecurityException | IllegalArgumentException ignored) {
+            // Permission may already have been revoked by its provider or Android.
+        }
+    }
+
+    private static void clearPendingDocumentSelection() {
+        pendingDocumentIndex = -1;
+        pendingDocumentCreatedAt = -1L;
+        pendingDocumentName = "";
+        pendingDocumentCategory = "";
+    }
 
     /** Read-only category counts over the existing owner-entered inventory records. */
     private static void assetCategorySummary(Activity activity) {
