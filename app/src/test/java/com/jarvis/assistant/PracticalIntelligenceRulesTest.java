@@ -154,4 +154,31 @@ public class PracticalIntelligenceRulesTest {
     }
 
 
+
+    @Test public void vehicleOdometerAuditDetectsDecreaseOnlyWithinSameVehicleChronology() {
+        int[] result = PracticalIntelligenceRules.vehicleOdometerAudit(
+                new String[]{"Scooter", "Scooter", "Car", "Scooter", "Car"},
+                new String[]{"2026-01-01", "2026-02-01", "2026-01-01", "2026-03-01", "2026-02-01"},
+                new String[]{"10000", "9000", "50000", "11000", "51000"});
+        assertEquals(5, result[0]);
+        assertEquals(3, result[1]);
+        assertEquals(1, result[2]);
+    }
+
+    @Test public void vehicleOdometerAuditIgnoresInvalidMissingAndSameDayValues() {
+        int[] result = PracticalIntelligenceRules.vehicleOdometerAudit(
+                new String[]{"Scooter", "Scooter", "Scooter", "", "Scooter", "Scooter"},
+                new String[]{"2026-01-01", "2026-01-01", "bad-date", "2026-02-01", "2026-02-01", "2026-03-01"},
+                new String[]{"10000", "9000", "8000", "7000", "", "11000"});
+        assertEquals(3, result[0]);
+        assertEquals(1, result[1]);
+        assertEquals(0, result[2]);
+    }
+
+    @Test public void vehicleOdometerAuditHandlesNullAndMismatchedArrays() {
+        assertEquals(0, PracticalIntelligenceRules.vehicleOdometerAudit(null, null, null)[0]);
+        assertEquals(0, PracticalIntelligenceRules.vehicleOdometerAudit(
+                new String[]{"Scooter"}, new String[0], new String[]{"100"})[0]);
+    }
+
 }
