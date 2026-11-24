@@ -36,6 +36,17 @@ public final class JarvisAiClient {
     public static void understandCommand(Context context, String rawTranscript, UnderstandCallback callback) {
         Context appContext = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
+        SharedPreferences connectivityPreferences = appContext.getSharedPreferences(
+                "jarvis_preferences", Context.MODE_PRIVATE);
+        String connectivityMode = ConnectivityIntelligenceRules.normalizeAiMode(
+                connectivityPreferences.getString("ai_connectivity_mode", "Hybrid"));
+        if (!ConnectivityIntelligenceRules.cloudAiAllowed(connectivityMode)) {
+            final String localTranscript = rawTranscript == null ? "" : rawTranscript.trim();
+            main.post(() -> {
+                if (callback != null) callback.onUnderstood(localTranscript);
+            });
+            return;
+        }
         Thread worker = new Thread(() -> {
             HttpURLConnection connection = null;
             String understood = rawTranscript == null ? "" : rawTranscript.trim();
@@ -90,8 +101,19 @@ public final class JarvisAiClient {
      * Used by focused tools that should process only the text the owner explicitly submits.
      */
     public static void askStandalone(Context context, String message, Callback callback) {
+        Context appContext = context.getApplicationContext();
         Handler main = new Handler(Looper.getMainLooper());
         String prompt = message == null ? "" : message.trim();
+        SharedPreferences connectivityPreferences = appContext.getSharedPreferences(
+                "jarvis_preferences", Context.MODE_PRIVATE);
+        String connectivityMode = ConnectivityIntelligenceRules.normalizeAiMode(
+                connectivityPreferences.getString("ai_connectivity_mode", "Hybrid"));
+        if (!ConnectivityIntelligenceRules.cloudAiAllowed(connectivityMode)) {
+            main.post(() -> {
+                if (callback != null) callback.onReply(ConnectivityIntelligenceRules.localOnlyResponse());
+            });
+            return;
+        }
         Thread worker = new Thread(() -> {
             String answer;
             HttpURLConnection connection = null;
@@ -126,10 +148,14 @@ public final class JarvisAiClient {
                     answer = json.optString("reply", json.optString("text", "")).trim();
                     if (answer.isEmpty()) answer = "JARVIS AI returned an empty response. Please try again.";
                 } else {
-                    answer = "JARVIS AI server returned an error (" + status + "). Please try again later.";
+                    answer = "Hybrid".equals(connectivityMode)
+                            ? ConnectivityIntelligenceRules.hybridFallbackResponse()
+                            : "JARVIS AI server returned an error (" + status + "). Please try again later.";
                 }
             } catch (Exception e) {
-                answer = "JARVIS AI could not connect. Check the internet connection and try again.";
+                answer = "Hybrid".equals(connectivityMode)
+                        ? ConnectivityIntelligenceRules.hybridFallbackResponse()
+                        : "JARVIS AI could not connect. Check the internet connection and try again.";
             } finally {
                 if (connection != null) connection.disconnect();
             }
@@ -157,6 +183,14 @@ public final class JarvisAiClient {
             memory.edit().remove("conversation").remove("conversation_updated_at").apply();
         }
         SharedPreferences appPreferences = appContext.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+        String connectivityMode = ConnectivityIntelligenceRules.normalizeAiMode(
+                appPreferences.getString("ai_connectivity_mode", "Hybrid"));
+        if (!ConnectivityIntelligenceRules.cloudAiAllowed(connectivityMode)) {
+            main.post(() -> {
+                if (callback != null) callback.onReply(ConnectivityIntelligenceRules.localOnlyResponse());
+            });
+            return;
+        }
         String mode = appPreferences.getString("assistant_mode", "Normal");
         String modeGuidance;
         if ("Study".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: STUDY. Teach step-by-step, encourage understanding, and do not simply do a student's work without explanation.\n";
@@ -205,17 +239,22 @@ public final class JarvisAiClient {
                     answer = json.optString("reply", json.optString("text", ""));
                     if (answer.trim().isEmpty()) answer = "JARVIS ko khaali reply mila. Dobara bolo.";
                 } else {
-                    answer = "JARVIS AI server mein error aaya (" + status + "). Thodi der baad try karo.";
+                    answer = "Hybrid".equals(connectivityMode)
+                            ? ConnectivityIntelligenceRules.hybridFallbackResponse()
+                            : "JARVIS AI server mein error aaya (" + status + "). Thodi der baad try karo.";
                 }
             } catch (Exception e) {
-                answer = "JARVIS AI se connect nahi ho paaya. Internet check karke dobara try karo.";
+                answer = "Hybrid".equals(connectivityMode)
+                        ? ConnectivityIntelligenceRules.hybridFallbackResponse()
+                        : "JARVIS AI se connect nahi ho paaya. Internet check karke dobara try karo.";
             } finally {
                 if (connection != null) connection.disconnect();
             }
 
             final String result = answer;
-            if (!result.startsWith("JARVIS AI server mein error") &&
-                    !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
+            if (!result.equals(ConnectivityIntelligenceRules.hybridFallbackResponse())
+                    && !result.startsWith("JARVIS AI server mein error")
+                    && !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
                 synchronized (memory) {
                     String old = memory.getString("conversation", "");
                     String updated = ConversationContextRules.appendExchange(old, originalMessage, result);
