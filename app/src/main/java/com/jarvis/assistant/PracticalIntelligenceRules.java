@@ -26,6 +26,54 @@ public final class PracticalIntelligenceRules {
                 + "explanation, not legal advice, and that the complete original document and a qualified professional should be consulted.";
     }
 
+    /**
+     * Returns [valid readings, strictly ordered adjacent comparisons, odometer decreases].
+     * Only owner-entered ISO dates and numeric readings are considered. Same-day readings
+     * are not ordered because the log does not record a time-of-day.
+     */
+    public static int[] vehicleOdometerAudit(String[] vehicles, String[] dates, String[] readings) {
+        int[] result = new int[]{0, 0, 0};
+        if (vehicles == null || dates == null || readings == null
+                || vehicles.length != dates.length || vehicles.length != readings.length) return result;
+        java.util.Map<String, java.util.List<Integer>> byVehicle = new java.util.HashMap<>();
+        for (int i = 0; i < vehicles.length; i++) {
+            String vehicle = vehicles[i] == null ? "" : vehicles[i].trim().toLowerCase(java.util.Locale.ROOT);
+            String date = dates[i] == null ? "" : dates[i].trim();
+            String reading = readings[i] == null ? "" : readings[i].trim();
+            if (vehicle.isEmpty() || !isValidIsoDate(date) || !reading.matches("[0-9]{1,9}")) continue;
+            try {
+                Long.parseLong(reading);
+                result[0]++;
+                java.util.List<Integer> indexes = byVehicle.get(vehicle);
+                if (indexes == null) {
+                    indexes = new java.util.ArrayList<>();
+                    byVehicle.put(vehicle, indexes);
+                }
+                indexes.add(i);
+            } catch (NumberFormatException ignored) {
+                // Ignore malformed legacy readings without changing stored data.
+            }
+        }
+        for (java.util.List<Integer> indexes : byVehicle.values()) {
+            java.util.Collections.sort(indexes, (left, right) -> {
+                int byDate = dates[left].trim().compareTo(dates[right].trim());
+                return byDate != 0 ? byDate : Integer.compare(left, right);
+            });
+            for (int i = 1; i < indexes.size(); i++) {
+                int previous = indexes.get(i - 1);
+                int current = indexes.get(i);
+                String previousDate = dates[previous].trim();
+                String currentDate = dates[current].trim();
+                if (previousDate.equals(currentDate)) continue;
+                result[1]++;
+                long previousReading = Long.parseLong(readings[previous].trim());
+                long currentReading = Long.parseLong(readings[current].trim());
+                if (currentReading < previousReading) result[2]++;
+            }
+        }
+        return result;
+    }
+
     public static String validateVehicleEntry(String vehicle, String date, String odometer, String summary) {
         if (vehicle == null || vehicle.trim().isEmpty() || vehicle.trim().length() > 40)
             return "Enter a vehicle nickname between 1 and 40 characters.";
