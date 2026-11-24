@@ -1097,3 +1097,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Artifact:** `jarvis-debug-apk`, ID `14905373972`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45364985871/artifacts/14905373972`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for offline display/scrolling, browser handoff to SACHET/IMD, unavailable-network handling and checking that no location permission/network polling was introduced.
 - **Anti-duplication:** upgrades the existing Emergency Readiness Planner menu with a local static pack; no duplicate planner, alert monitor or forecast engine. JARVIS only; Even untouched.
+
+
+### B31 — Vehicle Service Due-Date Tracker (2026-11-24)
+- **Canonical owner:** M19 Vehicle Intelligence; extends the existing Local Vehicle Maintenance Log and `vehicle_service_log_v1` records. No second vehicle database or planner was added.
+- **Record upgrade:** optional `next_service_due` date in strict real `YYYY-MM-DD` format. Existing service date, vehicle nickname, odometer and maintenance summary fields remain compatible; old records without the new field continue to load.
+- **Overview:** read-only local report of due-date records, overdue, due today, next 30 days, later dates and malformed dates requiring correction. Vehicle nickname only is displayed; no licence plate, VIN, policy number or personal identity detail is requested.
+- **Boundaries:** this is a family/guardian-managed administrative record, not a mechanical diagnosis, roadworthiness check or driving instruction. No automatic reminder was added in B31; reminder integration remains pending and must reuse the existing JARVIS ReminderStore if added later. No new permission, network request or external vehicle account integration.
+- **Tests:** added validation tests for optional and malformed next-service dates, date-window count tests for overdue/today/next-30/later, invalid dates, empty data and mismatched inputs.
+- **CI/build:** PASS — GitHub Actions run #1044 (`45365706990`) on exact code head `770e35592394a48905f4efee140e4c6ac5f0713a`; backend syntax validation, Android unit tests, Java compilation, debug APK build and artifact upload succeeded.
+- **Artifact:** `jarvis-debug-apk`, ID `14906612856`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45365706990/artifacts/14906612856`.
+- **Poco M4 Pro 4G:** physical-device verification remains pending for legacy record compatibility, date entry, service due overview and local date boundaries.
+- **Anti-duplication:** extends existing vehicle maintenance log and existing date-validation utilities; no duplicate inventory, reminder scheduler or vehicle data store. JARVIS only; Even untouched.
