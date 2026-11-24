@@ -233,8 +233,10 @@ public class AssetInventoryBatchRulesTest {
         assertEquals("manual.pdf", AssetInventoryBatchRules.sanitizeAssetDocumentName(
                 "C:\\private\\manual.pdf"));
         assertEquals("Selected document", AssetInventoryBatchRules.sanitizeAssetDocumentName("  "));
+        StringBuilder longName = new StringBuilder();
+        for (int i = 0; i < 150; i++) longName.append('x');
         assertEquals(100, AssetInventoryBatchRules.sanitizeAssetDocumentName(
-                new String(new char[150]).replace('\\0', 'x')).length());
+                longName.toString()).length());
     }
 
     @Test
