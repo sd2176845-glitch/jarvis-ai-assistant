@@ -554,7 +554,8 @@ public final class PracticalIntelligenceStudio {
     /** Sorts the displayed copy only; stored inventory order is unchanged. */
     private static void sortAssets(Activity activity) {
         String[] modes = {"Name A–Z", "Category then name",
-                "Condition then name", "Warranty expiry (soonest first)"};
+                "Condition then name", "Warranty expiry (soonest first)",
+                "Purchase date (newest first)"};
         new AlertDialog.Builder(activity).setTitle("Sort inventory").setItems(modes, (dialog, mode) -> {
             JSONArray records = readAssetInventory(activity);
             if (records == null) return;
@@ -572,14 +573,19 @@ public final class PracticalIntelligenceStudio {
                 if (mode == 2) return AssetInventoryBatchRules.compareConditionsThenNames(
                         left.optString("condition"), left.optString("name"),
                         right.optString("condition"), right.optString("name"));
-                return AssetInventoryBatchRules.compareWarrantyDates(
+                if (mode == 3) return AssetInventoryBatchRules.compareWarrantyDates(
                         left.optString("warranty_until"), right.optString("warranty_until"));
+                return AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
+                        left.optString("purchase_date"), right.optString("purchase_date"));
             });
             List<String> labels = new ArrayList<>();
             for (JSONObject item : items) {
+                String purchaseDate = item.optString("purchase_date", "");
                 labels.add(item.optString("name") + " • " + item.optString("category")
-                        + " • " + item.optString("condition") + " • "
-                        + item.optString("warranty_until", "No warranty date"));
+                        + " • " + item.optString("condition")
+                        + " • Purchase: " + (purchaseDate.isEmpty() ? "Not recorded" : purchaseDate)
+                        + " • Warranty: " + (item.optString("warranty_until", "").isEmpty()
+                                ? "Not recorded" : item.optString("warranty_until")));
             }
             String result = labels.isEmpty() ? "No inventory items saved."
                     : android.text.TextUtils.join("\n", labels);
