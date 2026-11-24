@@ -1212,7 +1212,8 @@ public class MainActivity extends Activity {
                 "Language & Learning Studio • Translate / Text / Vocabulary",
                 "Universal App Intelligence • Installed Apps / Details / Permissions",
                 "Public Knowledge Studio • Countries / India PIN / Dictionary",
-                "Live Information Studio • Weather / Currency / Holidays"
+                "Live Information Studio • Weather / Currency / Holidays",
+                "AI Learning Academy • Coding / Science / Technology Roadmaps"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1259,6 +1260,7 @@ public class MainActivity extends Activity {
                     else if (which == 27) AppIntelligenceStudio.show(MainActivity.this);
                     else if (which == 28) PublicKnowledgeStudio.show(MainActivity.this);
                     else if (which == 29) LiveInfoStudio.show(MainActivity.this);
+                    else if (which == 30) LearningAcademyStudio.show(MainActivity.this, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 

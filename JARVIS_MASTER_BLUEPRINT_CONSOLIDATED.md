@@ -279,3 +279,14 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B06 verification update (2026-11-22):** code/documentation head `7b2c1c1e88fc299d36af3e198a29449e1f0146c0` passed GitHub Actions run #572 (`45045389085`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763293374`, SHA-256 `6648c8850934b605c00b918a49b579eb4ab317ab45a9d39ca31d62b954391e28`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #28 is open and unmerged.
+
+
+### M10 — AI Learning Academy (Batch B07; implementation status tracked separately)
+- Added three guided learning modes: Coding Tutor (Python/Java/Kotlin/JavaScript), Science Explorer (Physics/Chemistry/Biology/Space & Earth Science), and Technology Learning Roadmap (Android, web, AI basics, defensive digital safety, computer-science foundations).
+- Each mode uses a selected difficulty level and owner-entered topic/goal, then generates structured lessons or staged roadmaps through the existing memory-isolated AI request path.
+- Explicit confirmation before submission; only selected choices and topic are sent. No conversation-memory attachment, saved notes, new permissions or persistent learner profile.
+- Safe-learning boundaries exclude harmful code, hazardous experiments and offensive cyber instructions.
+- **Status:** code added on `feature/m10-learning-academy-3pack`; CI/build and target-device verification pending.
+
+
+**B07 verification update (2026-11-22):** code/documentation head `a9cd77178709102a9bc746840f9c6e44b0f496b8` passed GitHub Actions run #581 (`45045554373`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763640351`, SHA-256 `648188031f44642066caf26da29fe54d3a14dec55c84095f7468ed01a2672ccf`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #29 is open and unmerged.
