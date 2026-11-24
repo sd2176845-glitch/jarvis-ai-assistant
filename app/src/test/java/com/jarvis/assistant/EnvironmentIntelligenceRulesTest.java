@@ -51,6 +51,56 @@ public class EnvironmentIntelligenceRulesTest {
     }
 
     @Test
+    public void hourlyForecastFormatsModelEstimatesAndRejectsMalformedValues() {
+        String report = EnvironmentIntelligenceRules.formatAirQualityForecast(
+                "Kolkata\nInjected",
+                new String[]{"2026-11-24T17:00", "2026-11-24T18:00"},
+                new String[]{"87", "bad"},
+                new String[]{"42", "55"},
+                new String[]{"18.5", "not-a-number"},
+                new String[]{"33", "12.0"},
+                "Asia/Kolkata");
+        assertTrue(report.contains("Kolkata Injected"));
+        assertTrue(report.contains("NEXT 24 HOURS"));
+        assertTrue(report.contains("U.S. AQI: 87 • Moderate"));
+        assertTrue(report.contains("U.S. AQI: Not supplied"));
+        assertTrue(report.contains("European AQI: 42"));
+        assertTrue(report.contains("PM2.5: 18.5 µg/m³"));
+        assertTrue(report.contains("PM2.5: Not supplied µg/m³"));
+        assertTrue(report.contains("not CPCB monitoring-station readings"));
+        assertTrue(report.contains("not India's CPCB National AQI scale"));
+        assertFalse(report.contains("not-a-number"));
+    }
+
+    @Test
+    public void hourlyForecastRejectsEmptyAndMismatchedInputsSafely() {
+        assertTrue(EnvironmentIntelligenceRules.formatAirQualityForecast(
+                "Kolkata", new String[0], null, null, null, null, "Asia/Kolkata")
+                .contains("No hourly"));
+        String report = EnvironmentIntelligenceRules.formatAirQualityForecast(
+                "Kolkata", new String[]{"2026-11-24T17:00"}, null, null, null, null, "Asia/Kolkata");
+        assertTrue(report.contains("U.S. AQI: Not supplied"));
+        assertTrue(report.contains("PM10: Not supplied"));
+    }
+
+    @Test
+    public void hourlyForecastIsBoundedTo24Entries() {
+        String[] times = new String[25];
+        String[] indexes = new String[25];
+        String[] values = new String[25];
+        for (int i = 0; i < 25; i++) {
+            times[i] = "2026-11-24T" + String.format(java.util.Locale.US, "%02d", i % 24) + ":00";
+            indexes[i] = "50";
+            values[i] = "10.0";
+        }
+        times[24] = "EXTRA_25TH_HOUR";
+        String report = EnvironmentIntelligenceRules.formatAirQualityForecast(
+                "Kolkata", times, indexes, indexes, values, values, "Asia/Kolkata");
+        assertTrue(report.contains("Showing 24 hourly model estimates"));
+        assertFalse(report.contains("EXTRA_25TH_HOUR"));
+    }
+
+    @Test
     public void manualObservationRequiresBroadAreaValidValueAndLocalTimestamp() {
         assertNull(EnvironmentIntelligenceRules.validateObservation(
                 "Kolkata / Victoria Memorial", "87", "2026-11-24 15:30"));

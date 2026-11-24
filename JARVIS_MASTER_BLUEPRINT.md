@@ -1044,3 +1044,16 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 - **Privacy:** no GPS, location permission, home address, background polling, automatic storage or sharing. Existing manual CPCB observations remain separately available.
 - **Verification:** GitHub Actions run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`. Poco M4 Pro 4G physical-device verification remains pending.
 - Priority 38 remains in progress; this is one increment of the B33 20-capability milestone, not completion of the full environmental module.
+
+
+## B33 implementation status — Feature 2 (2026-11-24)
+
+
+### B33 Feature 2 — 24-hour modelled air-quality forecast (2026-11-24)
+- **Progress:** 2/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Capability:** owner selects a city through the existing shared city picker and can view up to 24 hourly forecast points for U.S. AQI, European AQI, PM2.5 and PM10 from the Open-Meteo Air Quality API.
+- **Interpretation:** each point is timestamped in the selected location's time zone. U.S./European indices are labelled separately and are not India's CPCB National AQI. Model-grid estimates are not CPCB station observations, official alerts or medical advice.
+- **Privacy:** city-only, owner-invoked lookup with explicit disclosure; no GPS, location permission, home address, background polling, automatic log writes or sharing. Existing manual CPCB observation records remain unchanged.
+- **Anti-duplication:** adds a forecast view to the existing Environmental Intelligence menu and reuses the existing city picker and network helper; no second dashboard, location service, observation store or scheduler.
+- **Tests:** added unit coverage for missing/malformed values, sanitized place labels and the 24-entry output cap.
+- **Poco M4 Pro 4G:** physical-device verification remains pending.

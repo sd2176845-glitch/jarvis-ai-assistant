@@ -66,6 +66,58 @@ public final class EnvironmentIntelligenceRules {
                 + "Coverage, resolution and local conditions vary; this is not an official alert or medical advice.";
     }
 
+    /**
+     * Formats up to 24 hourly model estimates. Missing/malformed values remain unavailable;
+     * U.S./European indices are not presented as India's CPCB National AQI.
+     */
+    public static String formatAirQualityForecast(String place, String[] times, String[] usAqi,
+                                                   String[] europeanAqi, String[] pm25, String[] pm10,
+                                                   String timezone) {
+        if (times == null || times.length == 0) {
+            return "No hourly air-quality forecast is available for this location.";
+        }
+        String safePlace = safeLabel(place, 80);
+        String safeZone = safeLabel(timezone, 60);
+        int count = Math.min(24, times.length);
+        StringBuilder out = new StringBuilder("NEXT 24 HOURS • MODELLED AIR QUALITY FORECAST\n\n");
+        out.append("Place: ").append(safePlace).append("\n");
+        out.append("Time zone: ").append(safeZone.isEmpty() ? "Not supplied" : safeZone).append("\n\n");
+        for (int i = 0; i < count; i++) {
+            String time = safeLabel(valueAt(times, i), 32);
+            if (time.isEmpty()) time = "Hour " + (i + 1);
+            out.append(time).append("\n");
+            out.append("U.S. AQI: ").append(formatUsForecastIndex(valueAt(usAqi, i))).append("\n");
+            out.append("European AQI: ").append(formatEuropeanForecastIndex(valueAt(europeanAqi, i))).append("\n");
+            out.append("PM2.5: ").append(safeMeasurement(valueAt(pm25, i))).append(" µg/m³\n");
+            out.append("PM10: ").append(safeMeasurement(valueAt(pm10, i))).append(" µg/m³\n\n");
+        }
+        out.append("Showing ").append(count).append(" hourly model estimates.\n");
+        out.append("Source: Open-Meteo Air Quality API • CAMS model forecasts.\n");
+        out.append("Important: These are regional model-grid estimates, not CPCB monitoring-station readings. ");
+        out.append("U.S. and European AQI scales are not India's CPCB National AQI scale. ");
+        out.append("Forecasts can differ from local conditions; this is not an official alert or medical advice.");
+        return out.toString();
+    }
+
+    private static String valueAt(String[] values, int index) {
+        return values == null || index < 0 || index >= values.length ? "" : values[index];
+    }
+
+    private static String formatUsForecastIndex(String value) {
+        if (value == null || !value.matches("[0-9]{1,3}")) return "Not supplied";
+        try {
+            int index = Integer.parseInt(value);
+            return index > 500 ? "Not supplied" : index + " • " + usAqiCategory(index);
+        } catch (NumberFormatException e) {
+            return "Not supplied";
+        }
+    }
+
+    private static String formatEuropeanForecastIndex(String value) {
+        if (value == null || !value.matches("[0-9]{1,4}")) return "Not supplied";
+        return value;
+    }
+
     private static String safeMeasurement(String value) {
         if (value == null || !value.matches("[0-9]{1,6}(\\.[0-9]{1,3})?")) return "Not supplied";
         return value;

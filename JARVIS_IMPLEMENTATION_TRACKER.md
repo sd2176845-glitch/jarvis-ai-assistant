@@ -1137,3 +1137,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Poco M4 Pro 4G:** physical-device verification remains pending for city matching, network failure, model timestamp display, result layout and confirmation that no location permission or background polling is used.
 - **Anti-duplication:** extends the existing city geocoder and environmental menu; manual CPCB station observations remain distinct from modelled Open-Meteo estimates. JARVIS only; Even untouched.
 - **Next:** continue with a distinct B33 capability only after reviewing current Environmental and Live Information code; keep each increment separately tested and update this 20-capability count only after implementation.
+
+
+### B33 Feature 2 — 24-hour modelled air-quality forecast (2026-11-24)
+- **Progress:** 2/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Capability:** owner selects a city through the existing shared city picker and can view up to 24 hourly forecast points for U.S. AQI, European AQI, PM2.5 and PM10 from the Open-Meteo Air Quality API.
+- **Interpretation:** each point is timestamped in the selected location's time zone. U.S./European indices are labelled separately and are not India's CPCB National AQI. Model-grid estimates are not CPCB station observations, official alerts or medical advice.
+- **Privacy:** city-only, owner-invoked lookup with explicit disclosure; no GPS, location permission, home address, background polling, automatic log writes or sharing. Existing manual CPCB observation records remain unchanged.
+- **Anti-duplication:** adds a forecast view to the existing Environmental Intelligence menu and reuses the existing city picker and network helper; no second dashboard, location service, observation store or scheduler.
+- **Tests:** added unit coverage for missing/malformed values, sanitized place labels and the 24-entry output cap.
+- **Poco M4 Pro 4G:** physical-device verification remains pending.

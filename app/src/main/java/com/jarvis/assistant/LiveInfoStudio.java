@@ -121,6 +121,56 @@ public final class LiveInfoStudio {
                 });
     }
 
+    /** Owner-invoked next-24-hour model forecast; no background polling or saved readings. */
+    public static void showAirQualityForecast(Activity activity) {
+        chooseCity(activity, "24-hour Air Quality Forecast • City Search",
+                "Only the city name you enter is sent for matching. After you select a place, its approximate coordinates "
+                        + "are sent to Open-Meteo for the next 24 hourly model estimates. No GPS, home address or background "
+                        + "location is used. These estimates are not CPCB station readings.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=us_aqi,european_aqi,pm2_5,pm10&forecast_hours=24&timezone=auto";
+                    get(forecastUrl, data -> showResult(activity,
+                            "24-hour Air Quality Forecast • " + placeName,
+                            parseAirQualityForecast(data, placeName)));
+                });
+    }
+
+    private static String parseAirQualityForecast(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly air-quality forecast.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly forecast values were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            String[] usAqi = new String[count];
+            String[] europeanAqi = new String[count];
+            String[] pm25 = new String[count];
+            String[] pm10 = new String[count];
+            JSONArray usValues = hourly.optJSONArray("us_aqi");
+            JSONArray euValues = hourly.optJSONArray("european_aqi");
+            JSONArray pm25Values = hourly.optJSONArray("pm2_5");
+            JSONArray pm10Values = hourly.optJSONArray("pm10");
+            for (int i = 0; i < count; i++) {
+                times[i] = timeValues.optString(i, "");
+                usAqi[i] = usValues == null ? "" : usValues.optString(i, "");
+                europeanAqi[i] = euValues == null ? "" : euValues.optString(i, "");
+                pm25[i] = pm25Values == null ? "" : pm25Values.optString(i, "");
+                pm10[i] = pm10Values == null ? "" : pm10Values.optString(i, "");
+            }
+            return EnvironmentIntelligenceRules.formatAirQualityForecast(
+                    placeName, times, usAqi, europeanAqi, pm25, pm10,
+                    root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The air-quality forecast provider returned an unexpected response. No observation was saved.";
+        }
+    }
+
     private static String parseAirQuality(String body, String placeName) {
         try {
             JSONObject root = new JSONObject(body);
