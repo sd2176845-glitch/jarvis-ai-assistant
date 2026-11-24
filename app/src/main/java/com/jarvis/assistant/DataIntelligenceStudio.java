@@ -37,13 +37,15 @@ public final class DataIntelligenceStudio {
         String[] options = {
                 "Dataset Profiler • rows, columns and numeric summary",
                 "Data Quality Inspector • missing / duplicate / inconsistent",
-                "AI Insight Report • aggregate statistics only"
+                "AI Insight Report • aggregate statistics only",
+                "Saved Data Reports • local archive"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Data Intelligence Center")
                 .setItems(options, (d, which) -> {
                     if (which == 0) inputDataset(activity, status, transcript, 0);
                     else if (which == 1) inputDataset(activity, status, transcript, 1);
-                    else inputDataset(activity, status, transcript, 2);
+                    else if (which == 2) inputDataset(activity, status, transcript, 2);
+                    else showSavedReports(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -234,7 +236,10 @@ public final class DataIntelligenceStudio {
                         status.setText("DATA INSIGHT REPORT READY");
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • Data Insight Report")
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save report", (resultDialog, resultWhich) ->
+                                        saveReport(activity, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
     }
@@ -250,5 +255,87 @@ public final class DataIntelligenceStudio {
     private static void showResult(Activity activity, String title, String message) {
         new AlertDialog.Builder(activity).setTitle(title).setMessage(message)
                 .setPositiveButton("Done", null).show();
+    }
+
+    private static final String REPORTS_KEY = "data_insight_reports_v1";
+
+    private static void saveReport(Activity activity, String content) {
+        try {
+            android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+            org.json.JSONArray reports = new org.json.JSONArray(prefs.getString(REPORTS_KEY, "[]"));
+            if (reports.length() >= 25) {
+                Toast.makeText(activity, "Report archive is full. Delete old reports first.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            org.json.JSONObject item = new org.json.JSONObject();
+            item.put("content", content);
+            item.put("created_at", System.currentTimeMillis());
+            item.put("label", "AI narrative • aggregate-only input");
+            reports.put(item);
+            prefs.edit().putString(REPORTS_KEY, reports.toString()).apply();
+            Toast.makeText(activity, "Data report saved on this device.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Data report could not be saved.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showSavedReports(Activity activity) {
+        android.content.SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Activity.MODE_PRIVATE);
+        org.json.JSONArray reports;
+        try {
+            reports = new org.json.JSONArray(prefs.getString(REPORTS_KEY, "[]"));
+        } catch (Exception e) {
+            showResult(activity, "Saved Data Reports", "Report archive could not be read. Nothing was changed.");
+            return;
+        }
+        if (reports.length() == 0) {
+            showResult(activity, "Saved Data Reports", "No reports saved yet.");
+            return;
+        }
+        String[] labels = new String[reports.length()];
+        for (int i = 0; i < reports.length(); i++) {
+            org.json.JSONObject item = reports.optJSONObject(i);
+            labels[i] = item == null ? "Unavailable report" : "Data insight • " + (i + 1);
+        }
+        new AlertDialog.Builder(activity).setTitle("Saved Data Reports")
+                .setItems(labels, (dialog, which) -> {
+                    org.json.JSONObject item = reports.optJSONObject(which);
+                    if (item != null) {
+                        String report = "AGGREGATE-ONLY REPORT • REVIEW BEFORE USE\\n\\n" + item.optString("content", "");
+                        new AlertDialog.Builder(activity).setTitle("Data Insight Report")
+                                .setMessage(report)
+                                .setPositiveButton("Share report", (d, w) -> {
+                                    try {
+                                        android.content.Intent share = new android.content.Intent(android.content.Intent.ACTION_SEND);
+                                        share.setType("text/plain");
+                                        share.putExtra(android.content.Intent.EXTRA_SUBJECT, "JARVIS Data Insight Report");
+                                        share.putExtra(android.content.Intent.EXTRA_TEXT, report);
+                                        activity.startActivity(android.content.Intent.createChooser(share, "Review and choose destination"));
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Report sharing is unavailable.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNeutralButton("Delete report", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this report?")
+                                                .setMessage("This removes only the selected locally saved report.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (cd, cw) -> {
+                                                    reports.remove(which);
+                                                    prefs.edit().putString(REPORTS_KEY, reports.toString()).apply();
+                                                    Toast.makeText(activity, "Report deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .setNegativeButton("Close", null).show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Delete all", (dialog, which) ->
+                        new AlertDialog.Builder(activity).setTitle("Delete saved reports?")
+                                .setMessage("This removes only locally saved data insight reports.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete", (d, w) -> {
+                                    prefs.edit().remove(REPORTS_KEY).apply();
+                                    Toast.makeText(activity, "Saved reports cleared.", Toast.LENGTH_SHORT).show();
+                                }).show())
+                .show();
     }
 }

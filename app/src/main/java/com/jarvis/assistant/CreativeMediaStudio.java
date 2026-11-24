@@ -19,13 +19,16 @@ public final class CreativeMediaStudio {
                 "Image Concept Builder • original image prompt",
                 "Video Script Planner • hook / narration / scenes",
                 "Storyboard & Shot List • scene-by-scene plan",
-                "Presentation Builder • slides / speaker notes"
+                "Presentation Builder • slides / speaker notes",
+                "Creative Project Organizer • saved drafts"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Creative Media Studio")
                 .setItems(options, (d, which) -> {
-                    if (which == 0) videoScript(activity, status, transcript);
-                    else if (which == 1) storyboard(activity, status, transcript);
-                    else presentation(activity, status, transcript);
+                    if (which == 0) imageConcept(activity, status, transcript);
+                    else if (which == 1) videoScript(activity, status, transcript);
+                    else if (which == 2) storyboard(activity, status, transcript);
+                    else if (which == 3) presentation(activity, status, transcript);
+                    else showProjects(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -147,8 +150,126 @@ public final class CreativeMediaStudio {
                         status.setText(label);
                         transcript.setText(reply);
                         new AlertDialog.Builder(activity).setTitle("JARVIS • " + label)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                                .setMessage(reply)
+                                .setPositiveButton("Save draft", (resultDialog, resultWhich) ->
+                                        saveProject(activity, label, reply))
+                                .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+    private static final String PROJECTS_KEY = "creative_projects_v1";
+
+    private static void saveProject(Activity activity, String type, String content) {
+        try {
+            android.content.SharedPreferences prefs = activity.getSharedPreferences(
+                    "jarvis_preferences", Activity.MODE_PRIVATE);
+            org.json.JSONArray projects = new org.json.JSONArray(prefs.getString(PROJECTS_KEY, "[]"));
+            if (projects.length() >= 30) {
+                Toast.makeText(activity, "Project list is full. Review or delete old drafts first.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            org.json.JSONObject item = new org.json.JSONObject();
+            item.put("type", type);
+            item.put("project_name", type);
+            item.put("content", content);
+            item.put("created_at", System.currentTimeMillis());
+            item.put("status", "Draft • owner-created");
+            projects.put(item);
+            prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+            Toast.makeText(activity, "Creative draft saved on this device.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, "Draft could not be saved.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void showProjects(Activity activity) {
+        android.content.SharedPreferences prefs = activity.getSharedPreferences(
+                "jarvis_preferences", Activity.MODE_PRIVATE);
+        org.json.JSONArray projects;
+        try {
+            projects = new org.json.JSONArray(prefs.getString(PROJECTS_KEY, "[]"));
+        } catch (Exception e) {
+            new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                    .setMessage("Saved drafts could not be read. Nothing was changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        if (projects.length() == 0) {
+            new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                    .setMessage("No drafts saved yet. Generate a creative plan and choose Save draft.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        String[] labels = new String[projects.length()];
+        for (int i = 0; i < projects.length(); i++) {
+            org.json.JSONObject item = projects.optJSONObject(i);
+            labels[i] = item == null ? "Unavailable draft"
+                    : item.optString("project_name", item.optString("type", "Creative draft"))
+                    + " • " + item.optString("status", "Draft");
+        }
+        new AlertDialog.Builder(activity).setTitle("Creative Project Organizer")
+                .setItems(labels, (dialog, which) -> {
+                    org.json.JSONObject item = projects.optJSONObject(which);
+                    if (item != null) {
+                        String date = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",
+                                java.util.Locale.getDefault()).format(
+                                new java.util.Date(item.optLong("created_at", 0L)));
+                        new AlertDialog.Builder(activity).setTitle(item.optString("project_name", item.optString("type", "Creative draft")))
+                                .setMessage(item.optString("status", "Draft") + " • NOT A RENDERED MEDIA FILE\\nSaved: " + date + "\\n\\n"
+                                        + item.optString("content", ""))
+                                .setPositiveButton("Mark reviewed", (d, w) -> {
+                                    try {
+                                        item.put("status", "Reviewed");
+                                        prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                        Toast.makeText(activity, "Creative draft marked reviewed.", Toast.LENGTH_SHORT).show();
+                                    } catch (Exception e) {
+                                        Toast.makeText(activity, "Draft status could not be updated.", Toast.LENGTH_LONG).show();
+                                    }
+                                })
+                                .setNeutralButton("Rename", (d, w) -> {
+                                    EditText rename = new EditText(activity);
+                                    rename.setSingleLine(true);
+                                    rename.setText(item.optString("project_name", item.optString("type", "")));
+                                    new AlertDialog.Builder(activity).setTitle("Rename creative project")
+                                            .setView(rename)
+                                            .setNegativeButton("Cancel", null)
+                                            .setPositiveButton("Save", (rd, rw) -> {
+                                                String value = rename.getText().toString().trim();
+                                                if (value.isEmpty() || value.length() > 60) {
+                                                    Toast.makeText(activity, "Use a name between 1 and 60 characters.", Toast.LENGTH_LONG).show();
+                                                    return;
+                                                }
+                                                try {
+                                                    item.put("project_name", value);
+                                                    prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                                    Toast.makeText(activity, "Project renamed.", Toast.LENGTH_SHORT).show();
+                                                } catch (Exception e) {
+                                                    Toast.makeText(activity, "Project could not be renamed.", Toast.LENGTH_LONG).show();
+                                                }
+                                            }).show();
+                                })
+                                .setNegativeButton("Delete", (d, w) ->
+                                        new AlertDialog.Builder(activity).setTitle("Delete this creative draft?")
+                                                .setMessage("This removes only the selected draft from this device.")
+                                                .setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Delete", (cd, cw) -> {
+                                                    projects.remove(which);
+                                                    prefs.edit().putString(PROJECTS_KEY, projects.toString()).apply();
+                                                    Toast.makeText(activity, "Creative draft deleted.", Toast.LENGTH_SHORT).show();
+                                                }).show())
+                                .show();
+                    }
+                })
+                .setNegativeButton("Close", null)
+                .setNeutralButton("Delete all", (dialog, which) ->
+                        new AlertDialog.Builder(activity).setTitle("Delete all creative drafts?")
+                                .setMessage("This removes only the saved drafts stored by JARVIS on this device.")
+                                .setNegativeButton("Cancel", null)
+                                .setPositiveButton("Delete", (d, w) -> {
+                                    prefs.edit().remove(PROJECTS_KEY).apply();
+                                    Toast.makeText(activity, "Creative drafts cleared.", Toast.LENGTH_SHORT).show();
+                                }).show())
+                .show();
     }
 }
