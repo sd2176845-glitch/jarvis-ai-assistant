@@ -199,7 +199,7 @@ public class WakeWordService extends Service {
         String command;
         if (wake.contains("jarvis")) {
             command = wake.replaceFirst(".*?\\bjarvis\\b", "").trim()
-                    .replaceAll("[^a-z0-9\\s]", " ").replaceAll("\\s+", " ").trim();
+                    .replaceAll("[^a-z0-9\\u0900-\\u097F\\s]", " ").replaceAll("\\s+", " ").trim();
             if (command.isEmpty()) {
                 awaitingCommand = true;
                 handler.removeCallbacks(commandTimeout);
@@ -221,8 +221,7 @@ public class WakeWordService extends Service {
 
         if (awaitingCallConfirmation) {
             String answer = command.trim();
-            if (answer.equals("yes") || answer.equals("haan") || answer.equals("ha")
-                    || answer.equals("confirm") || answer.equals("yes call")) {
+            if (isAffirmativeConfirmation(answer)) {
                 String number = pendingCallNumber;
                 String name = pendingCallName;
                 clearPendingCall();
@@ -246,8 +245,7 @@ public class WakeWordService extends Service {
                         }
                     }, 150);
                 }
-            } else if (answer.equals("no") || answer.equals("nahi") || answer.equals("nahin")
-                    || answer.equals("cancel") || answer.equals("cancel call")) {
+            } else if (isNegativeConfirmation(answer)) {
                 clearPendingCall();
                 say("Theek hai. Call cancel kar di.");
             } else {
@@ -352,6 +350,23 @@ public class WakeWordService extends Service {
         Intent control = new Intent(action);
         control.setPackage(getPackageName());
         sendBroadcast(control);
+    }
+
+    private boolean isAffirmativeConfirmation(String text) {
+        return matchesExact(text, "yes", "yes please", "haan", "han", "haan ji", "han ji",
+                "confirm", "haan call karo", "haan kar do", "जी हाँ", "जी हां",
+                "हाँ", "हां", "हाँ जी", "हां जी", "हाँ कॉल करो", "हां कॉल करो",
+                "हाँ कर दो", "हां कर दो");
+    }
+
+    private boolean isNegativeConfirmation(String text) {
+        return matchesExact(text, "no", "nahi", "nahin", "cancel", "cancel karo",
+                "mat karo", "rehne do", "नहीं", "नही", "रहने दो", "कैंसल");
+    }
+
+    private boolean matchesExact(String command, String... phrases) {
+        for (String phrase : phrases) if (command.equals(phrase)) return true;
+        return false;
     }
 
     private boolean matches(String command, String... phrases) {

@@ -2851,9 +2851,18 @@ public class MainActivity extends Activity {
     }
 
     // AI-assisted transcription cleanup only: local command routing still decides what can execute.
+    // Resolve deterministic local intents before cloud transcript correction.
+    // Unknown speech keeps the existing correction + owner-review path.
     private void understandVoiceCommand(String rawTranscript) {
         final String raw = rawTranscript == null ? "" : rawTranscript.trim();
         if (raw.isEmpty()) return;
+        String offlineIntent = OfflineCommandClassifier.classify(raw);
+        if (!"UNKNOWN_OFFLINE_COMMAND".equals(offlineIntent)) {
+            status.setText("LOCAL COMMAND • OFFLINE");
+            transcript.setText("YOU: " + raw + "\n\nJARVIS: Local command");
+            handleCommand(raw);
+            return;
+        }
         status.setText("UNDERSTANDING YOUR VOICE…");
         transcript.setText("YOU: " + raw + "\n\nJARVIS: Understanding…");
         JarvisAiClient.understandCommand(this, raw, understood -> {
