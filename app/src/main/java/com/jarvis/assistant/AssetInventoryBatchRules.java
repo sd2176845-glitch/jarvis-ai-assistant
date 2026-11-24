@@ -86,6 +86,36 @@ public final class AssetInventoryBatchRules {
                 && oldCategory.equalsIgnoreCase(newCategory);
     }
 
+    /** Read-only integrity audit for required legacy fields and malformed optional warranty dates. */
+    public static List<String> inventoryDataQualityIssues(String[] names, String[] categories,
+                                                          String[] conditions, String[] warrantyDates) {
+        List<String> issues = new ArrayList<>();
+        if (names == null || categories == null || conditions == null || warrantyDates == null
+                || names.length != categories.length || names.length != conditions.length
+                || names.length != warrantyDates.length) {
+            issues.add("Audit unavailable: inventory fields could not be read consistently.");
+            return issues;
+        }
+        for (int i = 0; i < names.length; i++) {
+            List<String> fields = new ArrayList<>();
+            if (safe(names[i]).isEmpty()) fields.add("missing name");
+            if (safe(categories[i]).isEmpty()) fields.add("missing category");
+            if (safe(conditions[i]).isEmpty()) fields.add("missing condition");
+            String warranty = safe(warrantyDates[i]);
+            if (!warranty.isEmpty() && !PracticalIntelligenceRules.isValidIsoDate(warranty))
+                fields.add("invalid warranty date");
+            if (!fields.isEmpty()) {
+                StringBuilder line = new StringBuilder("Item ").append(i + 1).append(": ");
+                for (String field : fields) {
+                    if (line.charAt(line.length() - 1) != ' ') line.append(", ");
+                    line.append(field);
+                }
+                issues.add(line.toString());
+            }
+        }
+        return issues;
+    }
+
     public static boolean isValidEdit(String n,String c,String p,String q,String notes,String w) {
         return PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,notes,w)==null;
     }
