@@ -850,3 +850,13 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B05 verification update (2026-11-22):** final head `76877d030adcf36b187bf01e263ce52051b10661` passed GitHub Actions run #563 (`45045200384`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763530517`, SHA-256 `b2929bd0d13c164ba79c2263374a3e2749bc71e3ee2abbdc3f6e1196cbec5457`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #27 is open and unmerged.
+
+
+## Implementation status addendum — M06 Live Information Studio (Batch B06; 2026-11-22)
+- **City Weather:** code added; manual city search, user chooses among geocoding matches, then current weather data; no GPS permission; CI/device verification pending.
+- **Currency Converter:** code added; owner-entered amount and ISO currency codes use Frankfurter reference rates; rates are not bank/trading quotes; CI/device verification pending.
+- **India Public Holidays:** code added; year-based holiday lookup through Nager.Date v4; provider coverage may omit state/district/local holidays; CI/device verification pending.
+- Each feature requires confirmation and sends only the entered query. No new Android permission or API key.
+
+
+**B06 verification update (2026-11-22):** code/documentation head `7b2c1c1e88fc299d36af3e198a29449e1f0146c0` passed GitHub Actions run #572 (`45045389085`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763293374`, SHA-256 `6648c8850934b605c00b918a49b579eb4ab317ab45a9d39ca31d62b954391e28`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #28 is open and unmerged.
