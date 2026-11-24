@@ -969,7 +969,8 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Data behavior:** uses the existing `purchase_date` field and a local current date; no new preference key, no changes to inventory records, no resale-value or remaining-life inference.
 - **Tests:** covers exact year boundaries, just-before-anniversary dates, leap-day handling, malformed/missing/future dates, invalid current date, and null/empty arrays.
 - **Privacy:** owner-invoked and on-device only; no new permission, background work, network request or external sharing.
-- **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
+- **CI/build:** PASS — run #1002 on exact code commit `1087af8891a63f67f48328c56aa89f1764a85c2d`; 100 Android unit tests passed, debug APK built and uploaded.
+- **Poco M4 Pro 4G:** physical-device installation and runtime verification pending.
 - **Anti-duplication:** distinct from warranty status/countdown and the Feature 16 data-quality audit; uses purchase dates only for a read-only age distribution. JARVIS only; Even untouched.
 
 
@@ -980,7 +981,9 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Data behavior:** uses the existing vehicle maintenance log and existing fields; no new storage, edits, deletes, automatic reminders or remote lookups.
 - **Tests:** covers decrease detection per vehicle, chronological ordering, same-day ambiguity, malformed/missing values and null/mismatched arrays.
 - **Safety/privacy:** report is a data-entry consistency aid only, not a mechanical diagnosis or safety clearance. No license plate, VIN, insurance or location data is requested; no new permission or network access.
-- **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
+- **CI/build:** PASS — run #1002 on exact code commit `1087af8891a63f67f48328c56aa89f1764a85c2d`; 100 Android unit tests passed, debug APK built and uploaded.
+- **Poco M4 Pro 4G:** physical-device installation and runtime verification pending.
+- **Review hardening:** duplicate valid readings on the same service date cause that entire date to be excluded from chronology comparisons; report line breaks render correctly.
 - **Anti-duplication:** distinct from adding/viewing/removing service records and the Smart Asset Inventory purchase-age/warranty summaries. JARVIS only; Even untouched.
 
 
@@ -1001,4 +1004,4 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Updated the audit to exclude an entire date group whenever a vehicle has multiple valid readings on that date. Comparisons now use only unique-date readings, avoiding arbitrary ordering when the log has no time-of-day field.
 - Added a regression test for an ambiguous middle date and adjusted the duplicate-date test expectation.
 - Corrected report line-break escaping so the Android dialog displays the report on separate lines.
-- CI re-run required; physical Poco verification remains pending.
+- CI/build: PASS — run #1002 on exact code commit `1087af8891a63f67f48328c56aa89f1764a85c2d`; physical Poco verification remains pending.
