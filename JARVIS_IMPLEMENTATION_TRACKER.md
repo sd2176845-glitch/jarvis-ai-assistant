@@ -961,3 +961,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Privacy:** owner-invoked and on-device only; no new permission, background work, network request, external sharing or second inventory store.
 - **Status:** code-present on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending until a workflow completes on the final branch head.
 - **Anti-duplication:** read-only integrity audit, not a duplicate filter, summary, search, sort or edit flow. JARVIS only; Even untouched.
+
+
+### Feature 17 — Purchase-age summary (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; added as one read-only action in the existing inventory menu.
+- **Implementation:** groups existing owner-entered purchase dates by completed calendar age: under 1 year, 1–2 years, 2–5 years and 5+ years. Missing/malformed dates and future dates are reported separately.
+- **Data behavior:** uses the existing `purchase_date` field and a local current date; no new preference key, no changes to inventory records, no resale-value or remaining-life inference.
+- **Tests:** covers exact year boundaries, just-before-anniversary dates, leap-day handling, malformed/missing/future dates, invalid current date, and null/empty arrays.
+- **Privacy:** owner-invoked and on-device only; no new permission, background work, network request or external sharing.
+- **Status:** code committed on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending.
+- **Anti-duplication:** distinct from warranty status/countdown and the Feature 16 data-quality audit; uses purchase dates only for a read-only age distribution. JARVIS only; Even untouched.
