@@ -22,6 +22,34 @@ public class EnvironmentIntelligenceRulesTest {
         assertEquals("Out of range", EnvironmentIntelligenceRules.categoryForAqi(501));
     }
 
+
+    @Test
+    public void liveUsAqiCategoriesUseUsScaleAndKeepCpcbDistinct() {
+        assertEquals("Not supplied", EnvironmentIntelligenceRules.usAqiCategory(-1));
+        assertEquals("Good", EnvironmentIntelligenceRules.usAqiCategory(50));
+        assertEquals("Moderate", EnvironmentIntelligenceRules.usAqiCategory(51));
+        assertEquals("Unhealthy for sensitive groups", EnvironmentIntelligenceRules.usAqiCategory(101));
+        assertEquals("Unhealthy", EnvironmentIntelligenceRules.usAqiCategory(151));
+        assertEquals("Very unhealthy", EnvironmentIntelligenceRules.usAqiCategory(201));
+        assertEquals("Hazardous", EnvironmentIntelligenceRules.usAqiCategory(301));
+        assertEquals("Beyond standard US AQI bands", EnvironmentIntelligenceRules.usAqiCategory(501));
+    }
+
+    @Test
+    public void liveAirQualityReportLabelsModelEstimatesAndRejectsUnsafeFields() {
+        String report = EnvironmentIntelligenceRules.formatLiveAirQuality(
+                "Kolkata\\nInjected", 87, 42, "18.5", "Not a number", "31.2",
+                "4.0", "2.1", "3.4", "2026-11-24T16:00", "Asia/Kolkata");
+        assertTrue(report.contains("Kolkata Injected"));
+        assertTrue(report.contains("U.S. AQI: 87 • Moderate"));
+        assertTrue(report.contains("European AQI: 42"));
+        assertTrue(report.contains("PM2.5: 18.5 µg/m³"));
+        assertTrue(report.contains("PM10: Not supplied µg/m³"));
+        assertTrue(report.contains("not CPCB monitoring-station readings"));
+        assertTrue(report.contains("not India's CPCB National AQI scale"));
+        assertFalse(report.contains("Not a number"));
+    }
+
     @Test
     public void manualObservationRequiresBroadAreaValidValueAndLocalTimestamp() {
         assertNull(EnvironmentIntelligenceRules.validateObservation(
