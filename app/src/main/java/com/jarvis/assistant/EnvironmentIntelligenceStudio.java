@@ -35,6 +35,7 @@ public final class EnvironmentIntelligenceStudio {
                 "24-hour modelled air-quality forecast",
                 "24-hour UV index forecast • city search",
                 "24-hour weather hazard outlook • city search",
+                "Official NDMA SACHET disaster alerts • live feed",
                 "Open official CPCB AQI dashboard",
                 "Record a manual CPCB AQI reading",
                 "View saved manual observations",
@@ -47,9 +48,10 @@ public final class EnvironmentIntelligenceStudio {
                     else if (which == 1) LiveInfoStudio.showAirQualityForecast(activity);
                     else if (which == 2) LiveInfoStudio.showUvForecast(activity);
                     else if (which == 3) LiveInfoStudio.showWeatherHazardOutlook(activity);
-                    else if (which == 4) openOfficialSource(activity);
-                    else if (which == 5) addObservation(activity);
-                    else if (which == 6) showObservations(activity);
+                    else if (which == 4) SachetAlertStudio.show(activity);
+                    else if (which == 5) openOfficialSource(activity);
+                    else if (which == 6) addObservation(activity);
+                    else if (which == 7) showObservations(activity);
                     else showCategoryGuide(activity);
                 }).setNegativeButton("Close", null).show();
     }
