@@ -2603,6 +2603,8 @@ public class MainActivity extends Activity {
             }
             return;
         }
+        if (PracticalIntelligenceStudio.handleAssetDocumentPickerResult(
+                this, requestCode, resultCode, data)) return;
         if (!ImageOcrStudio.handleResult(this, requestCode, resultCode, data)) {
             DocumentOcrStudio.handleResult(this, requestCode, resultCode, data);
         }
