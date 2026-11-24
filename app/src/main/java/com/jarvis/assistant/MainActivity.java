@@ -388,7 +388,7 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String summary = structured;
         if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
-        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event"};
+        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event", "Life management overview"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
                 .setMessage(summary + "\n\nJARVIS reminders are stored locally. Quiet hours and snooze apply only to reminders created inside JARVIS.")
                 .setItems(actions, (dialog, which) -> {
@@ -401,10 +401,66 @@ public class MainActivity extends Activity {
                             startActivity(alarm);
                         } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
                     } else if (which == 3) showNotificationPreferencesDialog();
-                    else showCalendarEventDraftDialog();
+                    else if (which == 4) showCalendarEventDraftDialog();
+                    else showLifeManagementOverview();
                 }).setNegativeButton("Close", null).show();
     }
 
+    /** Read-only overview across the existing task, reminder, workflow and timeline stores. */
+    private void showLifeManagementOverview() {
+        if (blockPrivateInGuestMode()) return;
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Life management")
+                    .setMessage("Task data could not be read. Existing records were left unchanged.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        String[] titles = new String[tasks.length()];
+        String[] dueDates = new String[tasks.length()];
+        boolean[] completed = new boolean[tasks.length()];
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            titles[i] = item == null ? "" : item.optString("title", "");
+            dueDates[i] = item == null ? "" : item.optString("due_date", "");
+            completed[i] = item != null && item.optBoolean("done", false);
+        }
+        java.util.ArrayList<String> reminderTitles = new java.util.ArrayList<>();
+        java.util.ArrayList<Long> reminderTimes = new java.util.ArrayList<>();
+        java.util.Map<String, ?> reminderRecords = getSharedPreferences("jarvis_scheduled_reminders_v1", MODE_PRIVATE).getAll();
+        for (java.util.Map.Entry<String, ?> entry : reminderRecords.entrySet()) {
+            if (!(entry.getValue() instanceof String)) continue;
+            try {
+                org.json.JSONObject item = new org.json.JSONObject((String) entry.getValue());
+                if (item.optInt("id", -1) <= 0) continue;
+                long triggerAt = item.optLong("triggerAt", 0L);
+                if (triggerAt <= 0L) continue;
+                reminderTitles.add(ReminderRules.normalizeTitle(item.optString("title", "")));
+                reminderTimes.add(triggerAt);
+            } catch (org.json.JSONException ignored) {
+                // Malformed legacy entries are omitted from this read-only overview.
+            }
+        }
+        org.json.JSONArray workflows = readManualWorkflows();
+        org.json.JSONArray timeline = readPersonalTimeline();
+        long[] times = new long[reminderTimes.size()];
+        for (int i = 0; i < reminderTimes.size(); i++) times[i] = reminderTimes.get(i);
+        String report = LifeManagementRules.buildOverview(titles, dueDates, completed,
+                reminderTitles.toArray(new String[0]), times,
+                workflows == null ? -1 : workflows.length(),
+                timeline == null ? -1 : timeline.length(), System.currentTimeMillis());
+        android.widget.TextView content = new android.widget.TextView(this);
+        content.setText(report);
+        content.setTextIsSelectable(true);
+        content.setTextSize(15);
+        content.setPadding(28, 20, 28, 20);
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.addView(content);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Life management overview")
+                .setView(scroll)
+                .setPositiveButton("Refresh", (dialog, which) -> showLifeManagementOverview())
+                .setNegativeButton("Close", null).show();
+    }
     private void showCreateReminderDialog() {
         if (blockPrivateInGuestMode()) return;
         android.widget.EditText titleInput = new android.widget.EditText(this);
