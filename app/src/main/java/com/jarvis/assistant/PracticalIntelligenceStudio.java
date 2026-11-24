@@ -35,7 +35,6 @@ public final class PracticalIntelligenceStudio {
     private static final int MAX_RECORDS = 50;
     private static final int MAX_ASSETS = 100;
     private static final int ASSET_DOCUMENT_PICK_REQUEST = 7317;
-    private static final long MAX_ASSET_DOCUMENT_BYTES = 25L * 1024L * 1024L;
     private static int pendingDocumentIndex = -1;
     private static long pendingDocumentCreatedAt = -1L;
     private static String pendingDocumentName = "";
@@ -740,7 +739,7 @@ public final class PracticalIntelligenceStudio {
         }
         String[] options = {"Open " + savedName, "Replace document", "Remove attachment"};
         new AlertDialog.Builder(activity).setTitle("Saved document")
-                .setMessage(savedName + "\\nStored as a local reference only. Opening hands this selected file to an installed viewer.")
+                .setMessage(savedName + "\nStored as a local reference only. Opening hands this selected file to an installed viewer.")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) openAssetDocument(activity, index);
                     else if (which == 1) chooseAssetDocument(activity, index);
@@ -801,26 +800,41 @@ public final class PracticalIntelligenceStudio {
             Toast.makeText(activity, "Unsupported document. Choose PDF, JPEG, PNG or WebP.", Toast.LENGTH_LONG).show();
             return true;
         }
-        long size = queryAssetDocumentSize(activity, uri);
-        if (size > MAX_ASSET_DOCUMENT_BYTES) {
-            Toast.makeText(activity, "Document is larger than the 25 MB reference limit.", Toast.LENGTH_LONG).show();
-            return true;
-        }
-        int grantFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        if ((grantFlags & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
+        if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
             Toast.makeText(activity, "The provider did not grant read access; nothing was attached.", Toast.LENGTH_LONG).show();
             return true;
         }
+        JSONArray beforeSave = readAssetInventory(activity);
+        if (beforeSave == null) return true;
+        int target = findPendingDocumentItem(beforeSave, requestedIndex, expectedCreatedAt,
+                expectedName, expectedCategory);
+        if (target < 0) {
+            Toast.makeText(activity, "The selected inventory item changed; document was not attached.", Toast.LENGTH_LONG).show();
+            return true;
+        }
+        boolean referenceAlreadyStored = false;
+        for (int i = 0; i < beforeSave.length(); i++) {
+            JSONObject other = beforeSave.optJSONObject(i);
+            if (other == null) continue;
+            if (uriText.equals(other.optString("document_uri", ""))) {
+                if (i != target) {
+                    Toast.makeText(activity, "That document is already linked to another inventory item.", Toast.LENGTH_LONG).show();
+                    return true;
+                }
+                referenceAlreadyStored = true;
+            }
+        }
         try {
-            activity.getContentResolver().takePersistableUriPermission(uri, grantFlags);
+            // Persist read access only; JARVIS never requests write access to the selected file.
+            activity.getContentResolver().takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         } catch (SecurityException | IllegalArgumentException e) {
             Toast.makeText(activity, "This provider cannot keep a saved document reference. Choose another provider.", Toast.LENGTH_LONG).show();
             return true;
         }
         boolean saved = saveAssetDocumentReference(activity, requestedIndex, expectedCreatedAt,
                 expectedName, expectedCategory, uriText, mime, displayName);
-        if (!saved) releaseAssetDocumentPermission(activity, uriText);
+        if (!saved && !referenceAlreadyStored) releaseAssetDocumentPermission(activity, uriText);
         return true;
     }
 
@@ -947,27 +961,10 @@ public final class PracticalIntelligenceStudio {
         } catch (Exception ignored) {
             // A provider may not expose a display name; fall back to the URI segment.
         } finally {
-            if (cursor != null) cursor.close();
+            if (cursor != null) { try { cursor.close(); } catch (Exception ignored) { } }
         }
         String fallback = uri.getLastPathSegment();
         return fallback == null ? "Selected document" : fallback;
-    }
-
-    private static long queryAssetDocumentSize(Activity activity, Uri uri) {
-        Cursor cursor = null;
-        try {
-            cursor = activity.getContentResolver().query(uri,
-                    new String[]{OpenableColumns.SIZE}, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                int column = cursor.getColumnIndex(OpenableColumns.SIZE);
-                if (column >= 0 && !cursor.isNull(column)) return cursor.getLong(column);
-            }
-        } catch (Exception ignored) {
-            // Unknown size is allowed; JARVIS does not read or copy the file contents.
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-        return -1L;
     }
 
     private static String mimeFromAssetDocumentName(String name) {
