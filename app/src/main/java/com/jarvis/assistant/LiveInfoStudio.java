@@ -39,54 +39,305 @@ public final class LiveInfoStudio {
                 }).setNegativeButton("Close", null).show();
     }
 
-    private static void weatherInput(Activity activity) {
-        showInput(activity, "Weather • City Search",
-                "Enter city or town name (no GPS required)", value -> {
-                    String url = "https://geocoding-api.open-meteo.com/v1/search?name="
-                            + encode(value) + "&count=5&language=en&format=json";
-                    confirmAndRun(activity, "Weather lookup",
-                            "Only the city name you entered will be sent to Open-Meteo for matching and weather data. JARVIS will not read GPS or request location permission.",
-                            () -> get(url, body -> {
-                                try {
-                                    JSONObject root = new JSONObject(body);
-                                    JSONArray results = root.optJSONArray("results");
-                                    if (results == null || results.length() == 0) {
-                                        showResult(activity, "Weather", "No matching city was found. Try adding a state or country.");
-                                        return;
+    private interface PlaceAction {
+        void selected(String placeName, String latitude, String longitude);
+    }
+
+    /** Shared city picker for weather and environmental lookups; never reads device location. */
+    private static void chooseCity(Activity activity, String title, String disclosure, PlaceAction action) {
+        showInput(activity, title, "Enter a city or town (no GPS required)", value -> {
+            if (value.length() > 80 || value.contains("://") || value.contains("@")
+                    || value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0) {
+                Toast.makeText(activity, "Enter a city or town name up to 80 characters, not an address or URL.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            String url = "https://geocoding-api.open-meteo.com/v1/search?name="
+                    + encode(value) + "&count=5&language=en&format=json";
+            confirmAndRun(activity, "City lookup", disclosure, () -> get(url, body -> {
+                try {
+                    JSONObject root = new JSONObject(body);
+                    JSONArray results = root.optJSONArray("results");
+                    if (results == null || results.length() == 0) {
+                        showResult(activity, "City lookup", "No matching city was found. Try adding a state or country.");
+                        return;
+                    }
+                    int count = Math.min(results.length(), 5);
+                    String[] labels = new String[count];
+                    for (int i = 0; i < count; i++) {
+                        JSONObject place = results.getJSONObject(i);
+                        labels[i] = place.optString("name", "Place")
+                                + (place.optString("admin1").isEmpty() ? "" : ", " + place.optString("admin1"))
+                                + (place.optString("country").isEmpty() ? "" : ", " + place.optString("country"));
+                    }
+                    activity.runOnUiThread(() -> {
+                        if (activity.isFinishing() || activity.isDestroyed()) return;
+                        new AlertDialog.Builder(activity).setTitle("Choose matching place")
+                                .setItems(labels, (dialog, index) -> {
+                                    try {
+                                        JSONObject selected = results.getJSONObject(index);
+                                        action.selected(labels[index], selected.getString("latitude"),
+                                                selected.getString("longitude"));
+                                    } catch (Exception e) {
+                                        showResult(activity, "City lookup", "The selected location data was incomplete.");
                                     }
-                                    int count = Math.min(results.length(), 5);
-                                    String[] labels = new String[count];
-                                    for (int i = 0; i < count; i++) {
-                                        JSONObject place = results.getJSONObject(i);
-                                        labels[i] = place.optString("name", "Place")
-                                                + (place.optString("admin1").isEmpty() ? "" : ", " + place.optString("admin1"))
-                                                + (place.optString("country").isEmpty() ? "" : ", " + place.optString("country"));
-                                    }
-                                    activity.runOnUiThread(() -> {
-                                        if (activity.isFinishing() || activity.isDestroyed()) return;
-                                        new AlertDialog.Builder(activity).setTitle("Choose matching place")
-                                                .setItems(labels, (dialog, index) -> {
-                                                    try {
-                                                        JSONObject selected = results.getJSONObject(index);
-                                                        String lat = selected.getString("latitude");
-                                                        String lon = selected.getString("longitude");
-                                                        String placeName = labels[index];
-                                                        String weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude="
-                                                                + encode(lat) + "&longitude=" + encode(lon)
-                                                                + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m"
-                                                                + "&timezone=auto";
-                                                        get(weatherUrl, data -> showResult(activity, "Weather • " + placeName,
-                                                                parseWeather(data, placeName)));
-                                                    } catch (Exception e) {
-                                                        showResult(activity, "Weather", "The selected location data was incomplete.");
-                                                    }
-                                                }).setNegativeButton("Cancel", null).show();
-                                    });
-                                } catch (Exception e) {
-                                    showResult(activity, "Weather", "The geocoding service returned an unexpected response.");
-                                }
-                            }));
+                                }).setNegativeButton("Cancel", null).show();
+                    });
+                } catch (Exception e) {
+                    showResult(activity, "City lookup", "The geocoding service returned an unexpected response.");
+                }
+            }));
+        });
+    }
+
+    /** Owner-invoked seven-day daily weather overview; reuses the existing city selector. */
+    public static void showSevenDayWeatherOutlook(Activity activity) {
+        chooseCity(activity, "7-day Weather Outlook • City Search",
+                "Only the city name you enter is used to find matching places. After you select one, its approximate "
+                        + "coordinates are sent to Open-Meteo for a seven-day daily forecast. No GPS, home address, "
+                        + "background monitoring, automatic history or alerts are used. These are model estimates, not official warnings.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://api.open-meteo.com/v1/forecast?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,"
+                            + "precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,"
+                            + "uv_index_max,sunrise,sunset&forecast_days=7&timezone=auto&wind_speed_unit=kmh";
+                    get(forecastUrl, data -> showResult(activity,
+                            "7-day Weather Outlook • " + placeName,
+                            parseSevenDayWeatherOutlook(data, placeName)));
                 });
+    }
+
+    private static String parseSevenDayWeatherOutlook(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject daily = root.optJSONObject("daily");
+            if (daily == null) return "The provider did not include a daily weather outlook.";
+            JSONArray timeValues = daily.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No daily weather estimates were returned for this location.";
+            }
+            int count = Math.min(7, timeValues.length());
+            String[] dates = new String[count];
+            for (int i = 0; i < count; i++) dates[i] = timeValues.optString(i, "");
+            JSONObject units = root.optJSONObject("daily_units");
+            return WeatherOutlookRules.formatSevenDay(
+                    placeName, root.optString("timezone", ""), dates,
+                    weatherValues(daily, "weather_code", count),
+                    weatherValues(daily, "temperature_2m_max", count),
+                    weatherValues(daily, "temperature_2m_min", count),
+                    weatherValues(daily, "precipitation_sum", count),
+                    weatherValues(daily, "precipitation_probability_max", count),
+                    weatherValues(daily, "wind_speed_10m_max", count),
+                    weatherValues(daily, "wind_gusts_10m_max", count),
+                    weatherValues(daily, "uv_index_max", count),
+                    weatherValues(daily, "sunrise", count),
+                    weatherValues(daily, "sunset", count),
+                    unit(units, "temperature_2m_max", "°C"),
+                    unit(units, "precipitation_sum", "mm"),
+                    unit(units, "wind_speed_10m_max", "km/h"));
+        } catch (Exception e) {
+            return "The seven-day weather provider returned an unexpected response. No forecast history was saved.";
+        }
+    }
+
+    private static void weatherInput(Activity activity) {
+        chooseCity(activity, "Weather • City Search",
+                "Only the city name you enter will be sent to Open-Meteo to find matching places. "
+                        + "After you choose one, its coordinates are sent for the weather result. "
+                        + "JARVIS will not read GPS or request location permission.",
+                (placeName, latitude, longitude) -> {
+                    String weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m"
+                            + "&timezone=auto";
+                    get(weatherUrl, data -> showResult(activity, "Weather • " + placeName,
+                            parseWeather(data, placeName)));
+                });
+    }
+
+    /** Owner-invoked 24-hour weather watch; reuses the existing city picker and network helper. */
+    public static void showWeatherHazardOutlook(Activity activity) {
+        chooseCity(activity, "24-hour Weather Watch • City Search",
+                "Only the city name you enter is used to find matching places. After you select one, its approximate "
+                        + "coordinates are sent to Open-Meteo for hourly forecast estimates. No GPS, home address, "
+                        + "background monitoring or automatic alerts are used. This is a planning aid, not an official warning.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://api.open-meteo.com/v1/forecast?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=weather_code,precipitation_probability,precipitation,wind_speed_10m,"
+                            + "wind_gusts_10m,apparent_temperature,visibility&forecast_hours=24&timezone=auto"
+                            + "&wind_speed_unit=kmh";
+                    get(forecastUrl, data -> showResult(activity,
+                            "24-hour Weather Watch • " + placeName,
+                            parseWeatherHazardOutlook(data, placeName)));
+                });
+    }
+
+    private static String parseWeatherHazardOutlook(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly weather outlook.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly weather estimates were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            for (int i = 0; i < count; i++) times[i] = timeValues.optString(i, "");
+            return EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
+                    placeName, times,
+                    weatherValues(hourly, "weather_code", count),
+                    weatherValues(hourly, "precipitation_probability", count),
+                    weatherValues(hourly, "precipitation", count),
+                    weatherValues(hourly, "wind_speed_10m", count),
+                    weatherValues(hourly, "wind_gusts_10m", count),
+                    weatherValues(hourly, "apparent_temperature", count),
+                    weatherValues(hourly, "visibility", count),
+                    root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The weather provider returned an unexpected response. No location or forecast history was saved.";
+        }
+    }
+
+    private static String[] weatherValues(JSONObject hourly, String key, int count) {
+        String[] result = new String[count];
+        JSONArray values = hourly.optJSONArray(key);
+        for (int i = 0; i < count; i++) {
+            result[i] = values == null ? "" : values.optString(i, "");
+        }
+        return result;
+    }
+
+    /** Current modelled air-quality lookup; distinct from manual CPCB station observations. */
+    public static void showAirQuality(Activity activity) {
+        chooseCity(activity, "Live Air Quality • City Search",
+                "Only the city name you enter is sent to Open-Meteo for matching. After you select a place, "
+                        + "its approximate coordinates are sent to the Open-Meteo Air Quality API. "
+                        + "No GPS, home address or background location is used. The result is modelled data, not a CPCB station reading.",
+                (placeName, latitude, longitude) -> {
+                    String airUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&current=us_aqi,european_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,sulphur_dioxide,uv_index"
+                            + "&timezone=auto";
+                    get(airUrl, data -> showResult(activity, "Environmental Intelligence • " + placeName,
+                            parseAirQuality(data, placeName)));
+                });
+    }
+
+    /** Owner-invoked next-24-hour model forecast; no background polling or saved readings. */
+    public static void showAirQualityForecast(Activity activity) {
+        chooseCity(activity, "24-hour Air Quality Forecast • City Search",
+                "Only the city name you enter is sent for matching. After you select a place, its approximate coordinates "
+                        + "are sent to Open-Meteo for the next 24 hourly model estimates. No GPS, home address or background "
+                        + "location is used. These estimates are not CPCB station readings.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=us_aqi,european_aqi,pm2_5,pm10&forecast_hours=24&timezone=auto";
+                    get(forecastUrl, data -> showResult(activity,
+                            "24-hour Air Quality Forecast • " + placeName,
+                            parseAirQualityForecast(data, placeName)));
+                });
+    }
+
+    /** Owner-invoked UV forecast; shares the existing city picker and network helper. */
+    public static void showUvForecast(Activity activity) {
+        chooseCity(activity, "24-hour UV Index Forecast • City Search",
+                "Only the city name you enter is sent for matching. After you select a place, its approximate coordinates "
+                        + "are sent to Open-Meteo for up to 24 hourly UV-index estimates. No GPS, home address, background "
+                        + "location or automatic history is used. These are model forecasts, not ground measurements.",
+                (placeName, latitude, longitude) -> {
+                    String uvUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=uv_index,uv_index_clear_sky&forecast_hours=24&timezone=auto";
+                    get(uvUrl, data -> showResult(activity, "24-hour UV Forecast • " + placeName,
+                            parseUvForecast(data, placeName)));
+                });
+    }
+
+    private static String parseUvForecast(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly UV forecast.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly UV forecast values were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            String[] uv = new String[count];
+            String[] clearSky = new String[count];
+            JSONArray uvValues = hourly.optJSONArray("uv_index");
+            JSONArray clearSkyValues = hourly.optJSONArray("uv_index_clear_sky");
+            for (int i = 0; i < count; i++) {
+                times[i] = timeValues.optString(i, "");
+                uv[i] = uvValues == null ? "" : uvValues.optString(i, "");
+                clearSky[i] = clearSkyValues == null ? "" : clearSkyValues.optString(i, "");
+            }
+            return EnvironmentIntelligenceRules.formatUvForecast(
+                    placeName, times, uv, clearSky, root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The UV forecast provider returned an unexpected response. No history was saved.";
+        }
+    }
+
+    private static String parseAirQualityForecast(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly air-quality forecast.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly forecast values were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            String[] usAqi = new String[count];
+            String[] europeanAqi = new String[count];
+            String[] pm25 = new String[count];
+            String[] pm10 = new String[count];
+            JSONArray usValues = hourly.optJSONArray("us_aqi");
+            JSONArray euValues = hourly.optJSONArray("european_aqi");
+            JSONArray pm25Values = hourly.optJSONArray("pm2_5");
+            JSONArray pm10Values = hourly.optJSONArray("pm10");
+            for (int i = 0; i < count; i++) {
+                times[i] = timeValues.optString(i, "");
+                usAqi[i] = usValues == null ? "" : usValues.optString(i, "");
+                europeanAqi[i] = euValues == null ? "" : euValues.optString(i, "");
+                pm25[i] = pm25Values == null ? "" : pm25Values.optString(i, "");
+                pm10[i] = pm10Values == null ? "" : pm10Values.optString(i, "");
+            }
+            return EnvironmentIntelligenceRules.formatAirQualityForecast(
+                    placeName, times, usAqi, europeanAqi, pm25, pm10,
+                    root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The air-quality forecast provider returned an unexpected response. No observation was saved.";
+        }
+    }
+
+    private static String parseAirQuality(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject current = root.optJSONObject("current");
+            if (current == null) return "The provider did not include current model values for this location.";
+            return EnvironmentIntelligenceRules.formatLiveAirQuality(
+                    placeName,
+                    current.optInt("us_aqi", -1),
+                    current.optInt("european_aqi", -1),
+                    current.optString("pm2_5", ""),
+                    current.optString("pm10", ""),
+                    current.optString("ozone", ""),
+                    current.optString("nitrogen_dioxide", ""),
+                    current.optString("sulphur_dioxide", ""),
+                    current.optString("uv_index", ""),
+                    current.optString("time", ""),
+                    root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The air-quality provider returned an unexpected response. No observation was saved.";
+        }
     }
 
     private static String parseWeather(String body, String place) {
