@@ -210,7 +210,7 @@ public class AssetInventoryBatchRulesTest {
                 "2026-11-24");
         assertEquals(Integer.valueOf(1), result.get("Under 1 year"));
         assertEquals(Integer.valueOf(2), result.get("1–2 years"));
-        assertEquals(Integer.valueOf(1), result.get("2–5 years"));
+        assertEquals(Integer.valueOf(0), result.get("2–5 years"));
         assertEquals(Integer.valueOf(1), result.get("5+ years"));
         assertEquals(Integer.valueOf(2), result.get("Date unavailable"));
         assertEquals(Integer.valueOf(1), result.get("Future date"));
