@@ -363,3 +363,31 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B11 final documented-head verification:** `eaf5634ca4f8f652e242ba44bec940c9db2e7afe` passed GitHub Actions run #662 (`45047913711`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764123874`, SHA-256 `15e3ed72d5d98969b4eb4fd4981dc1a88eb0cb277e8cdf245eb95f807d19dcec`. No separate unit-test/lint task ran; Poco device verification remains pending.
+
+
+## M17 implementation status — Batch B12 (2026-11-22)
+- **Network Health Snapshot — code-present:** read-only active-network capability summary using Android `ConnectivityManager`/`NetworkCapabilities`; reports transport category, internet capability/validation and metered state. Uses only `ACCESS_NETWORK_STATE`; no SSID/IP/MAC/password reading, scanning, traffic inspection or settings changes.
+- **Offline Capability Matrix — code-present:** static design-level guide separating local foundations from online AI/provider features. It explicitly does not claim to test every feature at runtime.
+- **Connectivity Strategy Planner — code-present:** owner-confirmed Local-only, Hybrid, or Satellite internet/CubeSat educational planning through the existing memory-isolated AI path. It does not configure networks, scan/connect, provide transmission/frequency/interference instructions, or enable unauthorized access.
+- **Tests:** three focused JUnit tests added; CI is configured to run `testDebugUnitTest` before `assembleDebug`. CI result is pending until the new branch workflow completes.
+- **Device verification:** pending on Poco M4 Pro 4G. These capabilities are not marked verified.
+- **Anti-duplication:** this extends M17 beyond the existing M17 battery/storage/RAM dashboard; it does not add a second resource dashboard or modify the separate Even project.
+
+
+## M18 implementation status — Batch B13 (2026-11-22)
+- **Digital World Simulator — code-present:** owner-selected ecosystem, planetary motion, water-cycle/climate and sustainable-community scenarios; text-only conceptual models with variables, outcomes, assumptions and limitations.
+- **Virtual Experiment Lab — code-present:** owner-selected Physics/Chemistry/Biology/Earth-space concepts; hypothesis and variable explanations using harmless thought experiments only, not real-world procedures.
+- **3D Invention Studio — code-present:** text-only design briefs for benign everyday, accessibility, sustainability and educational objects; no CAD file or manufacturing-ready instructions.
+- **Safety boundary:** no weapons, attacks, harmful devices, hazardous experiments, surveillance/bypass equipment, dangerous fabrication, physical robot control or infrastructure actuation.
+- **Integration:** existing Command Center and memory-isolated AI request path; explicit owner confirmation; no new permission or persistent store.
+- **Tests:** three focused JUnit tests added; inherited CI runs unit tests before debug APK build. CI result pending for this branch.
+- **Device verification:** pending on Poco M4 Pro 4G; not marked verified.
+
+
+## M19 implementation status — Batch B14 (2026-11-22)
+- **Emergency Readiness Planner — code-present:** owner-selected flood, cyclone/severe storm, heatwave, earthquake or general-emergency preparedness checklist. General planning only; no live alerts/forecasts/orders, invented sources or risky rescue guidance.
+- **Legal Document Explainer — code-present:** owner-selected text excerpt is explained in plain language with terms, dates, obligations, ambiguities and questions for a qualified professional. Explicit redaction and confirmation; informational only, not legal advice; no excerpt saved to memory.
+- **Vehicle Maintenance Log — code-present:** local owner-managed service history (nickname, date, optional odometer, summary), with add/list/remove/clear and a 50-record cap. No VIN/registration/insurance identifiers, cloud sync or duplicate scheduler; due reminders must reuse M07 tasks.
+- **Tests:** three focused JUnit tests added; inherited CI runs unit tests before APK build. CI result pending for this branch.
+- **Device verification:** pending on Poco M4 Pro 4G.
+- **Anti-duplication:** no second task/reminder store, memory store or smart-home inventory. JARVIS only; Even untouched.

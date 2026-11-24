@@ -939,3 +939,29 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B11 final documented-head verification:** `eaf5634ca4f8f652e242ba44bec940c9db2e7afe` passed GitHub Actions run #662 (`45047913711`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764123874`, SHA-256 `15e3ed72d5d98969b4eb4fd4981dc1a88eb0cb277e8cdf245eb95f807d19dcec`. No separate unit-test/lint task ran; Poco device verification remains pending.
+
+
+## M17 implementation update — Connectivity Intelligence (Batch B12; 2026-11-22)
+- Added a read-only Network Health Snapshot using Android active-network capability metadata. It reports transport category, internet capability/validation and metered state only; it does not expose SSID, IP/MAC addresses, passwords, traffic or nearby network information.
+- Added an Offline Capability Matrix that distinguishes local foundations from internet-dependent AI/provider features and explicitly identifies itself as a design-level guide, not a live feature test.
+- Added an owner-confirmed Connectivity Strategy Planner for local-only, hybrid local/internet and satellite internet/CubeSat educational topics. It provides planning/learning only and does not configure, scan, connect to or transmit over networks.
+- Implementation uses the existing Command Center and memory-isolated AI request path. Only the normal `ACCESS_NETWORK_STATE` permission was added; no API key or private network credentials are stored.
+- Three focused JUnit tests were added and CI now runs `testDebugUnitTest` before the debug APK build. CI and Poco M4 Pro 4G physical-device verification remain pending until results are recorded in `JARVIS_IMPLEMENTATION_TRACKER.md`.
+- JARVIS only. The separate Even project remains untouched.
+
+
+## M18 implementation update — Simulation & Engineering Intelligence (Batch B13; 2026-11-22)
+- Added a text-only Digital World Simulator for benign ecosystem, planetary-motion, water-cycle/climate and sustainable-community learning scenarios.
+- Added a Virtual Experiment Lab for conceptual Physics, Chemistry, Biology and Earth/space science thought experiments; it does not provide real-world experimental procedures.
+- Added a 3D Invention Studio for benign everyday, accessibility, sustainable and educational product-design briefs. It does not create CAD files or manufacturing-ready instructions.
+- All tools use the existing memory-isolated AI request path after explicit owner confirmation; no new permission, persistent data store, physical-device control or API key was added.
+- Three focused JUnit tests were added. CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
+- Safety boundary: no weapons, attacks, harmful devices, hazardous experiments, surveillance/bypass equipment, dangerous fabrication, physical robot control or infrastructure actuation. JARVIS only; Even remains untouched.
+
+
+## M19 implementation update — Personal & Practical Intelligence (Batch B14; 2026-11-22)
+- Added an owner-invoked Emergency Readiness Planner for general flood, cyclone/storm, heatwave, earthquake and emergency preparedness. It does not provide live alerts or evacuation orders and defers to current official authorities.
+- Added a Legal Document Explainer for manually selected excerpts, with explicit confirmation, redaction guidance, memory-isolated processing and a clear informational-only/not-legal-advice boundary.
+- Added a local Vehicle Maintenance Log with owner-entered service records and CRUD controls. It does not request vehicle identifiers, sync to cloud, schedule reminders or duplicate M07 tasks.
+- Three focused JUnit tests were added; CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
+- JARVIS only; Even remains untouched.
