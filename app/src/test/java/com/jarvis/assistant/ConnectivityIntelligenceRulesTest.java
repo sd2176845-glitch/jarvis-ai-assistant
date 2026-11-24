@@ -66,6 +66,39 @@ public class ConnectivityIntelligenceRulesTest {
         assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("invalid")); // Invalid saved values normalize to Hybrid.
     }
 
+    @Test public void cloudRoutingBlocksLocalAndMissingOrLocalOnlyRoutes() {
+        assertFalse(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "Local", true, true, true));
+        assertFalse(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "Global", false, false, false));
+        assertFalse(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "Hybrid", true, true, false));
+    }
+
+    @Test public void cloudRoutingAllowsInternetAndFailsOpenWhenCapabilitiesAreUnknown() {
+        assertTrue(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "Global", true, true, true));
+        assertTrue(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "Hybrid", true, false, false));
+        assertFalse(ConnectivityIntelligenceRules.shouldAttemptCloudAi(
+                "invalid", false, true, true));
+    }
+
+    @Test public void noInternetRouteResponsesAreModeSpecificAndHonest() {
+        String hybrid = ConnectivityIntelligenceRules.noInternetRouteResponse("Hybrid");
+        assertTrue(hybrid.contains("no active internet-capable route"));
+        assertTrue(hybrid.contains("did not send a cloud AI request"));
+        assertTrue(hybrid.contains("no on-device generative language model"));
+
+        String global = ConnectivityIntelligenceRules.noInternetRouteResponse("Global");
+        assertTrue(global.contains("Global mode requires an internet-capable network"));
+        assertTrue(global.contains("did not send a cloud AI request"));
+        assertTrue(global.contains("No offline AI answer"));
+
+        assertTrue(ConnectivityIntelligenceRules.noInternetRouteResponse("Local")
+                .contains("No cloud AI request was sent"));
+    }
+
     @Test public void modeDescriptionsDiscloseOfflineModelLimitsAndNetworkBehavior() {
         String local = ConnectivityIntelligenceRules.aiModeDescription("Local");
         assertTrue(local.contains("not sent to the cloud AI endpoint"));
