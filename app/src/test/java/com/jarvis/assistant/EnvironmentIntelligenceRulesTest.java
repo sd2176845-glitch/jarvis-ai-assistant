@@ -118,7 +118,7 @@ public class EnvironmentIntelligenceRulesTest {
     @Test
     public void uvForecastFormatsHourlyValuesAndProtectionNote() {
         String report = EnvironmentIntelligenceRules.formatUvForecast(
-                "Kolkata\\nInjected",
+                "Kolkata\nInjected",
                 new String[]{"2026-11-24T10:00", "2026-11-24T11:00", "2026-11-24T12:00"},
                 new String[]{"2.5", "6.2", "9.8"},
                 new String[]{"3.1", "7.0", "10.2"},
