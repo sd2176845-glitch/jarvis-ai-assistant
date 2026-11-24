@@ -903,3 +903,16 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B10 verification update (2026-11-22):** code/documentation head `f82347780326ecdc4a6bcfd10715a9488ba11f77` passed GitHub Actions run #620 (`45046350249`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762974382`, SHA-256 `3186014ea76112d07da2dde3e9595c5c5e70af900a5348522d7c881e12902571`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #33 is open and unmerged.
+
+
+## Implementation status addendum — M15 Creative Media Studio (Batch B11; 2026-11-22)
+- **Video Script Planner:** code added; original timed scripts and scene notes; text output only; final rebased CI/device verification pending.
+- **Storyboard & Shot List:** code added; numbered scene/framing/transition plans with accessibility notes; text output only; final rebased CI/device verification pending.
+- **Presentation Builder:** code added; slide outline, bullets, speaker notes and sources-to-verify; text output only; no PPTX generation; final rebased CI/device verification pending.
+- Uses memory-isolated AI request with explicit confirmation; no new permissions or persistent creative archive.
+
+
+**B11 verification update (2026-11-22):** rebased head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14` passed GitHub Actions run #636 (`45046654060`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #35 is open and unmerged.
+
+
+**B11 final verification update (2026-11-22):** rebased head `9afe85fc318780b6605f0808bd5042a53ecc2216` passed GitHub Actions run #639 (`45046733733`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763344964`, SHA-256 `155e413f753aaee977972cf8a5e5f7061f7c2dc38ea65a8c675ea8680d05f0ab`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #35 is open and unmerged.

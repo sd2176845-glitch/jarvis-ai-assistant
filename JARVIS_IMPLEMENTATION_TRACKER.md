@@ -375,3 +375,32 @@
 - **Implementation files:** `ProductivityStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed after rebasing on latest PR #31 head. Code/documentation head `5c6b3929c99aafdfd589d83c0921cdf8a3684a4f` passed GitHub Actions run #615 (`45046258241`): backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764031146`, SHA-256 `ee320e43e1d627326173b5537b151eb7df29dd42b7c118dc2bb4bd3fe2c19582`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.
+
+
+## Batch B11 — M15 Creative Media Studio (three text-first creative planning tools; 2026-11-22)
+
+**Branch:** `feature/m15-creative-media-3pack`, stacked on M13 Personal Productivity / PR #33. Replacement draft PR #35 after rebasing onto the latest parent head.
+
+### Feature 1 — Video Script Planner
+- **Code-present:** owner selects vertical short, educational explainer or storytelling format; chooses 15-second, 30-second, 60-second or 2-minute target duration; enters a creative brief. JARVIS generates an original hook, timed narration, scene descriptions, on-screen text and caption notes.
+- **Scope:** text script only; no video rendering or media file creation.
+- **Acceptance checks:** each format/duration, realistic timing, factual claims, empty/long brief and backend failure.
+
+### Feature 2 — Storyboard & Shot List
+- **Code-present:** owner selects educational, product-demonstration or original-story style and enters a concept. JARVIS produces numbered scenes, duration, visual direction, framing, narration, on-screen text, transitions and accessibility notes.
+- **Safety/privacy:** avoid hazardous setups and risky stunts; no use of a real person's likeness or private location without permission.
+- **Scope:** text storyboard only; no image/video rendering.
+- **Acceptance checks:** all styles, scene continuity, safe actions, accessibility notes and backend failure.
+
+### Feature 3 — Presentation Builder
+- **Code-present:** owner selects school/learning, project proposal or general-audience format and enters topic, purpose and preferred slide count. JARVIS generates a slide outline, concise bullets, speaker notes, visual suggestions and sources-to-verify.
+- **Reliability:** prompt explicitly prohibits invented citations, URLs and statistics.
+- **Scope:** text outline only; no PPTX file creation.
+- **Acceptance checks:** 5–10 slide brief, audience-appropriate language, factual claims, sources-to-verify and no fabricated citations.
+
+### Privacy, integration and verification
+- Uses existing `JarvisAiClient.askStandalone`; only the manually entered creative brief and selected format are sent after explicit confirmation. No saved conversation, notes or contacts are attached.
+- No new Android permission, persistent creative archive, background capture, media-rendering claim or API key in APK.
+- **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** passed on rebased code/documentation head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14`; GitHub Actions run #636 (`45046654060`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #33; do not merge to parent PR #33 or `main` without owner approval.
