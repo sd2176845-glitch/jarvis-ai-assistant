@@ -116,6 +116,40 @@ public final class AssetInventoryBatchRules {
         return issues;
     }
 
+    /** Read-only purchase-age buckets. Dates are owner-entered ISO dates; no value is inferred. */
+    public static Map<String, Integer> purchaseAgeSummary(String[] purchaseDates, String todayIsoDate) {
+        Map<String, Integer> counts = new java.util.LinkedHashMap<>();
+        counts.put("Under 1 year", 0);
+        counts.put("1–2 years", 0);
+        counts.put("2–5 years", 0);
+        counts.put("5+ years", 0);
+        counts.put("Date unavailable", 0);
+        counts.put("Future date", 0);
+        if (purchaseDates == null) return counts;
+        boolean validToday = PracticalIntelligenceRules.isValidIsoDate(todayIsoDate);
+        for (String raw : purchaseDates) {
+            String date = raw == null ? "" : raw.trim();
+            String bucket;
+            if (!validToday || !PracticalIntelligenceRules.isValidIsoDate(date)) {
+                bucket = "Date unavailable";
+            } else if (date.compareTo(todayIsoDate) > 0) {
+                bucket = "Future date";
+            } else {
+                int years = Integer.parseInt(todayIsoDate.substring(0, 4))
+                        - Integer.parseInt(date.substring(0, 4));
+                String todayMonthDay = todayIsoDate.substring(5);
+                String purchaseMonthDay = date.substring(5);
+                if (todayMonthDay.compareTo(purchaseMonthDay) < 0) years--;
+                if (years < 1) bucket = "Under 1 year";
+                else if (years < 2) bucket = "1–2 years";
+                else if (years < 5) bucket = "2–5 years";
+                else bucket = "5+ years";
+            }
+            counts.put(bucket, counts.get(bucket) + 1);
+        }
+        return counts;
+    }
+
     public static boolean isValidEdit(String n,String c,String p,String q,String notes,String w) {
         return PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,notes,w)==null;
     }
