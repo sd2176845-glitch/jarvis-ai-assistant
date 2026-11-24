@@ -152,7 +152,7 @@ public final class JarvisAiClient {
         long contextUpdatedAt = memory.getLong("conversation_updated_at", 0L);
         long contextTtl = 2L * 60L * 60L * 1000L;
         boolean contextFresh = ConversationContextRules.isFresh(contextUpdatedAt, nowMillis, contextTtl);
-        String prior = contextFresh ? memory.getString("conversation", "") : "";
+        String prior = contextFresh ? ConversationContextRules.limitContext(memory.getString("conversation", "")) : "";
         if (!contextFresh && memory.contains("conversation")) {
             memory.edit().remove("conversation").remove("conversation_updated_at").apply();
         }
@@ -167,8 +167,7 @@ public final class JarvisAiClient {
         else if ("Funny".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: FUNNY. Use gentle, situational humor when appropriate, not during serious topics.\n";
         else if ("Serious".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: SERIOUS. Be direct, focused, and factual.\n";
         else modeGuidance = "Assistant mode: NORMAL. Be helpful, respectful, and natural.\n";
-        String conversationContext = prior.isEmpty() ? "" : "Recent conversation for context (use only when relevant):\n" + prior + "\n";
-        String requestMessage = modeGuidance + conversationContext + "Current user message: " + originalMessage;
+        String requestMessage = ConversationContextRules.buildRequestMessage(modeGuidance, prior, originalMessage);
         Thread worker = new Thread(() -> {
             String answer;
             HttpURLConnection connection = null;
@@ -217,18 +216,12 @@ public final class JarvisAiClient {
             final String result = answer;
             if (!result.startsWith("JARVIS AI server mein error") &&
                     !result.startsWith("JARVIS AI se connect nahi ho paaya")) {
-                String old = memory.getString("conversation", "");
-                String updated = (old.isEmpty() ? "" : old + "\n")
-                        + "Boss: " + originalMessage + "\nJARVIS: " + result;
-                String[] lines = updated.split("\n");
-                int start = Math.max(0, lines.length - 12);
-                StringBuilder compact = new StringBuilder();
-                for (int i = start; i < lines.length; i++) {
-                    if (compact.length() > 0) compact.append('\n');
-                    compact.append(lines[i]);
+                synchronized (memory) {
+                    String old = memory.getString("conversation", "");
+                    String updated = ConversationContextRules.appendExchange(old, originalMessage, result);
+                    memory.edit().putString("conversation", updated)
+                            .putLong("conversation_updated_at", System.currentTimeMillis()).apply();
                 }
-                memory.edit().putString("conversation", compact.toString())
-                        .putLong("conversation_updated_at", System.currentTimeMillis()).apply();
             }
             main.post(() -> {
                 if (callback != null) callback.onReply(result);
