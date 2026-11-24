@@ -290,7 +290,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary", "Manage receipt / manual", "Set warranty reminder"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary", "Manage receipt / manual", "Set warranty reminder", "Encrypted backup / restore"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded. Receipt/manual files stay in their provider; JARVIS saves only a local reference and never uploads them.")
                 .setItems(actions, (dialog, which) -> {
@@ -309,6 +309,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 12) assetPurchaseAgeSummary(activity);
                     else if (which == 13) manageAssetDocuments(activity);
                     else if (which == 14) scheduleWarrantyReminder(activity);
+                    else if (which == 15) AssetInventoryArchiveStudio.show(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -777,6 +778,7 @@ public final class PracticalIntelligenceStudio {
     /** MainActivity delegates this request code here; returns true only for our picker result. */
     public static boolean handleAssetDocumentPickerResult(Activity activity, int requestCode,
                                                            int resultCode, Intent data) {
+        if (AssetInventoryArchiveStudio.handlePickerResult(activity, requestCode, resultCode, data)) return true;
         if (requestCode != ASSET_DOCUMENT_PICK_REQUEST) return false;
         int requestedIndex = pendingDocumentIndex;
         long expectedCreatedAt = pendingDocumentCreatedAt;
