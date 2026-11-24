@@ -102,7 +102,7 @@ async function runParallelUltra(prompt) {
         ],
         maxTokens: 1400,
         temperature: 0.25,
-        timeoutMs: useUltraCoordinator ? SYNTHESIS_TIMEOUT_MS : 18_000
+        timeoutMs: useUltraCoordinator ? SYNTHESIS_TIMEOUT_MS : 12_000
       });
       return {
         reply: coordinator.text,
@@ -130,7 +130,7 @@ async function runParallelUltra(prompt) {
     ],
     maxTokens: 1000,
     temperature: 0.45,
-    timeoutMs: 22_000
+    timeoutMs: 18_000
   });
 
   return {
@@ -246,7 +246,7 @@ const server = http.createServer(async (req, res) => {
       reply = result.reply;
       model = result.model;
       parallelWorkers = {
-        used: result.workersCompleted > 0,
+        used: true,
         completed: result.workersCompleted,
         synthesisUsed: result.synthesisUsed,
         fallbackUsed: result.fallbackUsed,
