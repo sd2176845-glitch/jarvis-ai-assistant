@@ -86,7 +86,7 @@ test("worker notes are structured and fallback prompt never asks to reveal reaso
   assert.match(fallback, /Original user request/);
   assert.match(fallback, /fallible private analysis/);
   assert.match(fallback, /Do not reveal internal worker notes/);
-  assert.doesNotMatch(fallback, /\[PLANNER\]/);
+  assert.match(fallback, /Private worker notes for cross-checking/);
 });
 
 test("malformed worker collections fail closed", () => {
