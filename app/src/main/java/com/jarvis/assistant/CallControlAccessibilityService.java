@@ -39,6 +39,9 @@ public class CallControlAccessibilityService extends AccessibilityService {
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return;
         try {
+            CharSequence activePackage = root.getPackageName();
+            String packageName = activePackage == null ? "" : activePackage.toString();
+            if (!CallControlRules.isSupportedCallUi(packageName)) return;
             clickInTree(root, labels);
         } finally { root.recycle(); }
     }

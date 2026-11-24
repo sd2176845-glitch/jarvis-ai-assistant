@@ -121,14 +121,48 @@ public final class AppIntelligenceStudio {
                     + "\n\nVERSION\n" + version + " (code " + versionCode + ")"
                     + "\n\nTARGET ANDROID API\n" + info.applicationInfo.targetSdkVersion
                     + "\n\nFIRST INSTALLED\n" + firstInstall
-                    + "\n\nLAST UPDATED\n" + lastUpdate
+                    + "\n\nLAST UPDATED ON THIS DEVICE\n" + lastUpdate
+                    + "\nStore update comparison: not checked. This is local Android package metadata."
                     + "\n\nJARVIS reads public package metadata only. It does not open the app, inspect private files, or change its settings.";
             new AlertDialog.Builder(activity).setTitle("App Details")
-                    .setMessage(details).setPositiveButton("Close", null).show();
+                    .setMessage(details).setPositiveButton("Close", null)
+                    .setNeutralButton("Open app", (d, w) -> launchSelectedApp(activity, app.packageName))
+                    .setNegativeButton("Store listing", (d, w) -> openStoreListing(activity, app.packageName))
+                    .show();
         } catch (Exception e) {
             new AlertDialog.Builder(activity).setTitle("App Details unavailable")
                     .setMessage("Android did not provide package metadata for " + app.label + ". No app data was changed.")
                     .setPositiveButton("Close", null).show();
+        }
+    }
+
+    private static void launchSelectedApp(Activity activity, String packageName) {
+        try {
+            Intent launch = activity.getPackageManager().getLaunchIntentForPackage(packageName);
+            if (launch == null) {
+                Toast.makeText(activity, "No launch activity is available for this app.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            activity.startActivity(launch);
+        } catch (Exception e) {
+            Toast.makeText(activity, "This app could not be opened from JARVIS.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static void openStoreListing(Activity activity, String packageName) {
+        try {
+            Intent market = new Intent(Intent.ACTION_VIEW,
+                    android.net.Uri.parse("market://details?id=" + android.net.Uri.encode(packageName)));
+            activity.startActivity(market);
+        } catch (Exception e) {
+            try {
+                Intent web = new Intent(Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://play.google.com/store/apps/details?id="
+                                + android.net.Uri.encode(packageName)));
+                activity.startActivity(web);
+            } catch (Exception ignored) {
+                Toast.makeText(activity, "No compatible app store or browser was found.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
