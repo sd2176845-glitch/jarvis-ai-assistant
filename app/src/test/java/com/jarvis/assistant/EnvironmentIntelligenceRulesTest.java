@@ -101,6 +101,68 @@ public class EnvironmentIntelligenceRulesTest {
     }
 
     @Test
+    public void uvIndexUsesWhoExposureBands() {
+        assertEquals("Low", EnvironmentIntelligenceRules.uvCategory(0));
+        assertEquals("Low", EnvironmentIntelligenceRules.uvCategory(2.9));
+        assertEquals("Moderate", EnvironmentIntelligenceRules.uvCategory(3));
+        assertEquals("Moderate", EnvironmentIntelligenceRules.uvCategory(5.9));
+        assertEquals("High", EnvironmentIntelligenceRules.uvCategory(6));
+        assertEquals("High", EnvironmentIntelligenceRules.uvCategory(7.9));
+        assertEquals("Very high", EnvironmentIntelligenceRules.uvCategory(8));
+        assertEquals("Very high", EnvironmentIntelligenceRules.uvCategory(10.9));
+        assertEquals("Extreme", EnvironmentIntelligenceRules.uvCategory(11));
+        assertEquals("Not supplied", EnvironmentIntelligenceRules.uvCategory(-1));
+        assertEquals("Not supplied", EnvironmentIntelligenceRules.uvCategory(Double.NaN));
+    }
+
+    @Test
+    public void uvForecastFormatsHourlyValuesAndProtectionNote() {
+        String report = EnvironmentIntelligenceRules.formatUvForecast(
+                "Kolkata\\nInjected",
+                new String[]{"2026-11-24T10:00", "2026-11-24T11:00", "2026-11-24T12:00"},
+                new String[]{"2.5", "6.2", "9.8"},
+                new String[]{"3.1", "7.0", "10.2"},
+                "Asia/Kolkata");
+        assertTrue(report.contains("Kolkata Injected"));
+        assertTrue(report.contains("NEXT 24 HOURS"));
+        assertTrue(report.contains("UV index forecast: 2.5"));
+        assertTrue(report.contains("Clear-sky reference: 10.2"));
+        assertTrue(report.contains("Level: Very high"));
+        assertTrue(report.contains("Very high or extreme UV"));
+        assertTrue(report.contains("regional model estimates"));
+    }
+
+    @Test
+    public void uvForecastRejectsMalformedValuesAndCapsOutputAt24Hours() {
+        String[] times = new String[25];
+        String[] uv = new String[25];
+        String[] clear = new String[25];
+        for (int i = 0; i < 25; i++) {
+            times[i] = "2026-11-24T" + String.format(java.util.Locale.US, "%02d", i % 24) + ":00";
+            uv[i] = i == 0 ? "bad" : "3.0";
+            clear[i] = "31.0";
+        }
+        times[24] = "EXTRA_25TH_HOUR";
+        String report = EnvironmentIntelligenceRules.formatUvForecast(
+                "Kolkata", times, uv, clear, "Asia/Kolkata");
+        assertTrue(report.contains("UV index forecast: Not supplied"));
+        assertTrue(report.contains("Clear-sky reference: Not supplied"));
+        assertTrue(report.contains("Showing 24 hourly model estimates"));
+        assertFalse(report.contains("EXTRA_25TH_HOUR"));
+        assertFalse(report.contains("bad"));
+    }
+
+    @Test
+    public void uvForecastHandlesEmptyAndMissingArrays() {
+        assertTrue(EnvironmentIntelligenceRules.formatUvForecast(
+                "Kolkata", new String[0], null, null, "Asia/Kolkata").contains("No hourly"));
+        String report = EnvironmentIntelligenceRules.formatUvForecast(
+                "Kolkata", new String[]{"2026-11-24T10:00"}, null, null, "Asia/Kolkata");
+        assertTrue(report.contains("UV index forecast: Not supplied"));
+        assertTrue(report.contains("Clear-sky reference: Not supplied"));
+    }
+
+    @Test
     public void manualObservationRequiresBroadAreaValidValueAndLocalTimestamp() {
         assertNull(EnvironmentIntelligenceRules.validateObservation(
                 "Kolkata / Victoria Memorial", "87", "2026-11-24 15:30"));

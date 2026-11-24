@@ -137,6 +137,48 @@ public final class LiveInfoStudio {
                 });
     }
 
+    /** Owner-invoked UV forecast; shares the existing city picker and network helper. */
+    public static void showUvForecast(Activity activity) {
+        chooseCity(activity, "24-hour UV Index Forecast • City Search",
+                "Only the city name you enter is sent for matching. After you select a place, its approximate coordinates "
+                        + "are sent to Open-Meteo for up to 24 hourly UV-index estimates. No GPS, home address, background "
+                        + "location or automatic history is used. These are model forecasts, not ground measurements.",
+                (placeName, latitude, longitude) -> {
+                    String uvUrl = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=uv_index,uv_index_clear_sky&forecast_hours=24&timezone=auto";
+                    get(uvUrl, data -> showResult(activity, "24-hour UV Forecast • " + placeName,
+                            parseUvForecast(data, placeName)));
+                });
+    }
+
+    private static String parseUvForecast(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly UV forecast.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly UV forecast values were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            String[] uv = new String[count];
+            String[] clearSky = new String[count];
+            JSONArray uvValues = hourly.optJSONArray("uv_index");
+            JSONArray clearSkyValues = hourly.optJSONArray("uv_index_clear_sky");
+            for (int i = 0; i < count; i++) {
+                times[i] = timeValues.optString(i, "");
+                uv[i] = uvValues == null ? "" : uvValues.optString(i, "");
+                clearSky[i] = clearSkyValues == null ? "" : clearSkyValues.optString(i, "");
+            }
+            return EnvironmentIntelligenceRules.formatUvForecast(
+                    placeName, times, uv, clearSky, root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The UV forecast provider returned an unexpected response. No history was saved.";
+        }
+    }
+
     private static String parseAirQualityForecast(String body, String placeName) {
         try {
             JSONObject root = new JSONObject(body);

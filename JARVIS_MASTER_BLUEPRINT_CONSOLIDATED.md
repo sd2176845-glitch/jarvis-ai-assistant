@@ -508,3 +508,17 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **CI/build:** PASS — GitHub Actions run #1060 (`45384556838`) on exact feature-code head `6435cad8bd405dd6f5f884e2c0611aadce5464d7`; backend syntax checks, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14914259944`, size 23,290,448 bytes, SHA-256 `6e8627614f079d08c8c62fd139c40648bdebc565abb417ce25b6acb5f3558595`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+
+## B33 implementation status — Feature 3 (2026-11-24)
+
+
+### B33 Feature 3 — 24-hour modelled UV-index forecast (2026-11-24)
+- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly UV-index estimates plus a separately labelled clear-sky reference from the Open-Meteo Air Quality API.
+- **Interpretation:** uses WHO Global Solar UV Index exposure bands (Low, Moderate, High, Very high, Extreme). Protection guidance begins at UVI 3; very high/extreme levels are highlighted. This is general public-safety information, not a personal exposure calculation or medical advice.
+- **Data limits:** CAMS model-grid estimates are not direct ground measurements. Clear-sky values assume cloud-free conditions and are not presented as expected actual exposure.
+- **Privacy:** owner-invoked city-only lookup; reuses existing geocoder/network helper; no GPS, location permission, home address, background polling, saved location or automatic history.
+- **Anti-duplication:** a distinct UV outlook, not another air-quality dashboard or AQI forecast; no new data store, location system, scheduler or permissions.
+- **Tests:** added JUnit coverage for WHO UV band boundaries, missing/malformed values, sanitized labels and the 24-entry output cap.
+- **Poco M4 Pro 4G:** physical-device verification remains pending.

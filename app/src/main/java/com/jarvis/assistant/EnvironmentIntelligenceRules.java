@@ -99,6 +99,84 @@ public final class EnvironmentIntelligenceRules {
         return out.toString();
     }
 
+    /** WHO Global Solar UV Index exposure bands. */
+    public static String uvCategory(double value) {
+        if (Double.isNaN(value) || Double.isInfinite(value) || value < 0 || value > 30) {
+            return "Not supplied";
+        }
+        if (value < 3) return "Low";
+        if (value < 6) return "Moderate";
+        if (value < 8) return "High";
+        if (value < 11) return "Very high";
+        return "Extreme";
+    }
+
+    /**
+     * Formats up to 24 modelled UV estimates. Clear-sky values are shown only as a
+     * separate cloud-free reference, never as the expected actual UV value.
+     */
+    public static String formatUvForecast(String place, String[] times, String[] uv,
+                                          String[] clearSkyUv, String timezone) {
+        if (times == null || times.length == 0) {
+            return "No hourly UV forecast is available for this location.";
+        }
+        String safePlace = safeLabel(place, 80);
+        String safeZone = safeLabel(timezone, 60);
+        int count = Math.min(24, times.length);
+        double maximum = -1;
+        StringBuilder out = new StringBuilder("NEXT 24 HOURS • MODELLED UV INDEX FORECAST\n\n");
+        out.append("Place: ").append(safePlace).append("\n");
+        out.append("Time zone: ").append(safeZone.isEmpty() ? "Not supplied" : safeZone).append("\n\n");
+        for (int i = 0; i < count; i++) {
+            String time = safeLabel(valueAt(times, i), 32);
+            if (time.isEmpty()) time = "Hour " + (i + 1);
+            String actual = formatUvValue(valueAt(uv, i));
+            String clear = formatUvValue(valueAt(clearSkyUv, i));
+            out.append(time).append("\n");
+            out.append("UV index forecast: ").append(actual).append("\n");
+            if (!"Not supplied".equals(actual)) {
+                try { maximum = Math.max(maximum, Double.parseDouble(actual)); }
+                catch (NumberFormatException ignored) { }
+            }
+            out.append("Clear-sky reference: ").append(clear).append("\n");
+            out.append("Level: ");
+            if ("Not supplied".equals(actual)) out.append("Not supplied");
+            else out.append(uvCategory(Double.parseDouble(actual)));
+            out.append("\n\n");
+        }
+        out.append("Showing ").append(count).append(" hourly model estimates.\n");
+        out.append("Source: Open-Meteo Air Quality API • CAMS model forecasts.\n");
+        if (maximum >= 8) {
+            out.append("Protection note: Very high or extreme UV is forecast in this period. ");
+            out.append("Where possible, avoid prolonged midday sun and use shade, protective clothing, a hat, ");
+            out.append("UV-protective sunglasses and broad-spectrum sunscreen.");
+        } else if (maximum >= 3) {
+            out.append("Protection note: Sun protection is recommended when the UV index reaches 3 or higher. ");
+            out.append("Use shade, protective clothing, a hat, UV-protective sunglasses and broad-spectrum sunscreen.");
+        } else if (maximum >= 0) {
+            out.append("The supplied forecast values are below UV index 3. Forecasts and local conditions can change; ");
+            out.append("check the latest local conditions before spending extended time outdoors.");
+        } else {
+            out.append("No valid UV values were supplied. Check a local meteorological source for current conditions.");
+        }
+        out.append("\n\nThese are regional model estimates, not direct measurements or a personal exposure calculation. ");
+        out.append("Clear-sky reference values assume cloud-free conditions. Source coverage and local conditions vary.");
+        return out.toString();
+    }
+
+    private static String formatUvValue(String value) {
+        if (value == null || !value.matches("[0-9]{1,2}(\\.[0-9]{1,2})?")) return "Not supplied";
+        try {
+            double parsed = Double.parseDouble(value);
+            if (Double.isNaN(parsed) || Double.isInfinite(parsed) || parsed < 0 || parsed > 30) {
+                return "Not supplied";
+            }
+            return String.format(Locale.US, "%.1f", parsed);
+        } catch (NumberFormatException e) {
+            return "Not supplied";
+        }
+    }
+
     private static String valueAt(String[] values, int index) {
         return values == null || index < 0 || index >= values.length ? "" : values[index];
     }
