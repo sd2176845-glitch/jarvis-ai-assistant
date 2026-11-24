@@ -67,6 +67,29 @@ public final class ConnectivityIntelligenceRules {
         return !"Local".equals(normalizeAiMode(mode));
     }
 
+    /**
+     * Cloud AI is attempted only when a default route exists and Android reports
+     * INTERNET capability. Unknown capability details fail open to preserve the
+     * previous request attempt; an active local-only route does not.
+     */
+    public static boolean shouldAttemptCloudAi(String mode, boolean activeNetwork,
+                                               boolean capabilitiesKnown, boolean internetCapable) {
+        if (!cloudAiAllowed(mode) || !activeNetwork) return false;
+        return !capabilitiesKnown || internetCapable;
+    }
+
+    public static String noInternetRouteResponse(String mode) {
+        String selected = normalizeAiMode(mode);
+        if ("Local".equals(selected)) return localOnlyResponse();
+        if ("Hybrid".equals(selected)) {
+            return "Hybrid mode: Android reports no active internet-capable route, so JARVIS did not send a cloud AI request. "
+                    + "This build has no on-device generative language model, so a full offline AI answer is unavailable. "
+                    + "Supported local commands and saved phone data may still work.";
+        }
+        return "Global mode requires an internet-capable network. Android currently reports no active internet route, so JARVIS did not send a cloud AI request. "
+                + "Connect to the internet and retry. No offline AI answer has been generated.";
+    }
+
     public static String aiModeDescription(String mode) {
         String selected = normalizeAiMode(mode);
         if ("Local".equals(selected)) {
