@@ -948,7 +948,12 @@ public final class PracticalIntelligenceStudio {
         item.remove("document_uri");
         item.remove("document_name");
         item.remove("document_mime");
-        records.put(index, item);
+        try {
+            records.put(index, item);
+        } catch (Exception e) {
+            Toast.makeText(activity, "Could not remove document reference.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         boolean saved = preferences(activity).edit()
                 .putString(ASSET_INVENTORY_KEY, records.toString()).commit();
         if (saved) releaseAssetDocumentPermission(activity, uri);
