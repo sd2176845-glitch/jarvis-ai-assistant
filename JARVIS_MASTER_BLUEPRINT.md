@@ -1035,3 +1035,12 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 - **Artifact:** `jarvis-debug-apk`, ID `14906797649`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45366614260/artifacts/14906797649`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for existing notebook compatibility, saving/reloading progress status, setting/clearing revision dates and local date boundaries.
 - **Anti-duplication:** upgrades `learning_notebook_v1` and existing AI Learning Academy menu; no duplicate learning store or scheduler. JARVIS only; Even untouched.
+
+
+## B33 — Environmental Intelligence expansion (2026-11-24)
+- **Progress: 1/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
+- **Feature 1:** owner-entered city search and selected-place lookup for modelled U.S. AQI, European AQI, PM2.5, PM10, ozone, nitrogen dioxide, sulphur dioxide and UV index using Open-Meteo Air Quality API. Provider model timestamp and timezone are shown.
+- **Important distinction:** modelled regional estimates are not CPCB station readings. U.S./European AQI scales are not India's CPCB National AQI scale. No official alert or medical advice is implied.
+- **Privacy:** no GPS, location permission, home address, background polling, automatic storage or sharing. Existing manual CPCB observations remain separately available.
+- **Verification:** GitHub Actions run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`. Poco M4 Pro 4G physical-device verification remains pending.
+- Priority 38 remains in progress; this is one increment of the B33 20-capability milestone, not completion of the full environmental module.
