@@ -33,7 +33,7 @@ public class ConnectivityIntelligenceRulesTest {
         assertFalse(ConnectivityIntelligenceRules.cloudAiAllowed("Local"));
         assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("Global"));
         assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("Hybrid"));
-        assertFalse(ConnectivityIntelligenceRules.cloudAiAllowed("invalid"));
+        assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("invalid")); // Invalid saved values normalize to Hybrid.
     }
 
     @Test public void modeDescriptionsDiscloseOfflineModelLimitsAndNetworkBehavior() {
