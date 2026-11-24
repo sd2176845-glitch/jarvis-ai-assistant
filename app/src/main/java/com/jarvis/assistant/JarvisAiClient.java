@@ -4,6 +4,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.os.Build;
 
 import org.json.JSONObject;
 
@@ -40,7 +44,7 @@ public final class JarvisAiClient {
                 "jarvis_preferences", Context.MODE_PRIVATE);
         String connectivityMode = ConnectivityIntelligenceRules.normalizeAiMode(
                 connectivityPreferences.getString("ai_connectivity_mode", "Hybrid"));
-        if (!ConnectivityIntelligenceRules.cloudAiAllowed(connectivityMode)) {
+        if (!hasPotentialInternetRoute(appContext, connectivityMode)) {
             final String localTranscript = rawTranscript == null ? "" : rawTranscript.trim();
             main.post(() -> {
                 if (callback != null) callback.onUnderstood(localTranscript);
@@ -114,6 +118,13 @@ public final class JarvisAiClient {
             });
             return;
         }
+        if (!hasPotentialInternetRoute(appContext, connectivityMode)) {
+            main.post(() -> {
+                if (callback != null) callback.onReply(
+                        ConnectivityIntelligenceRules.noInternetRouteResponse(connectivityMode));
+            });
+            return;
+        }
         Thread worker = new Thread(() -> {
             String answer;
             HttpURLConnection connection = null;
@@ -167,6 +178,36 @@ public final class JarvisAiClient {
         worker.start();
     }
 
+    /**
+     * Avoids predictable cloud timeouts when Android confirms there is no internet-capable
+     * default route. Unknown capability state fails open and still attempts the request.
+     * A positive INTERNET capability is only a route hint, not proof that the provider works.
+     */
+    private static boolean hasPotentialInternetRoute(Context context, String mode) {
+        if (!ConnectivityIntelligenceRules.cloudAiAllowed(mode)) return false;
+        try {
+            if (Build.VERSION.SDK_INT < 23) return true;
+            ConnectivityManager manager = (ConnectivityManager)
+                    context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (manager == null) return true;
+            Network active = manager.getActiveNetwork();
+            if (active == null) {
+                return ConnectivityIntelligenceRules.shouldAttemptCloudAi(mode, false, false, false);
+            }
+            NetworkCapabilities capabilities = manager.getNetworkCapabilities(active);
+            boolean known = capabilities != null;
+            boolean internet = known
+                    && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+            return ConnectivityIntelligenceRules.shouldAttemptCloudAi(mode, true, known, internet);
+        } catch (SecurityException e) {
+            // Do not block a legitimate online request when Android does not disclose state.
+            return true;
+        } catch (Exception e) {
+            // Capability state is unknown; let the existing bounded HTTP request decide.
+            return true;
+        }
+    }
+
     private JarvisAiClient() {}
 
     public static void ask(Context context, String message, Callback callback) {
@@ -188,6 +229,13 @@ public final class JarvisAiClient {
         if (!ConnectivityIntelligenceRules.cloudAiAllowed(connectivityMode)) {
             main.post(() -> {
                 if (callback != null) callback.onReply(ConnectivityIntelligenceRules.localOnlyResponse());
+            });
+            return;
+        }
+        if (!hasPotentialInternetRoute(appContext, connectivityMode)) {
+            main.post(() -> {
+                if (callback != null) callback.onReply(
+                        ConnectivityIntelligenceRules.noInternetRouteResponse(connectivityMode));
             });
             return;
         }
