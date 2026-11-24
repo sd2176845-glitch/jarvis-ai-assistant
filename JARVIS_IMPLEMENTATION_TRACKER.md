@@ -7,11 +7,11 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`; B33 Environmental Intelligence expansion is at **5/20 net-new capabilities, all CI-verified**. Poco M4 Pro 4G physical-device verification remains pending.
-- B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
-- B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged. Do not merge either PR without explicit owner approval.
-- `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
-- B33 Feature 1 CI: run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`.
+- Current continuation branch: `feature/priority-2-core-reasoning-engine`, based on the Priority 1 conversation-engine branch; current implementation head before the tracker update is `c835b18b600a2c26e9a23d90d1352f3188cd28fe`.
+- Priority 1 draft PR #56 targets `feature/b33-environmental-intelligence-20`; it is open, draft and unmerged. Its exact tracker head `1d642d9703f5c2b4d4775875bc71e73811dbc9cd` passed CI run #1107 (`45404473584`).
+- Priority 2 Core AI Brain CI: run #1116 (`45405600581`) passed on exact implementation head `c835b18b600a2c26e9a23d90d1352f3188cd28fe`: backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14925851000`.
+- B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged. B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged.
+- `main` has not been changed or merged by this continuation; the separate Even project remains untouched. Do not merge any draft PR without explicit owner approval.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -1203,3 +1203,16 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** PASS — GitHub Actions run #1106 (ID `45404048888`) on exact feature-code head `f5880630b761c35785a2edb9178f05752e60b21a`; backend JavaScript syntax checks, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14922914686`, size 23,326,773 bytes. Poco M4 Pro 4G physical-device verification remains pending; CI success is not device verification.
 - **Anti-duplication / scope:** reuses the existing conversation client, TTL rule and memory key; no second chat engine, memory database, permission path or background collector. No phone action is performed by the text-only chat endpoint. JARVIS only; the separate Even project is untouched.
+
+## Priority sequence — Feature 2/15: Core AI Brain & Reasoning Engine (2026-11-24)
+- **Canonical owner:** the existing backend processing tiers, `chooseProcessing`, `runParallelUltra`, Groq completion helper and the existing `server.js` chat endpoint. This is an upgrade to the current AI brain, not a second model router or chat backend.
+- **Tier routing:** added a testable rule module that retains the existing Light / Advanced / Ultra tiers and automatic length/complexity routing, adds Hinglish/Hindi complexity cues, honours valid explicit tier overrides and reports a safe reason code without exposing private reasoning.
+- **Parallel reasoning:** keeps the existing planner, analyst and reviewer roles; strengthens their bounded tasks to identify goals/constraints, distinguish evidence from assumptions, and flag contradictions and risks.
+- **Worker validation:** only known worker roles and successful, non-empty outputs are accepted; duplicate role results are discarded and each worker note is capped at 6,000 characters before synthesis.
+- **Synthesis and fallback:** two or more workers use the existing Ultra coordinator; a single surviving worker is synthesized through the existing default model; if all workers or synthesis fail, JARVIS attempts one bounded default-model answer. The response exposes only tier-selection and high-level fallback metadata, never worker notes or hidden chain-of-thought.
+- **Timeout and privacy boundaries:** coordinator/fallback timeouts are bounded to remain within the existing Android chat request budget; API credentials remain backend-only; no new Android permission, memory store, background collection or phone-action capability was added.
+- **Tests:** added 11 Node tests for simple/advanced/complex routing, Hinglish cues, long prompts, explicit/invalid modes, worker failure filtering, role de-duplication, text caps, private synthesis instructions and malformed inputs. The GitHub workflow now runs `node --check` on both backend files and `npm test` before Android regression tests.
+- **CI/build:** PASS — GitHub Actions run #1116 (ID `45405600581`) on exact implementation head `c835b18b600a2c26e9a23d90d1352f3188cd28fe`; backend syntax checks, Node tests (11/11), Android unit tests, debug APK build and APK artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14925851000`, size 23,326,769 bytes.
+- **Poco M4 Pro 4G:** physical-device/backend live-request verification remains pending; CI success is not device or live-provider verification.
+- **Anti-duplication / scope:** reuses the existing Light/Advanced/Ultra processing tiers, existing Groq provider configuration, existing three-worker orchestration and chat endpoint. No second AI provider registry, model router, conversation store or parallel chat engine was created. JARVIS only; Even untouched.
