@@ -208,6 +208,122 @@ public final class EnvironmentIntelligenceRules {
         return cleaned;
     }
 
+    /**
+     * Converts the next 24 hourly Open-Meteo weather estimates into owner-facing planning flags.
+     * Thresholds are deliberately presented as simple heuristics, never as official warnings.
+     */
+    public static String formatWeatherHazardOutlook(String place, String[] times, String[] weatherCodes,
+                                                     String[] precipitationProbability, String[] precipitationMm,
+                                                     String[] windSpeedKmh, String[] windGustsKmh,
+                                                     String[] apparentTemperatureC, String[] visibilityMeters,
+                                                     String timezone) {
+        if (times == null || times.length == 0) {
+            return "No hourly weather outlook is available for this location.";
+        }
+        String safePlace = safeLabel(place, 80);
+        String safeZone = safeLabel(timezone, 60);
+        int count = Math.min(24, times.length);
+        StringBuilder out = new StringBuilder("NEXT 24 HOURS • MODELLED WEATHER WATCH\\n\\n");
+        out.append("Place: ").append(safePlace).append("\\n");
+        out.append("Time zone: ").append(safeZone.isEmpty() ? "Not supplied" : safeZone).append("\\n\\n");
+
+        int flaggedHours = 0;
+        for (int i = 0; i < count; i++) {
+            String time = safeLabel(valueAt(times, i), 32);
+            if (time.isEmpty()) time = "Hour " + (i + 1);
+            double probability = numericAt(precipitationProbability, i);
+            double rain = numericAt(precipitationMm, i);
+            double wind = numericAt(windSpeedKmh, i);
+            double gust = numericAt(windGustsKmh, i);
+            double apparent = numericAt(apparentTemperatureC, i);
+            double visibility = numericAt(visibilityMeters, i);
+            int code = weatherCodeAt(weatherCodes, i);
+
+            StringBuilder flags = new StringBuilder();
+            if (code == 95 || code == 96 || code == 99) {
+                addWeatherFlag(flags, code == 96 || code == 99
+                        ? "Thunderstorm / possible hail signal" : "Thunderstorm signal");
+            } else if (code == 65 || code == 67 || code == 82) {
+                addWeatherFlag(flags, "Heavy-rain or intense-shower signal");
+            }
+            if (code == 66 || code == 67) addWeatherFlag(flags, "Freezing-rain signal");
+            if ((code >= 71 && code <= 77) || code == 85 || code == 86) {
+                addWeatherFlag(flags, "Snow / snow-shower signal");
+            }
+            if (probability >= 70) addWeatherFlag(flags, "High precipitation probability (" + whole(probability) + "%)");
+            if (rain >= 20) addWeatherFlag(flags, "High hourly precipitation estimate (" + oneDecimal(rain) + " mm)");
+            if (gust >= 60) addWeatherFlag(flags, "Strong wind-gust indicator (" + whole(gust) + " km/h)");
+            else if (wind >= 40) addWeatherFlag(flags, "Elevated wind-speed indicator (" + whole(wind) + " km/h)");
+            if (apparent >= 38) addWeatherFlag(flags, "High apparent-temperature indicator (" + oneDecimal(apparent) + " °C)");
+            else if (apparent >= 35) addWeatherFlag(flags, "Elevated apparent-temperature indicator (" + oneDecimal(apparent) + " °C)");
+            if (apparent <= 5) addWeatherFlag(flags, "Low apparent-temperature indicator (" + oneDecimal(apparent) + " °C)");
+            if (visibility >= 0 && visibility <= 1000) {
+                addWeatherFlag(flags, "Low-visibility indicator (" + whole(visibility) + " m)");
+            } else if (code == 45 || code == 48) {
+                addWeatherFlag(flags, "Fog signal");
+            }
+
+            out.append(time).append("\\n");
+            if (flags.length() == 0) {
+                out.append("No configured watch indicator crossed.\\n");
+            } else {
+                flaggedHours++;
+                out.append("Planning flags: ").append(flags).append("\\n");
+            }
+            out.append("Precipitation probability: ").append(knownWhole(probability, "%")).append(" • ");
+            out.append("Precipitation: ").append(knownOneDecimal(rain, " mm")).append("\\n");
+            out.append("Wind / gust: ").append(knownWhole(wind, " km/h")).append(" / ")
+                    .append(knownWhole(gust, " km/h")).append("\\n");
+            out.append("Apparent temperature: ").append(knownOneDecimal(apparent, " °C")).append(" • ");
+            out.append("Visibility: ").append(knownWhole(visibility, " m")).append("\\n\\n");
+        }
+        out.append("Showing ").append(count).append(" hourly model estimates; ")
+                .append(flaggedHours).append(" hour(s) crossed at least one configured planning threshold.\\n");
+        out.append("Source: Open-Meteo weather forecast API.\\n");
+        out.append("Important: these are model estimates, not official IMD warnings, emergency alerts or guarantees. ");
+        out.append("Thresholds are simple planning indicators; no flag does not mean conditions are safe. ");
+        out.append("Check current local official advisories before travel or outdoor activity. No monitoring or alerts run in the background.");
+        return out.toString();
+    }
+
+    private static void addWeatherFlag(StringBuilder target, String flag) {
+        if (target.length() > 0) target.append(" • ");
+        target.append(flag);
+    }
+
+    private static double numericAt(String[] values, int index) {
+        String value = valueAt(values, index);
+        if (value == null || value.trim().isEmpty()) return Double.NaN;
+        try {
+            double parsed = Double.parseDouble(value.trim());
+            return Double.isNaN(parsed) || Double.isInfinite(parsed) ? Double.NaN : parsed;
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+
+    private static int weatherCodeAt(String[] values, int index) {
+        double value = numericAt(values, index);
+        if (Double.isNaN(value) || value < 0 || value > 99 || value != Math.floor(value)) return -1;
+        return (int) value;
+    }
+
+    private static String whole(double value) {
+        return Double.isNaN(value) ? "Not supplied" : String.valueOf((long) Math.round(value));
+    }
+
+    private static String oneDecimal(double value) {
+        return Double.isNaN(value) ? "Not supplied" : String.format(Locale.US, "%.1f", value);
+    }
+
+    private static String knownWhole(double value, String suffix) {
+        return Double.isNaN(value) ? "Not supplied" : whole(value) + suffix;
+    }
+
+    private static String knownOneDecimal(double value, String suffix) {
+        return Double.isNaN(value) ? "Not supplied" : oneDecimal(value) + suffix;
+    }
+
     public static String validateObservation(String area, String aqiText, String observedAt) {
         if (area == null || area.trim().isEmpty() || area.trim().length() > 60
                 || area.contains("://") || area.contains("@")
