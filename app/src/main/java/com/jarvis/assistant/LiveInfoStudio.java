@@ -105,6 +105,60 @@ public final class LiveInfoStudio {
                 });
     }
 
+    /** Owner-invoked 24-hour weather watch; reuses the existing city picker and network helper. */
+    public static void showWeatherHazardOutlook(Activity activity) {
+        chooseCity(activity, "24-hour Weather Watch • City Search",
+                "Only the city name you enter is used to find matching places. After you select one, its approximate "
+                        + "coordinates are sent to Open-Meteo for hourly forecast estimates. No GPS, home address, "
+                        + "background monitoring or automatic alerts are used. This is a planning aid, not an official warning.",
+                (placeName, latitude, longitude) -> {
+                    String forecastUrl = "https://api.open-meteo.com/v1/forecast?latitude="
+                            + encode(latitude) + "&longitude=" + encode(longitude)
+                            + "&hourly=weather_code,precipitation_probability,precipitation,wind_speed_10m,"
+                            + "wind_gusts_10m,apparent_temperature,visibility&forecast_hours=24&timezone=auto"
+                            + "&wind_speed_unit=kmh";
+                    get(forecastUrl, data -> showResult(activity,
+                            "24-hour Weather Watch • " + placeName,
+                            parseWeatherHazardOutlook(data, placeName)));
+                });
+    }
+
+    private static String parseWeatherHazardOutlook(String body, String placeName) {
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONObject hourly = root.optJSONObject("hourly");
+            if (hourly == null) return "The provider did not include an hourly weather outlook.";
+            JSONArray timeValues = hourly.optJSONArray("time");
+            if (timeValues == null || timeValues.length() == 0) {
+                return "No hourly weather estimates were returned for this location.";
+            }
+            int count = Math.min(24, timeValues.length());
+            String[] times = new String[count];
+            for (int i = 0; i < count; i++) times[i] = timeValues.optString(i, "");
+            return EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
+                    placeName, times,
+                    weatherValues(hourly, "weather_code", count),
+                    weatherValues(hourly, "precipitation_probability", count),
+                    weatherValues(hourly, "precipitation", count),
+                    weatherValues(hourly, "wind_speed_10m", count),
+                    weatherValues(hourly, "wind_gusts_10m", count),
+                    weatherValues(hourly, "apparent_temperature", count),
+                    weatherValues(hourly, "visibility", count),
+                    root.optString("timezone", ""));
+        } catch (Exception e) {
+            return "The weather provider returned an unexpected response. No location or forecast history was saved.";
+        }
+    }
+
+    private static String[] weatherValues(JSONObject hourly, String key, int count) {
+        String[] result = new String[count];
+        JSONArray values = hourly.optJSONArray(key);
+        for (int i = 0; i < count; i++) {
+            result[i] = values == null ? "" : values.optString(i, "");
+        }
+        return result;
+    }
+
     /** Current modelled air-quality lookup; distinct from manual CPCB station observations. */
     public static void showAirQuality(Activity activity) {
         chooseCity(activity, "Live Air Quality • City Search",
