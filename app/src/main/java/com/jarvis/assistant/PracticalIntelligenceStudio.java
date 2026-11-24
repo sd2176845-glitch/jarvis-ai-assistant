@@ -504,6 +504,8 @@ public final class PracticalIntelligenceStudio {
     private static void filterAssets(Activity activity) {
         EditText category = field(activity, "Category filter (blank = all)");
         EditText condition = field(activity, "Condition filter (blank = all)");
+        EditText purchaseFrom = field(activity, "Purchased on/after (YYYY-MM-DD, optional)");
+        EditText purchaseTo = field(activity, "Purchased on/before (YYYY-MM-DD, optional)");
         String[] warrantyOptions = {"All", "Active", "Expired", "Not recorded", "Date unavailable"};
         Spinner warrantyStatus = new Spinner(activity);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(activity,
@@ -515,6 +517,8 @@ public final class PracticalIntelligenceStudio {
         form.setOrientation(LinearLayout.VERTICAL);
         form.addView(category);
         form.addView(condition);
+        form.addView(purchaseFrom);
+        form.addView(purchaseTo);
         TextView warrantyLabel = new TextView(activity);
         warrantyLabel.setText("Warranty status");
         warrantyLabel.setPadding(8, 12, 8, 4);
@@ -524,6 +528,14 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Filter inventory").setView(form)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Apply", (dialog, which) -> {
+                    String fromDate = purchaseFrom.getText().toString().trim();
+                    String toDate = purchaseTo.getText().toString().trim();
+                    if (!AssetInventoryBatchRules.isValidPurchaseDateRange(fromDate, toDate)) {
+                        Toast.makeText(activity,
+                                "Enter valid YYYY-MM-DD dates and make sure the start is not after the end.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
                     JSONArray records = readAssetInventory(activity);
                     if (records == null) return;
                     String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
@@ -536,9 +548,14 @@ public final class PracticalIntelligenceStudio {
                                 item.optString("category"), category.getText().toString(),
                                 item.optString("condition"), condition.getText().toString())
                                 && AssetInventoryBatchRules.matchesWarrantyStatus(
-                                        item.optString("warranty_until", ""), today, selectedStatus)) {
+                                        item.optString("warranty_until", ""), today, selectedStatus)
+                                && AssetInventoryBatchRules.matchesPurchaseDateRange(
+                                        item.optString("purchase_date", ""), fromDate, toDate)) {
                             labels.add(item.optString("name") + " • " + item.optString("category")
-                                    + " • " + item.optString("condition") + " • "
+                                    + " • " + item.optString("condition") + " • Purchase: "
+                                    + (item.optString("purchase_date", "").isEmpty()
+                                            ? "Not recorded" : item.optString("purchase_date"))
+                                    + " • Warranty: "
                                     + PracticalIntelligenceRules.warrantyStatus(
                                             item.optString("warranty_until", ""), today));
                         }
