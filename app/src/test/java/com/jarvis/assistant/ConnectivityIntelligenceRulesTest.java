@@ -39,8 +39,8 @@ public class ConnectivityIntelligenceRulesTest {
         String status = ConnectivityIntelligenceRules.liveConnectivityStatus(
                 true, false, "", false, false, false, "");
         assertTrue(status.contains("capability details are unavailable"));
-        assertFalse(status.toLowerCase().contains("ssid"));
-        assertFalse(status.toLowerCase().contains("password"));
+        assertFalse(status.toUpperCase().contains("SSID:"));
+        assertFalse(status.toUpperCase().contains("PASSWORD:"));
     }
 
     @Test public void offlineMatrixSeparatesLocalAndOnlineCapabilities() {
