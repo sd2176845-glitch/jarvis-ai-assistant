@@ -952,3 +952,13 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - JUnit coverage added for leap years, invalid dates, malformed input, expiry-day inclusivity and missing data.
 - This is a partial Priority 38 increment only. Manual/receipt attachments, reminder integration, encrypted export/restore and physical Poco testing remain pending.
 - JARVIS only; Even remains untouched.
+
+
+## B26 continuation note — Owner-selected receipt/manual references (2026-11-24)
+
+- **Code-present; CI verified; device verification pending.** The existing M19 Smart Asset Inventory can now link one owner-selected PDF/JPEG/PNG/WebP receipt or manual to an existing item.
+- Uses Android's Storage Access Framework document picker. JARVIS stores a content URI, sanitized display name and MIME type in the existing inventory record; it does not copy, scan, OCR, upload or silently discover files.
+- Only a persistable read grant is retained. The owner can explicitly open, replace or remove the reference. Removal/deletion/clear releases the saved grant after a successful inventory update; the original provider file is never deleted by JARVIS.
+- No new storage permission, separate document database, background activity or network transfer. Existing inventory export excludes attachment metadata.
+- **CI:** GitHub Actions run #1022 (`45352808375`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `244ecd9a6da109de52744073ac0c40a21aa35868`.
+- **Scope limitation:** this completes the basic local receipt/manual-reference increment only. Priority 38 reminder integration, encrypted export/restore and Poco M4 Pro 4G physical-device verification remain pending. Do not mark the entire Priority 38 suite complete.
