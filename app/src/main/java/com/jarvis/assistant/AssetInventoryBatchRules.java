@@ -189,5 +189,46 @@ public final class AssetInventoryBatchRules {
     public static boolean isValidEdit(String n,String c,String p,String q,String notes,String w) {
         return PracticalIntelligenceRules.validateAssetEntry(n,c,p,q,notes,w)==null;
     }
+
+    /** SAF document references must be content URIs; file paths and web URLs are rejected. */
+    public static boolean isValidAssetDocumentUri(String rawUri) {
+        String value = safe(rawUri);
+        if (value.isEmpty() || value.length() > 2048) return false;
+        try {
+            java.net.URI uri = new java.net.URI(value);
+            return "content".equalsIgnoreCase(uri.getScheme())
+                    && uri.getRawAuthority() != null
+                    && !uri.getRawAuthority().trim().isEmpty();
+        } catch (java.net.URISyntaxException ignored) {
+            return false;
+        }
+    }
+
+    /** Only common, non-executable receipt/manual formats are supported. */
+    public static boolean isSupportedAssetDocumentMimeType(String rawMimeType) {
+        String mime = safe(rawMimeType).toLowerCase(java.util.Locale.ROOT);
+        int parameter = mime.indexOf(';');
+        if (parameter >= 0) mime = mime.substring(0, parameter).trim();
+        return "application/pdf".equals(mime)
+                || "image/jpeg".equals(mime)
+                || "image/png".equals(mime)
+                || "image/webp".equals(mime);
+    }
+
+    /** Store only a short display label, never a provider path or directory hierarchy. */
+    public static String sanitizeAssetDocumentName(String rawName) {
+        String value = rawName == null ? "" : rawName.trim().replace('\\', '/');
+        int slash = value.lastIndexOf('/');
+        if (slash >= 0) value = value.substring(slash + 1);
+        StringBuilder safeName = new StringBuilder();
+        for (int i = 0; i < value.length() && safeName.length() < 100; i++) {
+            char ch = value.charAt(i);
+            if (!Character.isISOControl(ch)) safeName.append(ch);
+        }
+        String result = safeName.toString().trim();
+        return result.isEmpty() ? "Selected document"
+                : result.substring(0, Math.min(result.length(), 100));
+    }
+
     private static String safe(String v){return v==null?"":v.trim();}
 }
