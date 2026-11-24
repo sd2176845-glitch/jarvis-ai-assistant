@@ -39,6 +39,7 @@ public final class EnvironmentIntelligenceStudio {
                 "Official NDMA SACHET disaster alerts • live feed",
                 "CWC flood forecasts & 7-day basin advisory",
                 "Live CPCB station pollutant readings • city/state",
+                "Compare CPCB stations • pollutant-wise",
                 "Open official CPCB AQI dashboard",
                 "Record a manual CPCB AQI reading",
                 "View saved manual observations",
@@ -55,9 +56,10 @@ public final class EnvironmentIntelligenceStudio {
                     else if (which == 5) SachetAlertStudio.show(activity);
                     else if (which == 6) CwcFloodForecastStudio.show(activity);
                     else if (which == 7) CpcbStationStudio.show(activity);
-                    else if (which == 8) openOfficialSource(activity);
-                    else if (which == 9) addObservation(activity);
-                    else if (which == 10) showObservations(activity);
+                    else if (which == 8) CpcbStationStudio.showComparison(activity);
+                    else if (which == 9) openOfficialSource(activity);
+                    else if (which == 10) addObservation(activity);
+                    else if (which == 11) showObservations(activity);
                     else showCategoryGuide(activity);
                 }).setNegativeButton("Close", null).show();
     }
