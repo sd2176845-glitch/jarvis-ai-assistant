@@ -16,6 +16,7 @@ public final class CreativeMediaStudio {
 
     public static void show(Activity activity, TextView status, TextView transcript) {
         String[] options = {
+                "Image Concept Builder • original image prompt",
                 "Video Script Planner • hook / narration / scenes",
                 "Storyboard & Shot List • scene-by-scene plan",
                 "Presentation Builder • slides / speaker notes"
@@ -26,6 +27,24 @@ public final class CreativeMediaStudio {
                     else if (which == 1) storyboard(activity, status, transcript);
                     else presentation(activity, status, transcript);
                 }).setNegativeButton("Close", null).show();
+    }
+
+
+    private static void imageConcept(Activity activity, TextView status, TextView transcript) {
+        String[] formats = {"Square 1:1", "Portrait 9:16", "Landscape 16:9"};
+        new AlertDialog.Builder(activity).setTitle("Choose image format")
+                .setItems(formats, (dialog, which) ->
+                        askTopic(activity, "Image Concept Builder",
+                                "Describe the subject, scene, mood and audience. Avoid private identifying details.",
+                                concept -> submit(activity, status, transcript,
+                                        "Create an original, age-appropriate image-generation prompt from this brief: " + concept
+                                                + ". Format: " + formats[which] + ". Return one main prompt, composition and framing, "
+                                                + "lighting and color palette, background details, plus concise accessibility alt text. "
+                                                + "Do not imitate a living artist or reproduce copyrighted characters, logos or existing artwork. "
+                                                + "Avoid sexualized content, graphic violence, deceptive identity documents and harmful body ideals. "
+                                                + "This is a text prompt only; do not claim an image file was generated.",
+                                        "IMAGE PROMPT READY")))
+                .setNegativeButton("Cancel", null).show();
     }
 
     private static void videoScript(Activity activity, TextView status, TextView transcript) {

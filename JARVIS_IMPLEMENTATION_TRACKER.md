@@ -7,10 +7,11 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m09-memory-expansion-3pack` (stacked on `feature/m14-diagnostics-3pack`; JARVIS only)
-- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/24
-- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/23
-- `main` has not been changed or merged by this work.
+- Branch: `feature/m13-creative-media-studio-3pack` (stacked on `feature/m12-data-intelligence-3pack`; JARVIS only)
+- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/36
+- Parent batch PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/31; earlier batches remain separately stacked in PRs #21–#30.
+- Latest current branch head: `14b77ad900299a9a95c52781463aa0763c11733a`.
+- `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -404,3 +405,32 @@
 - **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on rebased code/documentation head `0aa72a61b9d1172e7d1c55d44e0d6480cf465f14`; GitHub Actions run #636 (`45046654060`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764056646`, SHA-256 `7a73861a89d41ec3480a92820684251fd9e1197eff59ddb45f831180d2fd6aab`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #33; do not merge to parent PR #33 or `main` without owner approval.
+
+
+## Batch B10 — M13 Creative Media Studio (three independent owner-invoked planners; 2026-11-22)
+
+**Branch:** `feature/m13-creative-media-studio-3pack`, stacked on M12 Data Intelligence Center / PR #31. Separate, unmerged batch.
+
+### Feature 1 — Image Concept Builder
+- **Code-present:** owner selects square, portrait 9:16 or landscape 16:9 format and enters a short brief. JARVIS produces an original image-generation prompt, composition/framing, lighting/color direction and accessibility alt text.
+- **Scope:** text prompt only; this Android module does not generate or save an image file.
+- **Safety/copyright:** no imitation of living artists or reproduction of copyrighted characters, logos or existing artwork; no sexualized content, graphic violence, deceptive identity documents or harmful body ideals.
+- **Acceptance checks:** each aspect ratio, brief cap/empty input, original-concept request, safe-content redirection and accurate prompt-only disclosure.
+
+### Feature 2 — Video Storyboard Studio
+- **Code-present:** owner selects 15/30/60/90 seconds and enters a concept/audience brief. JARVIS returns a scene-by-scene plan with approximate timing, visual direction, camera movement, narration/dialogue, captions, transitions and shot checklist.
+- **Scope:** storyboard text only; no video rendering or audio generation.
+- **Safety/copyright:** age-appropriate, non-graphic, original wording; no song lyrics, copyrighted scripts or imitation of a specific living creator.
+- **Acceptance checks:** all duration choices, coherent timing, empty/overlong brief, scene structure and safe original output.
+
+### Feature 3 — Presentation Planner
+- **Code-present:** owner selects 5/8/10/12 slides and enters topic, audience and purpose. JARVIS returns slide titles, key bullets, suggested visuals, speaker notes and a conclusion.
+- **Scope:** outline text only; no PowerPoint/PDF file generation. The output is instructed to flag facts needing verification and not invent sources/statistics.
+- **Acceptance checks:** all slide counts, audience adaptation, fact-check flags, empty/overlong brief and no invented citations.
+
+### Privacy, integration and verification
+- Uses existing memory-isolated `JarvisAiClient.askStandalone`; only the manually entered creative brief and selected format are sent after explicit confirmation.
+- No saved conversation, notes, contacts, clipboard/gallery auto-read, persistent project archive, background collection, new Android permission or API key in APK.
+- **Implementation files:** `CreativeMediaStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
+- **CI/build:** passed on final head `14b77ad900299a9a95c52781463aa0763c11733a`; GitHub Actions run #648 (`45047351132`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
+- **Merge policy:** keep stacked on PR #31; do not merge to parent PR #31 or `main` without owner approval.

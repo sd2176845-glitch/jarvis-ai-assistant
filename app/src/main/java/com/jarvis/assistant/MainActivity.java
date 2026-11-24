@@ -1217,7 +1217,7 @@ public class MainActivity extends Activity {
                 "Software Development Studio • Architecture / Debug / Code Review",
                 "Data Intelligence Center • CSV Profile / Quality / Insights",
                 "Personal Productivity Studio • Projects / Priority / Weekly Review",
-                "Creative Media Studio • Video Script / Storyboard / Presentation"
+                "Creative Media Studio • Image / Video Script / Storyboard / Presentation"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
