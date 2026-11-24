@@ -48,7 +48,8 @@ public final class PracticalIntelligenceStudio {
                 "Legal Document Explainer • selected text only",
                 "Vehicle Maintenance Log • local records",
                 "Smart Asset Inventory • local records",
-                "Offline Emergency Preparedness Pack • works without internet"
+                "Offline Emergency Preparedness Pack • works without internet",
+                "Environmental Intelligence • official AQI source and manual log"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Practical Intelligence")
                 .setItems(options, (dialog, which) -> {
@@ -56,7 +57,8 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 1) legalExplainer(activity, status, transcript);
                     else if (which == 2) vehicleLogMenu(activity);
                     else if (which == 3) assetInventoryMenu(activity);
-                    else EmergencyPreparednessPackStudio.show(activity);
+                    else if (which == 4) EmergencyPreparednessPackStudio.show(activity);
+                    else EnvironmentIntelligenceStudio.show(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
