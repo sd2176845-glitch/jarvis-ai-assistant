@@ -7,10 +7,10 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b26-next-20-inventory`, latest documentation/inventory head `9ad2673d7d7d76e1787339959efd618ad12b3128`; current in-progress B27 warranty-reminder implementation is being committed on this same branch.
+- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`; B33 Environmental Intelligence expansion is at **1/20 net-new capabilities** (CI verified).
 - B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
-- The latest CI run before B27 work was #1025 on head `9ad2673d7d7d76e1787339959efd618ad12b3128` and passed backend syntax, Android unit tests, debug APK build and artifact upload.
+- B33 Feature 1 CI: run #1055 (`45381052956`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -1121,3 +1121,18 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Artifact:** `jarvis-debug-apk`, ID `14906797649`; `https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45366614260/artifacts/14906797649`.
 - **Poco M4 Pro 4G:** physical-device verification remains pending for existing notebook compatibility, saving/reloading progress status, setting/clearing revision dates and local date boundaries.
 - **Anti-duplication:** upgrades `learning_notebook_v1` and existing AI Learning Academy menu; no duplicate learning store or scheduler. JARVIS only; Even untouched.
+
+
+### B33 — Environmental Intelligence expansion (20-capability milestone; started 2026-11-24)
+- **Progress:** 1/20 net-new capabilities code-present and CI-verified. Existing manual CPCB AQI observation logging, saved-observation review/summary, category guide and CPCB source handoff are pre-existing baseline features and are not counted as new B33 work.
+- **Canonical owner:** existing Priority 38 Environmental Intelligence entry in PracticalIntelligenceStudio; extends the existing EnvironmentIntelligenceStudio and LiveInfoStudio city-search infrastructure. No second environmental dashboard or city-search system is added.
+- **Feature 1 — Live modelled air quality by city:** owner enters a city/town, chooses a geocoding match, then requests current modelled U.S. AQI, European AQI, PM2.5, PM10, ozone, nitrogen dioxide, sulphur dioxide and UV index from Open-Meteo Air Quality API. The response includes provider model time and timezone.
+- **Index separation:** the result labels U.S. and European indices separately and explicitly warns they are not India's CPCB National AQI scale. The result is a regional model-grid estimate, not a CPCB monitoring-station measurement, official alert or medical advice.
+- **Privacy and behavior:** owner-invoked city-only lookup; no GPS, home address, location permission, automatic background polling, saved location, or automatic observation-log write. Existing manual CPCB station log and its local storage remain unchanged.
+- **Code:** shared city selection helper now serves both existing weather and new air-quality lookup. Numeric model values are bounded/validated before display; missing or malformed measurements show as unavailable.
+- **Tests:** added U.S. AQI band-boundary tests and output-sanitization tests, including distinction from CPCB scale and rejection of malformed pollutant values.
+- **CI/build:** PASS — GitHub Actions run #1055 (`45381052956`) on exact code head `8d7a25e20429efe8aeff5b6c64b3e8a1d76561d5`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
+- **Artifact:** `jarvis-debug-apk`, ID `14912749355`, size 23,291,488 bytes, SHA-256 `379a41b77de167f1c9b9db1949429cbbf84804fa06c860a831dac7a8548aa79e`; [Actions artifact](https://github.com/sd2176845-glitch/jarvis-ai-assistant/actions/runs/45381052956/artifacts/14912749355).
+- **Poco M4 Pro 4G:** physical-device verification remains pending for city matching, network failure, model timestamp display, result layout and confirmation that no location permission or background polling is used.
+- **Anti-duplication:** extends the existing city geocoder and environmental menu; manual CPCB station observations remain distinct from modelled Open-Meteo estimates. JARVIS only; Even untouched.
+- **Next:** continue with a distinct B33 capability only after reviewing current Environmental and Live Information code; keep each increment separately tested and update this 20-capability count only after implementation.
