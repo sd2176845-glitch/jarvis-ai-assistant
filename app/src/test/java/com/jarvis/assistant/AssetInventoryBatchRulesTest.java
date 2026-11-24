@@ -203,6 +203,44 @@ public class AssetInventoryBatchRulesTest {
 
 
     @Test
+    public void purchaseDateRangeIsInclusiveAndCombinesWithOpenBounds() {
+        assertTrue(AssetInventoryBatchRules.isValidPurchaseDateRange("2025-01-01", "2025-12-31"));
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2025-01-01", "2025-01-01", "2025-12-31"));
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2025-12-31", "2025-01-01", "2025-12-31"));
+        assertFalse(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2024-12-31", "2025-01-01", "2025-12-31"));
+        assertFalse(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2026-01-01", "2025-01-01", "2025-12-31"));
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2026-01-01", "2025-01-01", ""));
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "2024-01-01", "", "2025-12-31"));
+    }
+
+    @Test
+    public void purchaseDateRangeRejectsInvalidOrReversedBoundsAndUnavailableDates() {
+        assertFalse(AssetInventoryBatchRules.isValidPurchaseDateRange("2025-02-30", ""));
+        assertFalse(AssetInventoryBatchRules.isValidPurchaseDateRange("", "bad-date"));
+        assertFalse(AssetInventoryBatchRules.isValidPurchaseDateRange("2025-12-31", "2025-01-01"));
+        assertFalse(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "", "2025-01-01", "2025-12-31"));
+        assertFalse(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                "legacy-date", "2025-01-01", ""));
+        assertTrue(AssetInventoryBatchRules.isValidPurchaseDateRange("", ""));
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(null, "", ""));
+    }
+
+    @Test
+    public void purchaseDateRangeTrimsBoundsAndPurchaseValues() {
+        assertTrue(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                " 2025-06-15 ", " 2025-06-01 ", " 2025-06-30 "));
+        assertFalse(AssetInventoryBatchRules.matchesPurchaseDateRange(
+                null, " 2025-06-01 ", ""));
+    }
+
+    @Test
     public void purchaseDateSortIsNewestFirstAndKeepsUnavailableDatesLast() {
         assertTrue(AssetInventoryBatchRules.comparePurchaseDatesNewestFirst(
                 "2026-01-01", "2025-12-31") < 0);
