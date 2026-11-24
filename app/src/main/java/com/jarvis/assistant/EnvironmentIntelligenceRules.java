@@ -223,9 +223,9 @@ public final class EnvironmentIntelligenceRules {
         String safePlace = safeLabel(place, 80);
         String safeZone = safeLabel(timezone, 60);
         int count = Math.min(24, times.length);
-        StringBuilder out = new StringBuilder("NEXT 24 HOURS • MODELLED WEATHER WATCH\\n\\n");
-        out.append("Place: ").append(safePlace).append("\\n");
-        out.append("Time zone: ").append(safeZone.isEmpty() ? "Not supplied" : safeZone).append("\\n\\n");
+        StringBuilder out = new StringBuilder("NEXT 24 HOURS • MODELLED WEATHER WATCH\n\n");
+        out.append("Place: ").append(safePlace).append("\n");
+        out.append("Time zone: ").append(safeZone.isEmpty() ? "Not supplied" : safeZone).append("\n\n");
 
         int flaggedHours = 0;
         for (int i = 0; i < count; i++) {
@@ -263,23 +263,23 @@ public final class EnvironmentIntelligenceRules {
                 addWeatherFlag(flags, "Fog signal");
             }
 
-            out.append(time).append("\\n");
+            out.append(time).append("\n");
             if (flags.length() == 0) {
-                out.append("No configured watch indicator crossed.\\n");
+                out.append("No configured watch indicator crossed.\n");
             } else {
                 flaggedHours++;
-                out.append("Planning flags: ").append(flags).append("\\n");
+                out.append("Planning flags: ").append(flags).append("\n");
             }
             out.append("Precipitation probability: ").append(knownWhole(probability, "%")).append(" • ");
-            out.append("Precipitation: ").append(knownOneDecimal(rain, " mm")).append("\\n");
+            out.append("Precipitation: ").append(knownOneDecimal(rain, " mm")).append("\n");
             out.append("Wind / gust: ").append(knownWhole(wind, " km/h")).append(" / ")
-                    .append(knownWhole(gust, " km/h")).append("\\n");
+                    .append(knownWhole(gust, " km/h")).append("\n");
             out.append("Apparent temperature: ").append(knownOneDecimal(apparent, " °C")).append(" • ");
-            out.append("Visibility: ").append(knownWhole(visibility, " m")).append("\\n\\n");
+            out.append("Visibility: ").append(knownWhole(visibility, " m")).append("\n\n");
         }
         out.append("Showing ").append(count).append(" hourly model estimates; ")
-                .append(flaggedHours).append(" hour(s) crossed at least one configured planning threshold.\\n");
-        out.append("Source: Open-Meteo weather forecast API.\\n");
+                .append(flaggedHours).append(" hour(s) crossed at least one configured planning threshold.\n");
+        out.append("Source: Open-Meteo weather forecast API.\n");
         out.append("Important: these are model estimates, not official IMD warnings, emergency alerts or guarantees. ");
         out.append("Thresholds are simple planning indicators; no flag does not mean conditions are safe. ");
         out.append("Check current local official advisories before travel or outdoor activity. No monitoring or alerts run in the background.");
