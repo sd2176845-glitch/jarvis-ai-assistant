@@ -246,7 +246,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -261,6 +261,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 8) warrantyExpiryWatchlist(activity);
                     else if (which == 9) exportAssetInventory(activity);
                     else if (which == 10) clearAssetInventory(activity);
+                    else if (which == 11) auditAssetInventory(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -709,6 +710,47 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Inventory by condition")
                 .setMessage(summary.toString())
                 .setPositiveButton("OK", null).show();
+    }
+
+    /** Owner-invoked, read-only audit; never changes the stored inventory. */
+    private static void auditAssetInventory(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        String[] names = new String[records.length()];
+        String[] categories = new String[records.length()];
+        String[] conditions = new String[records.length()];
+        String[] warranties = new String[records.length()];
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            names[i] = item == null ? "" : item.optString("name", "");
+            categories[i] = item == null ? "" : item.optString("category", "");
+            conditions[i] = item == null ? "" : item.optString("condition", "");
+            warranties[i] = item == null ? "" : item.optString("warranty_until", "");
+        }
+        List<String> issues = AssetInventoryBatchRules.inventoryDataQualityIssues(
+                names, categories, conditions, warranties);
+        String message;
+        if (records.length() == 0) {
+            message = "No inventory records are saved yet.";
+        } else if (issues.isEmpty()) {
+            message = "No missing required fields or malformed warranty dates were found. "
+                    + "Optional purchase dates and notes are not evaluated.";
+        } else if (issues.size() == 1 && issues.get(0).startsWith("Audit unavailable:")) {
+            message = issues.get(0);
+        } else {
+            message = "Records checked: " + records.length() + "\n"
+                    + "Records needing review: " + issues.size() + "\n\n"
+                    + android.text.TextUtils.join("\n", issues)
+                    + "\n\nThis report is read-only. Review and edit records individually if needed.";
+        }
+        TextView report = new TextView(activity);
+        report.setText(message);
+        report.setTextIsSelectable(true);
+        report.setPadding(24, 16, 24, 16);
+        ScrollView scroll = new ScrollView(activity);
+        scroll.addView(report);
+        new AlertDialog.Builder(activity).setTitle("Inventory data quality check")
+                .setView(scroll).setPositiveButton("Close", null).show();
     }
 
     /** Owner-reviewed export from the existing inventory; notes and purchase-date labels are excluded. */
