@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `6435cad8bd405dd6f5f884e2c0611aadce5464d7`; B33 Environmental Intelligence expansion is at **1/20 net-new capabilities** (CI verified).
+- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `15820ec4f928b211f0deabf2073aef1b5f589446`; B33 Environmental Intelligence expansion is at **4/20 net-new capabilities, all CI-verified**. Poco M4 Pro 4G physical-device verification remains pending.
 - B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
 - B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged. Do not merge either PR without explicit owner approval.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
@@ -1152,7 +1152,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 
 
 ### B33 Feature 3 — 24-hour modelled UV-index forecast (2026-11-24)
-- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present and CI-verified. GitHub Actions run #1064 (`45386198143`) passed backend syntax checks, all 139 Android unit tests, debug APK build and artifact upload. Artifact `14916741150`; Poco M4 M4 Pro physical-device verification remains pending.
 - **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly UV-index estimates plus a separately labelled clear-sky reference from the Open-Meteo Air Quality API.
 - **Interpretation:** uses WHO Global Solar UV Index exposure bands (Low, Moderate, High, Very high, Extreme). Protection guidance begins at UVI 3; very high/extreme levels are highlighted. This is general public-safety information, not a personal exposure calculation or medical advice.
 - **Data limits:** CAMS model-grid estimates are not direct ground measurements. Clear-sky values assume cloud-free conditions and are not presented as expected actual exposure.
@@ -1160,3 +1160,19 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Anti-duplication:** a distinct UV outlook, not another air-quality dashboard or AQI forecast; no new data store, location system, scheduler or permissions.
 - **Tests:** added JUnit coverage for WHO UV band boundaries, missing/malformed values, sanitized labels and the 24-entry output cap.
 - **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+
+## B33 Feature 4 — 24-hour modelled weather watch outlook (2026-11-24)
+- **Progress:** 4/20 net-new Environmental Intelligence capabilities are code-present and CI-verified.
+- **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly Open-Meteo weather estimates. The output flags thunderstorm/hail, heavy-rain or intense-shower, freezing-rain, snow, high precipitation probability, heavy hourly precipitation, wind/gust, apparent-temperature and low-visibility indicators.
+- **Interpretation:** planning thresholds are heuristics, not official IMD warning levels or emergency alerts. A missing flag does not prove conditions are safe. The screen directs users to current local official advisories.
+- **Privacy / anti-duplication:** owner-invoked city-only lookup; reuses the existing city picker and network helper. No GPS, location permission, saved location, background monitoring, automatic history or notifications.
+- **Tests / CI:** unit tests cover hazard flags, missing/malformed values, label sanitization and the 24-hour cap. GitHub Actions run #1070 (`45392316586`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact head `15820ec4f928b211f0deabf2073aef1b5f589446`.
+- **APK artifact:** `jarvis-debug-apk`, ID `14918882809`, SHA-256 `5789e8fd76cf8ba2a2c1313a2ef953d71053aace2433b9a6e7b5db4606dab811`.
+- **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+## B33 prioritization rule (applies to Features 5–20)
+- Select the next increment by public-safety importance, source authority and reliability, user impact, then privacy and implementation risk—not by convenience or module numbering.
+- First priority after Feature 4: read-only access to official NDMA SACHET disaster alerts, using the published CAP/RSS interface and required ETag/304 caching. Do not present modelled forecasts or heuristic thresholds as official government warnings.
+- Next priority tiers: verified environmental observations and flood/heat/pollution preparedness; then useful forecast and historical context; then lower-impact environmental reference features.
+- Every feature remains owner-invoked, source-labelled, timestamped and fail-closed on malformed or unavailable data. No background location collection or automatic emergency action.
