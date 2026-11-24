@@ -407,3 +407,10 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Code-present:** extends the existing read-only resource dashboard battery section with Android-reported charging state, health category and temperature.
 - **Boundary:** one-shot broadcast snapshot only; no background monitoring, alerts, uploads, persistence or repair diagnosis.
 - **Validation:** three focused JUnit tests; CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+## M19 — B26 Smart Asset Inventory continuation (2026-11-24)
+- **20/20 inventory capabilities code-present:** the B26 inventory continuation now includes owner-selected receipt/manual references alongside the original 15 capabilities, read-only data-quality and purchase-age reports, purchase-date sorting and inclusive purchase-date range filtering. The vehicle odometer consistency audit is a separate M19 Vehicle Intelligence feature and is not counted in the inventory-only total.
+- **Receipt/manual reference behavior:** one owner-selected PDF/JPEG/PNG/WebP content URI per existing asset record; stores only sanitized name, MIME and URI in the existing local inventory record. Uses Android's Storage Access Framework and a persistable READ grant only; no broad storage permission, file copy, scan, OCR, network upload or new storage key. Explicit open/replace/remove actions; removal and inventory deletion/clear release the saved read grant after successful local update. Existing export excludes attachment metadata.
+- **Verification:** GitHub Actions run #1022 (`45352808375`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `244ecd9a6da109de52744073ac0c40a21aa35868`. Poco M4 Pro 4G physical-device testing remains pending.
+- **Remaining Priority 38 scope:** reminder integration and encrypted export/restore remain separate pending work. B26 inventory code completion does not mark the entire M19 or Priority 38 suite complete.
