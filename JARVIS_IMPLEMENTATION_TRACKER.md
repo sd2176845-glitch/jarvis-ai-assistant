@@ -951,3 +951,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Privacy:** date text remains local; no new permission, background activity, network request or external transfer.
 - **CI/build:** PASS — run #979 (`45188942045`) on exact code head `5089769ab97527413fa3c0380abd5be08025c297`; unit tests, debug APK build and artifact upload passed.
 - **Poco M4 Pro 4G:** device verification pending.
+
+
+### Feature 16 — Inventory data quality audit (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; adds a read-only audit action to the existing inventory menu.
+- **Implementation:** checks existing records for missing required item name, category or condition fields, and malformed non-empty warranty dates. Optional blank warranty dates are valid. The report identifies affected record positions and fields; it does not expose or transmit record notes.
+- **Data behavior:** no record is edited, deleted, reordered or persisted by the audit. It reuses the existing inventory array and Gregorian warranty-date validator.
+- **Tests:** covers missing required fields, malformed warranty dates, valid optional blank dates, empty inventory and inconsistent input arrays.
+- **Privacy:** owner-invoked and on-device only; no new permission, background work, network request, external sharing or second inventory store.
+- **Status:** code-present on `feature/b26-next-20-inventory`; CI/build and Poco M4 Pro 4G physical-device verification pending until a workflow completes on the final branch head.
+- **Anti-duplication:** read-only integrity audit, not a duplicate filter, summary, search, sort or edit flow. JARVIS only; Even untouched.
