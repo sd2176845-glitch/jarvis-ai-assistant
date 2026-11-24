@@ -7,10 +7,9 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Branch: `feature/m16-smart-home-studio-3pack` (stacked on `feature/m13-creative-media-studio-3pack`; JARVIS only)
-- Current draft PR: https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/37
-- Parent batch PR: #36 (Creative Media Studio); previous data batch PR #31.
-- Latest branch head: `eaf5634ca4f8f652e242ba44bec940c9db2e7afe`.
+- Branch: `feature/m17-connectivity-intelligence-3pack` (stacked directly on the latest M16 Smart Home Studio branch head; JARVIS only).
+- Parent draft PR: #37 — M16 Smart Home Studio. PR #37 remains open and unmerged.
+- New batch: M17 connectivity intelligence; draft PR #38 is open against `feature/m16-smart-home-studio-3pack` (https://github.com/sd2176845-glitch/jarvis-ai-assistant/pull/38).
 - `main` has not been changed or merged by this work; Even remains untouched.
 
 ## Latest implementation batches
@@ -462,3 +461,30 @@
 - **Implementation files:** `SmartHomeStudio.java` (new) and existing `MainActivity.java` (one Command Center entry).
 - **CI/build:** passed on final documented branch head `eaf5634ca4f8f652e242ba44bec940c9db2e7afe`; GitHub Actions run #662 (`45047913711`) completed backend JavaScript syntax validation, Gradle debug APK build and APK artifact upload. Artifact ID `14764123874`, SHA-256 `15e3ed72d5d98969b4eb4fd4981dc1a88eb0cb277e8cdf245eb95f807d19dcec`. Earlier runs #653–#658 failed on a routine-dialog builder-chain syntax error; the final correction is included in this passing head. Android unit tests/lint and Poco M4 Pro 4G device verification are not claimed.
 - **Merge policy:** keep stacked on PR #36; do not merge to parent PR #36 or `main` without owner approval.
+
+
+## Batch B12 — M17 Connectivity Intelligence (three independently tracked capabilities; 2026-11-22)
+
+**Branch:** `feature/m17-connectivity-intelligence-3pack`, stacked on M16 Smart Home Studio / PR #37. Draft PR #38 is intended to target `feature/m16-smart-home-studio-3pack`; this batch is separate and unmerged.
+
+### Feature 1 — Network Health Snapshot
+- **Code-present:** reads Android's active-network capability state through `ConnectivityManager` and `NetworkCapabilities`; reports transport category, whether Android reports internet capability, whether internet validation is confirmed, and metered/unknown state.
+- **Privacy:** adds only the normal `ACCESS_NETWORK_STATE` permission. Does not read SSID, IP/MAC addresses, passwords, nearby networks or network traffic; does not scan, connect, or change settings.
+- **Acceptance checks:** no active network; Wi-Fi; cellular; VPN; active network without capability details; validated vs unvalidated internet; permission/API exception; confirm no network identifiers are shown.
+
+### Feature 2 — Offline Capability Matrix
+- **Code-present:** presents a static, clearly labelled design-level guide separating locally available foundations (local commands, saved notes/tasks/checklists/inventory and installed offline TTS) from internet-dependent AI and provider lookups.
+- **Honesty boundary:** this is not a live test of each feature; actual availability depends on Android permissions, installed apps/TTS data, and provider status.
+- **Acceptance checks:** confirm local and online groups are distinct; check wording does not claim every feature works offline; verify this screen works with network disabled.
+
+### Feature 3 — Connectivity Strategy Planner
+- **Code-present:** owner selects Local-only network concept, Hybrid local + internet design, or Satellite internet & CubeSat learning, enters a short brief, reviews a disclosure and explicitly confirms before an isolated `JarvisAiClient.askStandalone` request.
+- **Safety boundary:** planning/education only. No network configuration, discovery, scanning, pairing, transmission instructions, frequencies, interference, unauthorized access, credentials or covert monitoring.
+- **Privacy:** only the manually entered brief and selected topic are sent; no conversation memory, notes or contacts are attached.
+
+### Implementation and verification
+- **Files:** `ConnectivityIntelligenceStudio.java` (new), `ConnectivityIntelligenceRules.java` (pure formatting/prompt rules), `ConnectivityIntelligenceRulesTest.java` (unit tests), `MainActivity.java` (one Command Center entry), `AndroidManifest.xml` (read-only network-state permission), `app/build.gradle` (JUnit), and `.github/workflows/android.yml` (run unit tests before APK build).
+- **Automated tests:** three focused JUnit tests cover no-network vs unvalidated-network reporting, offline/online capability separation, and the planner's safety/prompt-injection boundaries. CI is configured to run `gradle testDebugUnitTest` before `gradle assembleDebug`.
+- **CI/build:** code head `084c74bab505117a92960969b952d3c1f759207c` passed GitHub Actions run #677 (`45049194572`): backend syntax validation, `gradle testDebugUnitTest`, `gradle assembleDebug`, and APK artifact upload. Artifact ID `14764514133`; SHA-256 `77c6330b6d3c2e7f5cd20f7fe78c0aa559dd390b2c90e2926cff98cb2f3dd151`. Later documentation-only commits are running the same workflow; record their final outcome separately.
+- **Physical device:** pending on Poco M4 Pro 4G. Check Wi-Fi/mobile/VPN/no-network states, verify network labels without exposing identifiers, review offline matrix in airplane mode, and test all three planner selections with cancel/confirm and offline/server-failure handling.
+- **Merge policy:** keep stacked on PR #37; do not merge into PR #37 or `main` without owner approval. JARVIS only; Even untouched.
