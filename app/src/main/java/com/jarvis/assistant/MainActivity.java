@@ -388,20 +388,21 @@ public class MainActivity extends Activity {
         String notes = getSavedNotes();
         String summary = structured;
         if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
-        String[] actions = {"Manage tasks", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event", "Life management overview"};
+        String[] actions = {"Manage tasks", "Manage reminders", "Set JARVIS reminder", "Set Android alarm", "Notification settings", "New calendar event", "Life management overview"};
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
                 .setMessage(summary + "\n\nJARVIS reminders are stored locally. Quiet hours and snooze apply only to reminders created inside JARVIS.")
                 .setItems(actions, (dialog, which) -> {
                     if (which == 0) showStructuredTaskManager();
-                    else if (which == 1) showCreateReminderDialog();
-                    else if (which == 2) {
+                    else if (which == 1) showManageReminders();
+                    else if (which == 2) showCreateReminderDialog();
+                    else if (which == 3) {
                         try {
                             Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
                             alarm.putExtra(AlarmClock.EXTRA_SKIP_UI, false);
                             startActivity(alarm);
                         } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
-                    } else if (which == 3) showNotificationPreferencesDialog();
-                    else if (which == 4) showCalendarEventDraftDialog();
+                    } else if (which == 4) showNotificationPreferencesDialog();
+                    else if (which == 5) showCalendarEventDraftDialog();
                     else showLifeManagementOverview();
                 }).setNegativeButton("Close", null).show();
     }
@@ -461,6 +462,139 @@ public class MainActivity extends Activity {
                 .setPositiveButton("Refresh", (dialog, which) -> showLifeManagementOverview())
                 .setNegativeButton("Close", null).show();
     }
+    private void showManageReminders() {
+        if (blockPrivateInGuestMode()) return;
+        java.util.List<org.json.JSONObject> reminders = ReminderStore.getPending(this);
+        if (reminders.isEmpty()) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Manage reminders")
+                    .setMessage("No upcoming JARVIS reminders were found. Past or invalid entries are not changed by this view.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(
+                "EEE, dd MMM yyyy • hh:mm a", java.util.Locale.getDefault());
+        final ArrayList<org.json.JSONObject> visibleReminders = new ArrayList<>(reminders);
+        final ArrayList<String> labels = new ArrayList<>();
+        for (org.json.JSONObject item : visibleReminders) {
+            labels.add(item.optString("title", "Reminder") + "\\n"
+                    + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
+        }
+        final android.widget.LinearLayout content = new android.widget.LinearLayout(this);
+        content.setOrientation(android.widget.LinearLayout.VERTICAL);
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        content.setPadding(pad, pad, pad, 0);
+        final android.widget.EditText searchInput = new android.widget.EditText(this);
+        searchInput.setSingleLine(true);
+        searchInput.setHint("Search reminder titles");
+        content.addView(searchInput, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        final android.widget.ListView list = new android.widget.ListView(this);
+        final android.widget.TextView empty = new android.widget.TextView(this);
+        empty.setText("No matching reminders");
+        empty.setGravity(Gravity.CENTER);
+        empty.setPadding(pad, pad, pad, pad);
+        content.addView(empty, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        content.addView(list, new android.widget.LinearLayout.LayoutParams(-1,
+                (int) (340 * getResources().getDisplayMetrics().density)));
+        list.setEmptyView(empty);
+        final android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, labels);
+        list.setAdapter(adapter);
+        final AlertDialog reminderDialog = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Upcoming reminders")
+                .setView(content)
+                .setNegativeButton("Close", null).create();
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                visibleReminders.clear();
+                labels.clear();
+                for (org.json.JSONObject item : reminders) {
+                    if (ReminderRules.matchesReminderQuery(item.optString("title", ""), s.toString())) {
+                        visibleReminders.add(item);
+                        labels.add(item.optString("title", "Reminder") + "\\n"
+                                + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
+                    }
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void afterTextChanged(android.text.Editable s) { }
+        });
+        list.setOnItemClickListener((parent, view, position, itemId) -> {
+            if (position < 0 || position >= visibleReminders.size()) return;
+            org.json.JSONObject selected = visibleReminders.get(position);
+            reminderDialog.dismiss();
+            int id = selected.optInt("id", -1);
+            String title = selected.optString("title", "Reminder");
+            long triggerAt = selected.optLong("triggerAt", 0L);
+            new AlertDialog.Builder(this).setTitle("Reminder details")
+                    .setMessage(title + "\\n" + formatter.format(new java.util.Date(triggerAt))
+                            + "\\n\\nYou can change the date/time or cancel this JARVIS reminder.")
+                    .setNegativeButton("Keep", null)
+                    .setNeutralButton("Reschedule", (confirm, choice) ->
+                            showRescheduleReminder(id, title, triggerAt))
+                    .setPositiveButton("Cancel reminder", (confirm, choice) -> {
+                        if (ReminderStore.cancel(this, id)) {
+                            status.setText("JARVIS REMINDER CANCELLED");
+                            speak("Reminder cancelled.");
+                        } else {
+                            status.setText("REMINDER COULD NOT BE CANCELLED");
+                        }
+                    }).show();
+        });
+        reminderDialog.show();
+    }
+
+    private void showRescheduleReminder(int id, String title, long oldTriggerAt) {
+        if (blockPrivateInGuestMode()) return;
+        if (id <= 0 || !ReminderRules.isFuture(oldTriggerAt, System.currentTimeMillis())) {
+            status.setText("REMINDER IS NO LONGER AVAILABLE");
+            return;
+        }
+        java.util.Calendar initial = java.util.Calendar.getInstance();
+        initial.setTimeInMillis(oldTriggerAt);
+        android.app.DatePickerDialog dateDialog = new android.app.DatePickerDialog(this,
+                (dateView, year, month, day) -> {
+                    java.util.Calendar chosen = java.util.Calendar.getInstance();
+                    chosen.set(java.util.Calendar.YEAR, year);
+                    chosen.set(java.util.Calendar.MONTH, month);
+                    chosen.set(java.util.Calendar.DAY_OF_MONTH, day);
+                    new android.app.TimePickerDialog(this, (timeView, hour, minute) -> {
+                        chosen.set(java.util.Calendar.HOUR_OF_DAY, hour);
+                        chosen.set(java.util.Calendar.MINUTE, minute);
+                        chosen.set(java.util.Calendar.SECOND, 0);
+                        chosen.set(java.util.Calendar.MILLISECOND, 0);
+                        long newTriggerAt = chosen.getTimeInMillis();
+                        if (!ReminderRules.isFuture(newTriggerAt, System.currentTimeMillis())) {
+                            status.setText("CHOOSE A FUTURE REMINDER TIME");
+                            return;
+                        }
+                        if (ReminderStore.hasDuplicate(this, title, newTriggerAt, id)) {
+                            status.setText("A REMINDER WITH THIS TITLE AND TIME ALREADY EXISTS");
+                            speak("A matching reminder already exists.");
+                            return;
+                        }
+                        if (!ReminderStore.updateTrigger(this, id, newTriggerAt)) {
+                            status.setText("REMINDER TIME COULD NOT BE UPDATED");
+                            return;
+                        }
+                        if (!ReminderStore.schedule(this, id, title, newTriggerAt)) {
+                            ReminderStore.updateTrigger(this, id, oldTriggerAt);
+                            ReminderStore.schedule(this, id, title, oldTriggerAt);
+                            status.setText("RESCHEDULE FAILED • OLD TIME RESTORED");
+                            return;
+                        }
+                        status.setText("JARVIS REMINDER RESCHEDULED");
+                        speak("Reminder rescheduled.");
+                    }, initial.get(java.util.Calendar.HOUR_OF_DAY),
+                            initial.get(java.util.Calendar.MINUTE), false).show();
+                }, initial.get(java.util.Calendar.YEAR),
+                initial.get(java.util.Calendar.MONTH),
+                initial.get(java.util.Calendar.DAY_OF_MONTH));
+        dateDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+        dateDialog.show();
+    }
+
+
     private void showCreateReminderDialog() {
         if (blockPrivateInGuestMode()) return;
         android.widget.EditText titleInput = new android.widget.EditText(this);
@@ -490,6 +624,11 @@ public class MainActivity extends Activity {
                             long triggerAt = chosen.getTimeInMillis();
                             if (!ReminderRules.isFuture(triggerAt, System.currentTimeMillis())) {
                                 status.setText("CHOOSE A FUTURE TIME");
+                                return;
+                            }
+                            if (ReminderStore.hasDuplicate(this, title, triggerAt, -1)) {
+                                status.setText("A REMINDER WITH THIS TITLE AND TIME ALREADY EXISTS");
+                                speak("A matching reminder already exists.");
                                 return;
                             }
                             int reminderId = preferences.getInt("reminder_id_counter", 2000) + 1;

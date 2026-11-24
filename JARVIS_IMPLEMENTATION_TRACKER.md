@@ -1312,3 +1312,49 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **APK artifact:** `jarvis-debug-apk`, ID `14926233271`, size 23,321,180 bytes.
 - **Poco M4 Pro 4G:** physical-device tests remain pending for Local/Global/Hybrid routing with Wi-Fi disconnected, mobile data active, local-only Wi-Fi, captive portal/unvalidated network and Android capability-state unavailable cases.
 - **Anti-duplication / scope:** extends Feature 3's existing Local/Global/Hybrid mode and reuses Feature 4's Android network-state foundation. It does not add another connectivity monitor, scheduler, AI client, local model or memory store. JARVIS only; Even untouched.
+
+## B26 — 50-feature Batch 1 (in progress)
+
+- **Batch target:** 50 distinct new capabilities or meaningful extensions; progress is tracked individually. The batch is not complete until all 50 are implemented and the combined regression/build checks pass.
+- **Feature 1/50 — Warranty Reminder Integration:** added an owner-invoked “Set reminder” action to an inventory item with an active warranty. It reuses the existing B22/B23 ReminderStore, AlarmManager delivery, quiet-hours handling and snooze action; no second scheduler or reminder database is created.
+- The owner chooses a local date/time; the date picker is capped at the warranty expiry date. A reminder must be in the future and no later than the inclusive warranty-expiry day. The default suggestion is one day before expiry at 9 AM when possible.
+- The reminder title is normalized and bounded; only the item nickname and chosen reminder time are stored in the existing reminder store. No external sharing, cloud upload, background inventory scan or new Android permission.
+- Added a pure-Java unit test for reminder-title normalization and bounds.
+- **Branch:** feature/b26-50-feature-batch-1, based on B25; draft PR and CI pending.
+- **Verification:** branch-head CI PASS on commit `788f6be832051bf9d979a6799709e4804e5018a6` (unit tests, debug APK build and artifact upload); Poco M4 Pro 4G physical-device testing remains pending.
+- **Anti-duplication:** extends B24/B25 inventory details and reuses the existing reminder scheduler; no duplicate inventory, task, reminder or timeline module.
+- JARVIS only; Even untouched. No merge without explicit owner approval.
+## B26 — Feature 2/50 — Owner Reminder Manager
+
+- Added “Manage reminders” inside the existing Tasks & reminders hub; no second reminder hub or storage location.
+- Lists valid upcoming JARVIS-created reminders in scheduled-time order and shows each title and local date/time.
+- Owner can inspect a selected reminder and explicitly confirm cancellation. Cancellation removes only that JARVIS reminder's saved record, matching Android alarm and its notification.
+- Added pure-Java validation coverage for stored reminder records. Malformed/expired records are left untouched by the read-only list operation.
+- No access to other apps' notifications, no new permissions, no cloud upload or background collection.
+- **Status:** CI PASS on final Feature 2 head `01a49811edd243f15110bdaa798c96a2d8174f3d`, workflow run #918 (unit tests, debug APK build and artifact upload); artifact `jarvis-debug-apk`, ID `14790574055`, SHA-256 `f59c21d944eb541b1af5c5bf9816e88df78fc16258e34078063c1318e8a4db40`. Poco M4 Pro 4G physical-device testing remains pending.
+
+## B26 — Feature 3/50 — Owner Reminder Rescheduling
+
+- Added a “Reschedule” action to the existing reminder details view; it uses the same reminder ID, local record, AlarmManager and receiver.
+- Owner selects a new local date/time; past times are rejected. On scheduling failure, JARVIS attempts to restore the previous saved time and alarm.
+- No duplicate reminder manager, scheduler, database, permission, other-app notification access or cloud upload.
+- **Status:** CI PASS on commit `38a68b7408231c89298505a610517b64f14ab7f2`, workflow run #921 (Android unit tests, debug APK build and artifact upload); Poco M4 Pro 4G physical-device testing remains pending.
+
+
+## B26 — Feature 4/50 — Duplicate Reminder Protection
+
+- Prevents creating or rescheduling a JARVIS reminder when another owner-created reminder has the same normalized title (case-insensitive) and exact local trigger time.
+- Reuses the existing ReminderStore; duplicate lookup is read-only and leaves malformed/older records unchanged.
+- Rescheduling excludes the reminder's own ID, so keeping the same reminder details remains allowed.
+- Added pure-Java unit coverage for matching title/time, same-ID exclusion, different time and different title.
+- No new permission, second scheduler, cloud upload, access to other apps' notifications or background collection.
+- **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device testing pending.
+
+## B26 — Feature 5/50 — Reminder Search & Filtering
+
+- Upgraded the existing Manage reminders view with an owner-controlled, live title search; matching is case-insensitive, whitespace-normalized and local-only.
+- Search filters only the already-loaded upcoming reminders. It does not alter stored reminders, scheduling, notification state or reminder ordering.
+- Selecting a filtered result continues to use the existing details, reschedule and explicit cancellation actions.
+- Added pure-Java tests for case-insensitive partial matching, whitespace normalization, empty queries and non-matches.
+- No second reminder manager, scheduler or store; no new permission, external notification access, cloud upload or background collection.
+- **Status:** code added; final-head CI pending; Poco M4 Pro 4G physical-device verification pending. JARVIS only; Even untouched.
