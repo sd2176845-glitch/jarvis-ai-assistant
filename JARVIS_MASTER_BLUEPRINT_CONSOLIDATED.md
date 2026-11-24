@@ -350,3 +350,16 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 **B10 verification update (2026-11-22):** final head `14b77ad900299a9a95c52781463aa0763c11733a` passed GitHub Actions run #648 (`45047351132`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764081799`, SHA-256 `b22ac837311db214740419c8deb4c988a6c5f8fb54bc0baa360eac320b67e743`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #36 is open and unmerged.
+
+
+### M16 — Smart Home Studio (Batch B11; implementation status tracked separately)
+- Added Device Setup Guide, Local Room Device Inventory (up to 30 manually entered labels), and Smart Routine Planner.
+- Setup and routine guidance use explicit owner submission through the memory-isolated AI path. Inventory stays local in the existing private preferences store.
+- This increment does not scan networks, discover devices, pair, control devices, send device commands, store credentials or run unattended automations. It is a safe planning/inventory foundation, not a full smart-device integration.
+- **Status:** code added on `feature/m16-smart-home-studio-3pack`; CI/build and target-device verification pending.
+
+
+**B11 verification update (2026-11-22):** corrected final code head `d289065be47bc1fef289dc9b8d112ec345345940` passed GitHub Actions run #659 (`45047777962`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763894323`, SHA-256 `f0118febd3e755b3c3f797bd3f3b99b2aa205e4357214c51e3717491645bebe3`. Initial runs #653–#658 failed on a routine-dialog builder-chain syntax error; corrected in the passing head. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #37 is open and unmerged.
+
+
+**B11 final documented-head verification:** `eaf5634ca4f8f652e242ba44bec940c9db2e7afe` passed GitHub Actions run #662 (`45047913711`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764123874`, SHA-256 `15e3ed72d5d98969b4eb4fd4981dc1a88eb0cb277e8cdf245eb95f807d19dcec`. No separate unit-test/lint task ran; Poco device verification remains pending.
