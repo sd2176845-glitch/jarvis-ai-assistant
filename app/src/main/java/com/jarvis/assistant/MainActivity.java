@@ -1691,18 +1691,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    // M14 upgrades the existing System safety check entry instead of adding a duplicate menu module.
     private void runSafetyCheck() {
-        StringBuilder report = new StringBuilder("JARVIS SAFETY CHECK\n\n");
-        boolean speechAvailable = SpeechRecognizer.isRecognitionAvailable(this);
-        report.append(speechAvailable ? "✓ Speech recognition available\n" : "! Speech recognition unavailable\n");
-        report.append(tts != null ? "✓ Voice engine initialized\n" : "! Voice engine not initialized\n");
-        report.append(checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                ? "✓ Microphone permission granted\n" : "! Microphone permission not granted\n");
-        report.append("✓ App data remains in Android's private app storage\n");
-        report.append("\nSafe update policy: keep the previous APK until the new build is verified. Install updates only from a trusted source and confirm Android's installer prompt. If a build fails, use the last known working APK.");
-        transcript.setText(report.toString());
-        status.setText("SAFETY CHECK COMPLETE");
-        speak("Safety check complete. Please review the report on screen.");
+        DiagnosticsStudio.show(this, preferences, tts != null);
     }
 
     private void enablePhoneEventPermissions() {

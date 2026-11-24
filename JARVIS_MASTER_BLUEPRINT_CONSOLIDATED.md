@@ -213,3 +213,14 @@ The existing Command Center now includes a Workflow Studio foundation. Owners ca
 - **Code-present:** owner-created Personal Timeline is now implemented within the existing vault. It stores manually entered milestones/events with creation timestamps, supports list/detail/individual delete, and is included in the existing owner-triggered export. It uses the existing JARVIS preferences store; no second memory database or background capture is added.
 - **Still planned:** provenance/knowledge graph, versioned idea evolution and encrypted legacy archive.
 - **Validation:** timeline code commit 5296fabe1d3670201dffeb72801bfc219f4f86c8 passed GitHub Actions run #495 (45040755446), including backend syntax validation, Gradle debug APK build and artifact upload 14761891383. Poco M4 Pro 4G device testing remains pending; no separate unit-test/lint steps were run.
+
+
+## 7. Implementation status addendum — M14 Batch B01 (2026-11-22)
+
+The first M14 implementation batch contains three separately tracked sub-features, all owned by **M14 — Diagnostics, Reliability & Controlled Recovery**:
+
+1. **App Health Check — code-present, implementation CI passed; device test pending.** Extends the existing Command Center System safety check entry. It reports app-level capability availability and optional permission states. It does not duplicate M17's battery/storage/RAM dashboard or the existing cybersecurity permission/build review.
+2. **Sanitized Diagnostic Report Export — code-present, implementation CI passed; device test pending.** Exports only the owner-triggered app-health report through Android's share chooser. It excludes contacts, messages, calls, conversation content and raw logs; it is not automatically transmitted.
+3. **Local Diagnostic History — code-present, implementation CI passed; device test pending.** Stores at most 10 owner-requested timestamp/pass-count summaries in the existing private JARVIS preferences store. It does not retain report text or personal content; the owner can review or clear it.
+
+**Batch boundary:** no new Android permission, second diagnostics module, background collection, private-content access, automatic repair, or remote upload. **CI build verified:** current batch head `22efe6293bd5953c5af34d9dab4f806185fb3f8c` passed GitHub Actions run #528 (`45043208526`), including backend syntax validation, Gradle debug APK build and artifact upload (`14762108881`). Android unit tests/lint were not separate workflow steps. All three sub-features remain **physical-device test pending** on the Poco M4 Pro 4G.
