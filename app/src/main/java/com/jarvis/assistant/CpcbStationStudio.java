@@ -21,7 +21,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Owner-invoked read-only CPCB station pollutant lookup through the official OGD API.
@@ -55,9 +58,22 @@ public final class CpcbStationStudio {
             return CpcbStationRules.formatStationRecord(
                     station, city, state, pollutant, average, minimum, maximum, unit, updatedAt);
         }
+
+        String comparisonLabel() {
+            return CpcbStationRules.comparisonLabel(station, pollutant, average, unit);
+        }
     }
 
     public static void show(Activity activity) {
+        show(activity, false);
+    }
+
+    /** Separate station-by-station comparison view; reuses the same live OGD request. */
+    public static void showComparison(Activity activity) {
+        show(activity, true);
+    }
+
+    private static void show(Activity activity, boolean comparison) {
         EditText city = new EditText(activity);
         city.setSingleLine(true);
         city.setHint("City (required, e.g. Kolkata)");
@@ -81,10 +97,11 @@ public final class CpcbStationStudio {
         fields.addView(apiKey);
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle("CPCB • Monitoring-station readings")
-                .setMessage("Enter a city and your data.gov.in API key. The key is sent only over HTTPS to api.data.gov.in for this request, is not saved in JARVIS, and is never shared with another service. No GPS is used.")
+                .setTitle(comparison ? "CPCB • Compare monitoring stations" : "CPCB • Monitoring-station readings")
+                .setMessage("Enter a city and your data.gov.in API key. The key is sent only over HTTPS to api.data.gov.in for this request, is not saved in JARVIS, and is never shared with another service. No GPS is used."
+                        + (comparison ? " Each station and pollutant remains separate; JARVIS does not calculate a city-wide average." : ""))
                 .setView(fields)
-                .setPositiveButton("Fetch station data", null)
+                .setPositiveButton(comparison ? "Compare stations" : "Fetch station data", null)
                 .setNeutralButton("API key information", (d, which) -> openApiHelp(activity))
                 .setNegativeButton("Close", null)
                 .create();
@@ -100,13 +117,13 @@ public final class CpcbStationStudio {
                     return;
                 }
                 dialog.dismiss();
-                fetch(activity, cityValue, stateValue, keyValue);
+                fetch(activity, cityValue, stateValue, keyValue, comparison);
             });
         });
         dialog.show();
     }
 
-    private static void fetch(Activity activity, String city, String state, String apiKey) {
+    private static void fetch(Activity activity, String city, String state, String apiKey, boolean comparison) {
         Toast.makeText(activity, "Requesting CPCB station records…", Toast.LENGTH_SHORT).show();
         Thread worker = new Thread(() -> {
             List<StationRecord> records = new ArrayList<>();
@@ -183,6 +200,8 @@ public final class CpcbStationStudio {
                             .setPositiveButton("Open CPCB portal", (d, w) -> openCpcbPortal(activity))
                             .setNegativeButton("Close", null)
                             .show();
+                } else if (comparison) {
+                    showComparisonResults(activity, city, state, result, totalRecords, timestamp);
                 } else {
                     showRecords(activity, city, state, result, totalRecords, timestamp);
                 }
@@ -259,6 +278,44 @@ public final class CpcbStationStudio {
                 .setTitle("CPCB station readings • " + records.size())
                 .setMessage(summary)
                 .setItems(labels, (dialog, which) -> showRecordDetail(activity, records.get(which)))
+                .setPositiveButton("Open CPCB portal", (dialog, which) -> openCpcbPortal(activity))
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private static void showComparisonResults(Activity activity, String city, String state,
+                                                List<StationRecord> records, int total, String latestUpdate) {
+        List<StationRecord> sorted = new ArrayList<>(records);
+        Collections.sort(sorted, (left, right) -> {
+            int pollutantOrder = CpcbStationRules.displayValue(left.pollutant)
+                    .compareToIgnoreCase(CpcbStationRules.displayValue(right.pollutant));
+            if (pollutantOrder != 0) return pollutantOrder;
+            return CpcbStationRules.displayValue(left.station)
+                    .compareToIgnoreCase(CpcbStationRules.displayValue(right.station));
+        });
+
+        Set<String> stations = new HashSet<>();
+        Set<String> pollutants = new HashSet<>();
+        String[] labels = new String[sorted.size()];
+        for (int i = 0; i < sorted.size(); i++) {
+            StationRecord record = sorted.get(i);
+            labels[i] = record.comparisonLabel();
+            stations.add(record.station);
+            pollutants.add(record.pollutant);
+        }
+
+        String summary = CpcbStationRules.buildSummary(city, state, sorted.size(), latestUpdate)
+                + "\n\nStations compared: " + stations.size()
+                + "\nPollutants represented: " + pollutants.size()
+                + "\n\n" + CpcbStationRules.comparisonDisclaimer();
+        if (total > sorted.size()) {
+            summary += "\n\nShowing " + sorted.size() + " matching rows from "
+                    + total + " records reported by the provider.";
+        }
+        new AlertDialog.Builder(activity)
+                .setTitle("CPCB station comparison • " + stations.size() + " stations")
+                .setMessage(summary)
+                .setItems(labels, (dialog, which) -> showRecordDetail(activity, sorted.get(which)))
                 .setPositiveButton("Open CPCB portal", (dialog, which) -> openCpcbPortal(activity))
                 .setNegativeButton("Close", null)
                 .show();
