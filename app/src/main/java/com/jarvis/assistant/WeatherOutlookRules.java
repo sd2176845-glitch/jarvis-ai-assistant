@@ -67,8 +67,13 @@ public final class WeatherOutlookRules {
     }
 
     private static String temperature(String value) {
-        if (value == null || !value.matches("-?[0-9]{1,4}(\\.[0-9]{1,2})?")) return "Not supplied";
-        return value;
+        if (value == null || !value.matches("-?[0-9]{1,3}(\\.[0-9]{1,2})?")) return "Not supplied";
+        try {
+            double parsed = Double.parseDouble(value);
+            return parsed < -100 || parsed > 80 ? "Not supplied" : value;
+        } catch (NumberFormatException e) {
+            return "Not supplied";
+        }
     }
 
     private static String nonNegative(String value) {
