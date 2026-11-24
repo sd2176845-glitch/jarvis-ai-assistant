@@ -18,6 +18,28 @@ public final class ConnectivityIntelligenceRules {
                 + "\n\nThis is a read-only Android network snapshot. A connected network does not guarantee that every website or service is reachable. JARVIS does not read Wi-Fi names, IP addresses, passwords or nearby network details.";
     }
 
+    /** Formats a live default-route snapshot without exposing network identifiers. */
+    public static String liveConnectivityStatus(boolean active, boolean capabilitiesKnown,
+                                                String transports, boolean internet,
+                                                boolean validated, boolean notMetered,
+                                                String lastEvent) {
+        StringBuilder out = new StringBuilder("LIVE CONNECTIVITY • FOREGROUND ONLY\n");
+        out.append(networkSnapshot(active, capabilitiesKnown, transports, internet, validated, notMetered));
+        if (active && capabilitiesKnown && !internet) {
+            out.append("\n\nPOTENTIAL LOCAL-ONLY ROUTE: Android reports an active network without the INTERNET capability. "
+                    + "This does not confirm that another device or local server is reachable.");
+        } else if (active && capabilitiesKnown && internet && !validated) {
+            out.append("\n\nINTERNET STATUS: The network advertises internet access, but Android has not validated general internet connectivity.");
+        } else if (!active) {
+            out.append("\n\nROUTE STATUS: No active default network is currently reported.");
+        }
+        if (lastEvent != null && !lastEvent.trim().isEmpty()) {
+            out.append("\n\nLATEST EVENT: ").append(lastEvent.trim());
+        }
+        out.append("\n\nMonitoring stops automatically when this screen closes. JARVIS does not scan nearby networks, read Wi-Fi names/passwords, or connect to devices.");
+        return out.toString();
+    }
+
     public static String offlineCapabilityMatrix() {
         return "AVAILABLE LOCALLY (subject to phone permissions and installed apps)\n"
                 + "• Time, date and basic battery information\n"
