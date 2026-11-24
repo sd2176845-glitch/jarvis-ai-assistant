@@ -95,8 +95,8 @@ public final class CpcbStationRules {
         out.append("Latest timestamp in returned rows: ").append(displayValue(latestUpdate)).append("\n\n");
         out.append("Source: Central Pollution Control Board • Open Government Data Platform India.\n");
         out.append("The dataset is published at hourly granularity. It contains direct field-instrument data and may show ");
-        out.append("errors or abnormal values. This view does not calculate or infer an AQI score, issue a health alert, ");
-        out.append("or guarantee that every station in the city is represented.");
+        out.append("errors or abnormal values. This view does not calculate or infer an AQI score, does not issue a health alert, ");
+        out.append("and cannot guarantee that every station in the city is represented.");
         return out.toString();
     }
 }
