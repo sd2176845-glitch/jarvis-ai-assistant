@@ -22,6 +22,44 @@ public class ConnectivityIntelligenceRulesTest {
         assertTrue(matrix.contains("not a live test"));
     }
 
+    @Test public void aiModeDefaultsSafelyAndRejectsUnknownValues() {
+        assertEquals("Hybrid", ConnectivityIntelligenceRules.normalizeAiMode(null));
+        assertEquals("Hybrid", ConnectivityIntelligenceRules.normalizeAiMode("unknown"));
+        assertEquals("Local", ConnectivityIntelligenceRules.normalizeAiMode("local"));
+        assertEquals("Global", ConnectivityIntelligenceRules.normalizeAiMode("GLOBAL"));
+    }
+
+    @Test public void localModeBlocksCloudAiWhileGlobalAndHybridPermitIt() {
+        assertFalse(ConnectivityIntelligenceRules.cloudAiAllowed("Local"));
+        assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("Global"));
+        assertTrue(ConnectivityIntelligenceRules.cloudAiAllowed("Hybrid"));
+        assertFalse(ConnectivityIntelligenceRules.cloudAiAllowed("invalid"));
+    }
+
+    @Test public void modeDescriptionsDiscloseOfflineModelLimitsAndNetworkBehavior() {
+        String local = ConnectivityIntelligenceRules.aiModeDescription("Local");
+        assertTrue(local.contains("not sent to the cloud AI endpoint"));
+        assertTrue(local.contains("no on-device generative language model"));
+
+        String global = ConnectivityIntelligenceRules.aiModeDescription("Global");
+        assertTrue(global.contains("internet connection"));
+        assertTrue(global.contains("reports the failure"));
+
+        String hybrid = ConnectivityIntelligenceRules.aiModeDescription("Hybrid");
+        assertTrue(hybrid.contains("online AI service first"));
+        assertTrue(hybrid.contains("limited on-device fallback"));
+    }
+
+    @Test public void localAndHybridFallbackMessagesDoNotClaimAnOfflineAiAnswer() {
+        String local = ConnectivityIntelligenceRules.localOnlyResponse();
+        assertTrue(local.contains("No cloud AI request was sent"));
+        assertTrue(local.contains("no on-device generative language model"));
+
+        String hybrid = ConnectivityIntelligenceRules.hybridFallbackResponse();
+        assertTrue(hybrid.contains("online AI service is unavailable"));
+        assertTrue(hybrid.contains("cannot provide a full offline AI answer"));
+    }
+
     @Test public void plannerPromptKeepsSafetyBoundariesAndTreatsBriefAsData() {
         String prompt = ConnectivityIntelligenceRules.plannerPrompt("Satellite internet & CubeSat learning", "My learning goal");
         assertTrue(prompt.contains("untrusted descriptive data"));
