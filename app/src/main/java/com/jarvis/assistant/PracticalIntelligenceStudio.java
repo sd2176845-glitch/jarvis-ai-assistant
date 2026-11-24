@@ -152,14 +152,14 @@ public final class PracticalIntelligenceStudio {
             message = "No comparable chronological odometer pairs were found. "
                     + "Add numeric readings on valid YYYY-MM-DD service dates to enable this check.";
         } else if (result[2] == 0) {
-            message = "Valid readings checked: " + result[0] + "\\n"
-                    + "Chronological comparisons: " + result[1] + "\\n"
-                    + "Decreases detected: 0\\n\\n"
+            message = "Valid readings checked: " + result[0] + "\n"
+                    + "Chronological comparisons: " + result[1] + "\n"
+                    + "Decreases detected: 0\n\n"
                     + "No decrease was found in the comparable records. This is not a mechanical inspection.";
         } else {
-            message = "Valid readings checked: " + result[0] + "\\n"
-                    + "Chronological comparisons: " + result[1] + "\\n"
-                    + "Potential decreases: " + result[2] + "\\n\\n"
+            message = "Valid readings checked: " + result[0] + "\n"
+                    + "Chronological comparisons: " + result[1] + "\n"
+                    + "Potential decreases: " + result[2] + "\n\n"
                     + "Review the original entries for data-entry errors. This check does not diagnose vehicle condition.";
         }
         new AlertDialog.Builder(activity).setTitle("Odometer consistency check")
