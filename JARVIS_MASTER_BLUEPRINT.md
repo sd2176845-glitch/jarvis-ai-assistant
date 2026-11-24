@@ -962,3 +962,13 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - No new storage permission, separate document database, background activity or network transfer. Existing inventory export excludes attachment metadata.
 - **CI:** GitHub Actions run #1022 (`45352808375`) passed backend syntax, Android unit tests, debug APK build and artifact upload on code head `244ecd9a6da109de52744073ac0c40a21aa35868`.
 - **Scope limitation:** this completes the basic local receipt/manual-reference increment only. Priority 38 reminder integration, encrypted export/restore and Poco M4 Pro 4G physical-device verification remain pending. Do not mark the entire Priority 38 suite complete.
+
+
+## B27 implementation update — Priority 38 Warranty Reminder Integration (2026-11-24)
+- Extended the existing M19 Smart Asset Inventory menu with an owner-invoked warranty reminder action.
+- Owner selects an item with a valid current/future warranty date and chooses the reminder date/time; the selected date must not be after the recorded warranty end date.
+- Reuses the existing JARVIS ReminderStore, ReminderReceiver, notification channel, reboot restoration and snooze behavior. No duplicate scheduler, new reminder database, background collection or new Android permission.
+- Reminder content is limited to "Warranty check: [item name]"; notes and receipt/manual attachment metadata are excluded.
+- If notifications are disabled, JARVIS offers Android notification settings and does not claim success. A scheduling failure rolls back the newly saved reminder record.
+- Focused unit coverage added for reminder-title validation. CI and Poco M4 Pro 4G runtime verification are pending until recorded in the implementation tracker.
+- JARVIS only; Even remains untouched.
