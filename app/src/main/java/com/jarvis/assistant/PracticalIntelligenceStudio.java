@@ -739,7 +739,7 @@ public final class PracticalIntelligenceStudio {
         }
         String[] options = {"Open " + savedName, "Replace document", "Remove attachment"};
         new AlertDialog.Builder(activity).setTitle("Saved document")
-                .setMessage(savedName + "\nStored as a local reference only. Opening hands this selected file to an installed viewer."
+                .setMessage(savedName + "\nStored as a local reference only. Opening hands this selected file to an installed viewer.")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) openAssetDocument(activity, index);
                     else if (which == 1) chooseAssetDocument(activity, index);
