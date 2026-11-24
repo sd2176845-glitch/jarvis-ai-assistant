@@ -5,7 +5,8 @@
   "description": "Secure server-side API bridge for the JARVIS Android assistant",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20"
