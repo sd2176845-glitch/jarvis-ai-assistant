@@ -186,7 +186,7 @@ public class EnvironmentIntelligenceRulesTest {
     @Test
     public void weatherWatchTreatsMissingAndMalformedValuesAsUnavailable() {
         String report = EnvironmentIntelligenceRules.formatWeatherHazardOutlook(
-                "Kolkata\\nInjected", new String[]{"17:00"},
+                "Kolkata\nInjected", new String[]{"17:00"},
                 new String[]{"bad"}, new String[]{"unknown"}, new String[]{"NaN"},
                 null, new String[]{"Infinity"}, new String[]{"not-a-temperature"},
                 new String[]{"-1"}, "Asia/Kolkata");
