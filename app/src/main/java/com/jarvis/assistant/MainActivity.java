@@ -61,6 +61,8 @@ public class MainActivity extends Activity {
     private String pendingDirectCallName = null;
     private SharedPreferences preferences;
     private ImageView avatar;
+    private android.os.CountDownTimer activeFocusTimer;
+    private boolean aiOffline = false;
 
     private int cyan = Color.rgb(255,  70, 82);
     private int bg = Color.rgb(8, 5, 9);
@@ -75,45 +77,50 @@ public class MainActivity extends Activity {
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
-                tts.setSpeechRate(0.92f);
+                applySavedVoiceSettings();
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String utteranceId) {
-                        runOnUiThread(() -> status.setText("SPEAKING"));
+                        runOnUiThread(() -> setVoiceStatus("SPEAKING…"));
                     }
                     @Override public void onDone(String utteranceId) {
-                        runOnUiThread(() -> {
-                            if (status != null && "SPEAKING".equals(status.getText().toString())) {
-                                status.setText("ONLINE • STANDBY");
-                                animateOrb(1.0f, 650L);
-                            }
-                        });
+                        runOnUiThread(() -> setVoiceStatus(aiOffline
+                                ? "AI OFFLINE • LOCAL COMMANDS READY"
+                                : "STANDBY • TAP TO SPEAK"));
                     }
                     @Override public void onError(String utteranceId) {
-                        runOnUiThread(() -> status.setText("VOICE OUTPUT ERROR"));
+                        runOnUiThread(() -> setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK"));
                     }
                 });
+            } else {
+                setVoiceStatus("VOICE OUTPUT UNAVAILABLE");
             }
         });
         if (SpeechRecognizer.isRecognitionAvailable(this)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(this);
             recognizer.setRecognitionListener(new RecognitionListener() {
-                public void onReadyForSpeech(Bundle params) { status.setText("LISTENING • SPEAK NOW"); animateOrb(1.07f, 550L); }
-                public void onBeginningOfSpeech() { status.setText("HEARING YOU"); animateOrb(1.10f, 350L); }
+                public void onReadyForSpeech(Bundle params) { setVoiceStatus("LISTENING…"); animateOrb(1.07f, 550L); }
+                public void onBeginningOfSpeech() { setVoiceStatus("HEARING YOU"); animateOrb(1.10f, 350L); }
                 public void onRmsChanged(float rmsdB) {}
                 public void onBufferReceived(byte[] buffer) {}
-                public void onEndOfSpeech() { status.setText("ANALYZING YOUR REQUEST"); animateOrb(1.035f, 700L); }
+                public void onEndOfSpeech() { setVoiceStatus("PROCESSING SPEECH…"); animateOrb(1.035f, 700L); }
                 public void onError(int error) {
                     String message = error == SpeechRecognizer.ERROR_NO_MATCH
                             ? "NO SPEECH RECOGNIZED • TAP TO RETRY"
                             : (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
                             ? "LISTENING TIMED OUT • TAP TO RETRY"
                             : "VOICE INPUT STOPPED • TAP TO RETRY");
-                    status.setText(message);
+                    setVoiceStatus(message);
                     animateOrb(1.0f, 800L);
                 }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    status.setText("REQUEST RECEIVED");
+                    setVoiceStatus("REQUEST RECEIVED");
+                    if (matches != null && !matches.isEmpty()) {
+                        setVoiceStatus("PROCESSING COMMAND…");
+                        understandVoiceCommand(matches.get(0));
+                    } else {
+                        setVoiceStatus("NO SPEECH RECOGNIZED • TAP TO SPEAK");
+                    }
                     animateOrb(1.0f, 800L);
                     if (matches != null && !matches.isEmpty()) understandVoiceCommand(matches.get(0));
                     else status.setText("NO SPEECH RECOGNIZED • TAP TO RETRY");
@@ -245,18 +252,19 @@ public class MainActivity extends Activity {
         root.addView(speak, voiceParams);
 
         Button stopVoice = new Button(this);
-        stopVoice.setText("■   STOP VOICE INPUT");
+        stopVoice.setText("STOP FOREGROUND VOICE");
         stopVoice.setTextColor(Color.rgb(255, 190, 195));
         stopVoice.setTextSize(12);
         stopVoice.setAllCaps(false);
         GradientDrawable stopShape = new GradientDrawable();
-        stopShape.setColor(Color.rgb(35, 12, 18));
-        stopShape.setCornerRadius(40);
-        stopShape.setStroke((int) (1 * getResources().getDisplayMetrics().density), Color.rgb(155, 45, 58));
+        stopShape.setColor(Color.rgb(30, 10, 15));
+        stopShape.setCornerRadius(42);
+        stopShape.setStroke((int) (1.0f * getResources().getDisplayMetrics().density),
+                Color.rgb(155, 45, 58));
         stopVoice.setBackground(stopShape);
-        stopVoice.setOnClickListener(v -> stopVoiceInput());
+        stopVoice.setOnClickListener(v -> stopVoiceSession());
         LinearLayout.LayoutParams stopParams = new LinearLayout.LayoutParams(-1,
-                (int) (44 * getResources().getDisplayMetrics().density));
+                (int) (46 * getResources().getDisplayMetrics().density));
         stopParams.setMargins(8, 0, 8, 12);
         root.addView(stopVoice, stopParams);
 
@@ -384,11 +392,13 @@ public class MainActivity extends Activity {
     }
 
     private void showTaskAndReminderHub() {
+        String structured = getStructuredTaskSummary();
         String notes = getSavedNotes();
-        String summary = notes.isEmpty() ? "No saved tasks yet." : "Saved notes / tasks:\n\n" + notes;
+        String summary = structured;
+        if (!notes.isEmpty()) summary += "\n\nLEGACY NOTES (unchanged)\n" + notes;
         new AlertDialog.Builder(this).setTitle("JARVIS • Tasks & reminders")
-                .setMessage(summary + "\n\nSave a task locally, or open Android Clock to set a scheduled alarm/reminder. Alarm time must be confirmed in Clock.")
-                .setPositiveButton("Add task", (d, w) -> showNotesDialog())
+                .setMessage(summary + "\n\nTasks are stored locally in a separate structured list. Existing notes are preserved. Alarm time must be confirmed in Android Clock.")
+                .setPositiveButton("Manage tasks", (d, w) -> showStructuredTaskManager())
                 .setNeutralButton("Set alarm", (d, w) -> {
                     try {
                         Intent alarm = new Intent(AlarmClock.ACTION_SET_ALARM);
@@ -397,6 +407,571 @@ public class MainActivity extends Activity {
                     } catch (Exception e) { status.setText("ALARM APP NOT AVAILABLE"); }
                 })
                 .setNegativeButton("New event", (d, w) -> showCalendarEventDraftDialog()).show();
+    }
+
+    private org.json.JSONArray readStructuredTasks() {
+        String raw = preferences.getString("structured_tasks_v1", "[]");
+        try {
+            return new org.json.JSONArray(raw);
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private boolean saveStructuredTasks(org.json.JSONArray tasks) {
+        if (tasks == null) return false;
+        preferences.edit().putString("structured_tasks_v1", tasks.toString()).apply();
+        return true;
+    }
+
+    private String getStructuredTaskSummary() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) return "Structured task data needs attention; saved data has been preserved.";
+        if (tasks.length() == 0) return "TASK LIST\nNo structured tasks yet.";
+        int pending = 0;
+        int completed = 0;
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            if (item.optBoolean("done", false)) completed++;
+            else pending++;
+        }
+        return "TASK LIST\nPending: " + pending + "  •  Completed: " + completed;
+    }
+
+    private void showStructuredTaskManager() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Tasks")
+                    .setMessage("Task data could not be read. Nothing has been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            labels.add(item == null ? "Untitled task"
+                    : (item.optBoolean("done", false) ? "✓  " : "○  ")
+                    + item.optString("title", "Untitled task"));
+        }
+        String[] entries = labels.toArray(new String[0]);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Structured tasks")
+                .setItems(entries, (dialog, which) -> {
+                    org.json.JSONObject item = tasks.optJSONObject(which);
+                    if (item != null) {
+                        try {
+                            item.put("done", !item.optBoolean("done", false));
+                            saveStructuredTasks(tasks);
+                            status.setText(item.optBoolean("done", false) ? "TASK COMPLETED" : "TASK REOPENED");
+                        } catch (org.json.JSONException e) {
+                            status.setText("TASK STATUS COULD NOT BE UPDATED");
+                        }
+                    }
+                    showStructuredTaskManager();
+                })
+                .setPositiveButton("Add task", (dialog, which) -> showAddStructuredTaskDialog())
+                .setNeutralButton("Delete task", (dialog, which) -> showDeleteStructuredTaskDialog())
+                .setNegativeButton("Close", null);
+        if (entries.length == 0) {
+            builder.setMessage("No tasks yet. Tap Add task to create your first one.");
+        } else {
+            builder.setMessage("Tap a task to switch its completion status.");
+        }
+        builder.show();
+    }
+
+    private void showAddStructuredTaskDialog() {
+        EditText input = new EditText(this);
+        input.setHint("What needs to be done?");
+        input.setSingleLine(true);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Add task")
+                .setMessage("This task stays in JARVIS private app storage on this phone.")
+                .setView(input)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save task", (dialog, which) -> {
+                    String title = input.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("EMPTY TASK NOT SAVED");
+                        return;
+                    }
+                    org.json.JSONArray tasks = readStructuredTasks();
+                    if (tasks == null) {
+                        status.setText("TASK DATA COULD NOT BE READ");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("done", false);
+                        item.put("created_at", System.currentTimeMillis());
+                        tasks.put(item);
+                        saveStructuredTasks(tasks);
+                        status.setText("TASK SAVED ON DEVICE");
+                        showStructuredTaskManager();
+                    } catch (org.json.JSONException e) {
+                        status.setText("TASK COULD NOT BE SAVED");
+                    }
+                }).show();
+    }
+
+    private void showDeleteStructuredTaskDialog() {
+        org.json.JSONArray tasks = readStructuredTasks();
+        if (tasks == null || tasks.length() == 0) {
+            status.setText(tasks == null ? "TASK DATA COULD NOT BE READ" : "NO TASKS TO DELETE");
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < tasks.length(); i++) {
+            org.json.JSONObject item = tasks.optJSONObject(i);
+            labels.add(item == null ? "Untitled task" : item.optString("title", "Untitled task"));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Delete task")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    tasks.remove(which);
+                    saveStructuredTasks(tasks);
+                    status.setText("TASK DELETED");
+                    showStructuredTaskManager();
+                })
+                .setNegativeButton("Cancel", null).show();
+    }
+
+
+    // M08 safe foundation: owner-created, manually-run checklists only.
+    // No background triggers, cross-app actions, calls, messages, or device changes.
+    private org.json.JSONArray readManualWorkflows() {
+        try {
+            return new org.json.JSONArray(preferences.getString("manual_workflows_v1", "[]"));
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private boolean saveManualWorkflows(org.json.JSONArray workflows) {
+        if (workflows == null) return false;
+        preferences.edit().putString("manual_workflows_v1", workflows.toString()).apply();
+        return true;
+    }
+
+    // M09 extends the existing notes and recent-conversation stores; it creates no parallel memory database.
+    // The timeline is owner-created and stored as one structured key in the existing JARVIS preferences.
+    private void showPersonalMemoryVault() {
+        String savedNotes = getSavedNotes();
+        SharedPreferences conversationStore = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE);
+        String recentConversation = conversationStore.getString("conversation", "");
+        String summary = "PERSONAL KNOWLEDGE\n"
+                + (savedNotes.isEmpty() ? "No saved notes yet." : savedNotes)
+                + "\n\nRECENT CONVERSATION CONTEXT\n"
+                + (recentConversation.isEmpty() ? "No recent conversation context." : recentConversation)
+                + "\n\nTIMELINE\n"
+                + getPersonalTimelineCount() + " owner-created entries"
+                + "\n\nAll information stays in existing on-device JARVIS storage. Review before exporting.";
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        TextView content = new TextView(this);
+        content.setText(summary);
+        content.setTextColor(Color.WHITE);
+        content.setTextSize(14);
+        content.setPadding(28, 20, 28, 16);
+        panel.addView(content, new LinearLayout.LayoutParams(-1, -2));
+        Button editNotes = new Button(this);
+        editNotes.setText("EDIT SAVED NOTES");
+        editNotes.setOnClickListener(v -> showEditVaultNotes());
+        panel.addView(editNotes, new LinearLayout.LayoutParams(-1, -2));
+        Button timeline = new Button(this);
+        timeline.setText("OPEN PERSONAL TIMELINE");
+        timeline.setOnClickListener(v -> showPersonalTimeline());
+        panel.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(panel);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Personal Memory Vault")
+                .setView(scroll)
+                .setPositiveButton("Export", (d, w) -> exportPersonalMemory())
+                .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
+                .setNeutralButton("Close", null)
+                .show();
+    }
+
+    private org.json.JSONArray readPersonalTimeline() {
+        try {
+            return new org.json.JSONArray(preferences.getString("memory_timeline_v1", "[]"));
+        } catch (org.json.JSONException e) {
+            return null;
+        }
+    }
+
+    private int getPersonalTimelineCount() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        return entries == null ? 0 : entries.length();
+    }
+
+    private void savePersonalTimeline(org.json.JSONArray entries) {
+        if (entries != null) {
+            preferences.edit().putString("memory_timeline_v1", entries.toString()).apply();
+        }
+    }
+
+    // Timeline entries are added only when the owner explicitly creates them; no background capture.
+    private void showPersonalTimeline() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        if (entries == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Personal Timeline")
+                    .setMessage("Timeline data could not be read. Existing information has not been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            org.json.JSONObject item = entries.optJSONObject(i);
+            if (item == null) {
+                labels.add("Unavailable entry");
+                continue;
+            }
+            long createdAt = item.optLong("createdAt", 0L);
+            String date = createdAt > 0
+                    ? new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                            .format(new java.util.Date(createdAt))
+                    : "Date unavailable";
+            labels.add(item.optString("title", "Untitled entry") + " • " + date);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Personal Timeline")
+                .setItems(labels.toArray(new String[0]), (d, which) -> {
+                    org.json.JSONObject item = entries.optJSONObject(which);
+                    if (item == null) return;
+                    long createdAt = item.optLong("createdAt", 0L);
+                    String date = createdAt > 0
+                            ? new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+                                    .format(new java.util.Date(createdAt))
+                            : "Date unavailable";
+                    new AlertDialog.Builder(this)
+                            .setTitle(item.optString("title", "Timeline entry"))
+                            .setMessage(date + "\n\n" + item.optString("detail", ""))
+                            .setPositiveButton("Close", null).show();
+                })
+                .setPositiveButton("Add entry", (d, w) -> showAddPersonalTimelineEntry())
+                .setNeutralButton("Delete entry", (d, w) -> showDeletePersonalTimelineEntry())
+                .setNegativeButton("Back", (d, w) -> showPersonalMemoryVault())
+                .show();
+    }
+
+    private void showAddPersonalTimelineEntry() {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(24, 8, 24, 8);
+        EditText titleInput = new EditText(this);
+        titleInput.setSingleLine(true);
+        titleInput.setHint("Milestone or event title");
+        form.addView(titleInput, new LinearLayout.LayoutParams(-1, -2));
+        EditText detailInput = new EditText(this);
+        detailInput.setHint("Details (optional)");
+        detailInput.setMinLines(3);
+        detailInput.setGravity(Gravity.TOP | Gravity.START);
+        detailInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        form.addView(detailInput, new LinearLayout.LayoutParams(-1, -2));
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Add timeline entry")
+                .setMessage("Only information you enter here is saved. JARVIS does not collect events in the background.")
+                .setView(form)
+                .setPositiveButton("Save entry", (d, w) -> {
+                    String title = titleInput.getText().toString().trim();
+                    if (title.isEmpty()) {
+                        status.setText("TIMELINE ENTRY NEEDS A TITLE");
+                        return;
+                    }
+                    org.json.JSONArray entries = readPersonalTimeline();
+                    if (entries == null) {
+                        status.setText("TIMELINE DATA UNAVAILABLE • NOTHING CHANGED");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("detail", detailInput.getText().toString().trim());
+                        item.put("createdAt", System.currentTimeMillis());
+                        entries.put(item);
+                        savePersonalTimeline(entries);
+                        status.setText("TIMELINE ENTRY SAVED ON DEVICE");
+                        showPersonalTimeline();
+                    } catch (org.json.JSONException e) {
+                        status.setText("TIMELINE ENTRY COULD NOT BE SAVED");
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showDeletePersonalTimelineEntry() {
+        org.json.JSONArray entries = readPersonalTimeline();
+        if (entries == null || entries.length() == 0) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Delete timeline entry")
+                    .setMessage("There are no timeline entries to delete.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            org.json.JSONObject item = entries.optJSONObject(i);
+            labels.add(item == null ? "Unavailable entry" : item.optString("title", "Untitled entry"));
+        }
+        new AlertDialog.Builder(this).setTitle("Choose an entry to delete")
+                .setItems(labels.toArray(new String[0]), (d, which) -> {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Delete this timeline entry?")
+                            .setMessage("Only the selected owner-created entry will be deleted.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete", (confirm, selected) -> {
+                                org.json.JSONArray latest = readPersonalTimeline();
+                                if (latest != null && which < latest.length()) {
+                                    latest.remove(which);
+                                    savePersonalTimeline(latest);
+                                    status.setText("TIMELINE ENTRY DELETED");
+                                    showPersonalTimeline();
+                                }
+                            }).show();
+                })
+                .setNegativeButton("Cancel", null).show();
+    }
+
+    private void showEditVaultNotes() {
+        EditText editor = new EditText(this);
+        editor.setHint("Your saved notes and owner-approved knowledge");
+        editor.setMinLines(5);
+        editor.setGravity(Gravity.TOP | Gravity.START);
+        editor.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        editor.setText(getSavedNotes());
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Review / correct knowledge")
+                .setMessage("Edit the existing notes store. Saving replaces only the notes text; recent AI conversation is separate.")
+                .setView(editor)
+                .setPositiveButton("Save changes", (d, w) -> {
+                    String updated = editor.getText().toString().trim();
+                    preferences.edit().putString("notes", updated).putString("jarvis_notes", updated).apply();
+                    status.setText("PERSONAL KNOWLEDGE UPDATED ON DEVICE");
+                    showPersonalMemoryVault();
+                })
+                .setNeutralButton("Delete notes", (d, w) -> confirmClearVaultNotes())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void confirmClearVaultNotes() {
+        new AlertDialog.Builder(this).setTitle("Delete saved notes?")
+                .setMessage("This deletes the existing notes only. Recent AI conversation and tasks are kept.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete notes", (d, w) -> {
+                    preferences.edit().remove("notes").remove("jarvis_notes").apply();
+                    status.setText("SAVED NOTES DELETED");
+                    showPersonalMemoryVault();
+                }).show();
+    }
+
+    private void confirmClearRecentContext() {
+        new AlertDialog.Builder(this).setTitle("Clear recent conversation context?")
+                .setMessage("This clears only the recent AI conversation context. Saved notes and tasks are kept.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Clear context", (d, w) -> {
+                    getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE).edit().remove("conversation").apply();
+                    status.setText("RECENT CONVERSATION CONTEXT CLEARED");
+                    showPersonalMemoryVault();
+                }).show();
+    }
+
+    private void exportPersonalMemory() {
+        String notes = getSavedNotes();
+        String conversation = getSharedPreferences("jarvis_ai_memory", MODE_PRIVATE)
+                .getString("conversation", "");
+        org.json.JSONArray timeline = readPersonalTimeline();
+        StringBuilder timelineText = new StringBuilder();
+        if (timeline != null) {
+            for (int i = 0; i < timeline.length(); i++) {
+                org.json.JSONObject item = timeline.optJSONObject(i);
+                if (item == null) continue;
+                timelineText.append(item.optString("title", "Untitled entry"))
+                        .append(" • ")
+                        .append(item.optLong("createdAt", 0L))
+                        .append("\n")
+                        .append(item.optString("detail", ""))
+                        .append("\n\n");
+            }
+        }
+        String export = "JARVIS PERSONAL MEMORY EXPORT\n\nSAVED NOTES\n"
+                + (notes.isEmpty() ? "(none)" : notes)
+                + "\n\nRECENT CONVERSATION CONTEXT\n"
+                + (conversation.isEmpty() ? "(none)" : conversation)
+                + "\n\nOWNER-CREATED TIMELINE\n"
+                + (timelineText.length() == 0 ? "(none)" : timelineText.toString())
+                + "\nExported by owner from this device.";
+        try {
+            Intent share = new Intent(Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.putExtra(Intent.EXTRA_SUBJECT, "JARVIS Personal Memory Export");
+            share.putExtra(Intent.EXTRA_TEXT, export);
+            startActivity(Intent.createChooser(share, "Review and choose where to export"));
+            status.setText("EXPORT SHARE SHEET OPENED");
+        } catch (Exception e) {
+            status.setText("EXPORT NOT AVAILABLE");
+        }
+    }
+
+    private void showWorkflowStudio() {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) {
+            new AlertDialog.Builder(this).setTitle("JARVIS • Workflow Studio")
+                    .setMessage("Workflow data could not be read. Existing data has not been changed.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < workflows.length(); i++) {
+            org.json.JSONObject item = workflows.optJSONObject(i);
+            if (item == null) {
+                labels.add("Unavailable workflow");
+                continue;
+            }
+            org.json.JSONArray steps = item.optJSONArray("steps");
+            org.json.JSONArray done = item.optJSONArray("done");
+            int total = steps == null ? 0 : steps.length();
+            int completed = 0;
+            if (done != null) {
+                for (int j = 0; j < done.length(); j++) if (done.optBoolean(j, false)) completed++;
+            }
+            labels.add(item.optString("title", "Untitled workflow") + "  •  " + completed + "/" + total);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Workflow Studio")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> showManualWorkflow(which))
+                .setPositiveButton("Create workflow", (dialog, which) -> showCreateManualWorkflow())
+                .setNeutralButton("Delete", (dialog, which) -> showDeleteManualWorkflow())
+                .setNegativeButton("Close", null);
+        if (labels.isEmpty()) builder.setMessage("Create a personal checklist, then run it manually. Workflows never run in the background.");
+        else builder.setMessage("Choose a checklist to review or continue. All steps are manual and owner-controlled.");
+        builder.show();
+    }
+
+    private void showCreateManualWorkflow() {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(32, 12, 32, 4);
+        EditText titleInput = new EditText(this);
+        titleInput.setSingleLine(true);
+        titleInput.setHint("Workflow name");
+        EditText stepsInput = new EditText(this);
+        stepsInput.setHint("One checklist step per line (max 12)");
+        stepsInput.setMinLines(4);
+        stepsInput.setGravity(Gravity.TOP);
+        stepsInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        panel.addView(titleInput);
+        panel.addView(stepsInput);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Create checklist")
+                .setMessage("Manual checklist only. No automatic app/device actions or background triggers.")
+                .setView(panel)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String title = titleInput.getText().toString().trim();
+                    String rawSteps = stepsInput.getText().toString();
+                    String[] split = rawSteps.split("\\r?\\n");
+                    org.json.JSONArray steps = new org.json.JSONArray();
+                    for (String line : split) {
+                        String step = line.trim();
+                        if (!step.isEmpty() && steps.length() < 12 && step.length() <= 120) steps.put(step);
+                    }
+                    if (title.isEmpty() || title.length() > 60 || steps.length() == 0) {
+                        status.setText("ADD A NAME AND AT LEAST ONE VALID STEP");
+                        return;
+                    }
+                    org.json.JSONArray workflows = readManualWorkflows();
+                    if (workflows == null) {
+                        status.setText("WORKFLOW DATA COULD NOT BE READ");
+                        return;
+                    }
+                    org.json.JSONObject item = new org.json.JSONObject();
+                    try {
+                        item.put("title", title);
+                        item.put("steps", steps);
+                        item.put("done", new org.json.JSONArray());
+                        item.put("created_at", System.currentTimeMillis());
+                        workflows.put(item);
+                        saveManualWorkflows(workflows);
+                        status.setText("MANUAL WORKFLOW SAVED");
+                        showWorkflowStudio();
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW COULD NOT BE SAVED");
+                    }
+                }).show();
+    }
+
+    private void showManualWorkflow(int index) {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) return;
+        org.json.JSONObject item = workflows.optJSONObject(index);
+        if (item == null) return;
+        org.json.JSONArray steps = item.optJSONArray("steps");
+        if (steps == null || steps.length() == 0) {
+            status.setText("WORKFLOW HAS NO STEPS");
+            return;
+        }
+        org.json.JSONArray done = item.optJSONArray("done");
+        boolean[] checked = new boolean[steps.length()];
+        String[] labels = new String[steps.length()];
+        for (int i = 0; i < steps.length(); i++) {
+            checked[i] = done != null && done.optBoolean(i, false);
+            labels[i] = steps.optString(i, "Unavailable step");
+        }
+        new AlertDialog.Builder(this).setTitle(item.optString("title", "Workflow"))
+                .setMessage("Tick steps as you complete them. JARVIS does not execute the steps for you.")
+                .setMultiChoiceItems(labels, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setPositiveButton("Save progress", (dialog, which) -> {
+                    org.json.JSONArray updated = new org.json.JSONArray();
+                    for (boolean value : checked) updated.put(value);
+                    try {
+                        item.put("done", updated);
+                        saveManualWorkflows(workflows);
+                        status.setText("WORKFLOW CHECKLIST PROGRESS SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW PROGRESS COULD NOT BE SAVED");
+                    }
+                    showWorkflowStudio();
+                })
+                .setNeutralButton("Reset checklist", (dialog, which) -> {
+                    try {
+                        item.put("done", new org.json.JSONArray());
+                        saveManualWorkflows(workflows);
+                        status.setText("WORKFLOW CHECKLIST RESET");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW COULD NOT BE RESET");
+                    }
+                    showWorkflowStudio();
+                })
+                .setNegativeButton("Close", null).show();
+    }
+
+    private void showDeleteManualWorkflow() {
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null || workflows.length() == 0) {
+            status.setText(workflows == null ? "WORKFLOW DATA COULD NOT BE READ" : "NO WORKFLOWS TO DELETE");
+            return;
+        }
+        ArrayList<String> labels = new ArrayList<>();
+        for (int i = 0; i < workflows.length(); i++) {
+            org.json.JSONObject item = workflows.optJSONObject(i);
+            labels.add(item == null ? "Unavailable workflow" : item.optString("title", "Untitled workflow"));
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Delete workflow")
+                .setItems(labels.toArray(new String[0]), (dialog, which) -> {
+                    new AlertDialog.Builder(this).setTitle("Delete this checklist?")
+                            .setMessage("This removes only the selected workflow from this phone.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Delete", (d, w) -> {
+                                workflows.remove(which);
+                                saveManualWorkflows(workflows);
+                                status.setText("WORKFLOW DELETED");
+                                showWorkflowStudio();
+                            }).show();
+                }).setNegativeButton("Cancel", null).show();
     }
 
     private void showConnectedSystems() {
@@ -418,6 +993,187 @@ public class MainActivity extends Activity {
     private void animateOrb(float scale, long duration) {
         if (avatar == null) return;
         avatar.animate().scaleX(scale).scaleY(scale).setDuration(duration).start();
+    }
+
+
+    /**
+     * Owner-started focus timer. It does not block apps, notifications or calls.
+     * The countdown remains active only while the JARVIS process is alive.
+     */
+    private void showFocusSession() {
+        EditText taskInput = new EditText(this);
+        taskInput.setHint("What are you focusing on?");
+        taskInput.setSingleLine(true);
+        taskInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(28, 8, 28, 4);
+        TextView help = new TextView(this);
+        help.setText("Choose a short focus block. JARVIS shows a countdown but does not restrict apps, calls or notifications. Keep JARVIS open while the session runs.");
+        help.setTextColor(Color.rgb(190, 215, 230));
+        panel.addView(help);
+        panel.addView(taskInput);
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Focus session")
+                .setView(panel)
+                .setPositiveButton("Choose duration", (dialog, which) -> {
+                    String task = taskInput.getText().toString().trim();
+                    if (task.isEmpty()) task = "Focus session";
+                    showFocusDurationDialog(task);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showFocusDurationDialog(String task) {
+        new AlertDialog.Builder(this)
+                .setTitle("Choose focus duration")
+                .setItems(new String[]{"15 minutes", "25 minutes", "45 minutes"}, (dialog, which) -> {
+                    int minutes = which == 0 ? 15 : (which == 1 ? 25 : 45);
+                    startFocusSession(task, minutes);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void startFocusSession(String task, int minutes) {
+        if (activeFocusTimer != null) {
+            activeFocusTimer.cancel();
+            activeFocusTimer = null;
+        }
+        final String focusTask = task;
+        final TextView taskLabel = new TextView(this);
+        taskLabel.setText(focusTask);
+        taskLabel.setTextColor(Color.rgb(190, 215, 230));
+        taskLabel.setTextSize(16);
+        taskLabel.setGravity(Gravity.CENTER);
+        taskLabel.setPadding(16, 20, 16, 8);
+        final TextView timerText = new TextView(this);
+        timerText.setTextColor(Color.WHITE);
+        timerText.setTextSize(30);
+        timerText.setGravity(Gravity.CENTER);
+        timerText.setPadding(20, 24, 20, 28);
+        LinearLayout timerPanel = new LinearLayout(this);
+        timerPanel.setOrientation(LinearLayout.VERTICAL);
+        timerPanel.addView(taskLabel);
+        timerPanel.addView(timerText);
+        final AlertDialog sessionDialog = new AlertDialog.Builder(this)
+                .setTitle("FOCUS IN PROGRESS")
+                .setView(timerPanel)
+                .setPositiveButton("Stop session", null)
+                .create();
+        sessionDialog.setCancelable(false);
+        sessionDialog.show();
+        sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (activeFocusTimer != null) {
+                activeFocusTimer.cancel();
+                activeFocusTimer = null;
+            }
+            status.setText("FOCUS SESSION STOPPED");
+            transcript.setText("JARVIS • Focus session stopped\\n\\n" + focusTask);
+            sessionDialog.dismiss();
+        });
+        activeFocusTimer = new android.os.CountDownTimer(minutes * 60L * 1000L, 1000L) {
+            @Override public void onTick(long millisUntilFinished) {
+                long totalSeconds = millisUntilFinished / 1000L;
+                long remainingMinutes = totalSeconds / 60L;
+                long remainingSeconds = totalSeconds % 60L;
+                timerText.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                        remainingMinutes, remainingSeconds));
+                status.setText("FOCUS SESSION • " + remainingMinutes + " MIN LEFT");
+            }
+
+            @Override public void onFinish() {
+                activeFocusTimer = null;
+                timerText.setText("SESSION COMPLETE");
+                status.setText("FOCUS SESSION COMPLETE");
+                transcript.setText("JARVIS • Focus session complete\\n\\n" + focusTask);
+                sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Done");
+                sessionDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> sessionDialog.dismiss());
+            }
+        }.start();
+    }
+
+
+    /**
+     * Read-only device resource overview. Uses Android public APIs and adds no permissions.
+     */
+    private void showDeviceResourceDashboard() {
+        StringBuilder report = new StringBuilder("JARVIS • DEVICE RESOURCE INTELLIGENCE\\n\\n");
+        report.append("DEVICE\\n");
+        report.append(android.os.Build.MANUFACTURER).append(" ")
+                .append(android.os.Build.MODEL).append("\\n");
+        report.append("Android ").append(android.os.Build.VERSION.RELEASE)
+                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\\n\\n");
+
+        report.append("BATTERY\\n");
+        Intent battery = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (battery != null) {
+            int level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
+            if (level >= 0 && scale > 0) {
+                report.append("Charge: ").append(level * 100 / scale).append("%\\n");
+            } else {
+                report.append("Charge: unavailable\\n");
+            }
+            report.append("Power: ").append(plugged == 0 ? "Not plugged in" : "Charging / connected to power").append("\\n");
+        } else {
+            report.append("Battery details unavailable\\n");
+        }
+
+        report.append("\\nSTORAGE (APP DATA VOLUME)\\n");
+        try {
+            android.os.StatFs storage = new android.os.StatFs(android.os.Environment.getDataDirectory().getPath());
+            long totalBytes = storage.getTotalBytes();
+            long freeBytes = storage.getAvailableBytes();
+            report.append("Total: ").append(formatResourceBytes(totalBytes)).append("\\n");
+            report.append("Available: ").append(formatResourceBytes(freeBytes)).append("\\n");
+            if (totalBytes > 0L) {
+                report.append("Used: ").append((totalBytes - freeBytes) * 100L / totalBytes).append("%\\n");
+            }
+        } catch (Exception e) {
+            report.append("Storage details unavailable\\n");
+        }
+
+        report.append("\\nMEMORY (RAM)\\n");
+        try {
+            android.app.ActivityManager manager =
+                    (android.app.ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager != null) {
+                android.app.ActivityManager.MemoryInfo memory = new android.app.ActivityManager.MemoryInfo();
+                manager.getMemoryInfo(memory);
+                report.append("Total: ").append(formatResourceBytes(memory.totalMem)).append("\\n");
+                report.append("Available: ").append(formatResourceBytes(memory.availMem)).append("\\n");
+                report.append("Low-memory condition: ").append(memory.lowMemory ? "Yes" : "No").append("\\n");
+            } else {
+                report.append("RAM details unavailable\\n");
+            }
+        } catch (Exception e) {
+            report.append("RAM details unavailable\\n");
+        }
+
+        report.append("\\nREAD-ONLY OVERVIEW\\n");
+        report.append("JARVIS only reads the system summaries shown here. It does not clear memory, close apps, change settings, or upload this report.");
+        transcript.setText(report.toString());
+        status.setText("DEVICE RESOURCE OVERVIEW READY");
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Device resources")
+                .setMessage(report.toString())
+                .setPositiveButton("Refresh", (d, w) -> showDeviceResourceDashboard())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private String formatResourceBytes(long bytes) {
+        if (bytes < 0L) return "Unavailable";
+        final double kib = 1024.0;
+        final double mib = kib * 1024.0;
+        final double gib = mib * 1024.0;
+        if (bytes >= gib) return String.format(Locale.getDefault(), "%.2f GB", bytes / gib);
+        if (bytes >= mib) return String.format(Locale.getDefault(), "%.1f MB", bytes / mib);
+        if (bytes >= kib) return String.format(Locale.getDefault(), "%.1f KB", bytes / kib);
+        return bytes + " B";
     }
 
     private void showCommandCenter() {
@@ -442,7 +1198,12 @@ public class MainActivity extends Activity {
                 "Screen-time overview",
                 "Cybersecurity Command Center",
                 "Digital Threat Inspector • Link / Code",
-                "Background listening voice: Silent / On"
+                "Background listening voice: Silent / On",
+                "Voice Studio • Voice / Speed / Pitch",
+                "Focus & Productivity Session",
+                "Device Resource Intelligence",
+                "Workflow Studio • Manual checklists",
+                "Personal Memory & Knowledge Vault"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -480,6 +1241,11 @@ public class MainActivity extends Activity {
                     else if (which == 18) showCybersecurityCommandCenter();
                     else if (which == 19) showDigitalThreatInspector();
                     else if (which == 20) showBackgroundVoiceModeOptions();
+                    else if (which == 21) showVoiceSettings();
+                    else if (which == 22) showFocusSession();
+                    else if (which == 23) showDeviceResourceDashboard();
+                    else if (which == 24) showWorkflowStudio();
+                    else if (which == 25) showPersonalMemoryVault();
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -968,18 +1734,24 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void stopVoiceInput() {
+    private void stopVoiceSession() {
         try {
             if (recognizer != null) recognizer.cancel();
+        } catch (Exception ignored) { }
+        try {
             if (tts != null) tts.stop();
-            status.setText("VOICE INPUT STOPPED • STANDBY");
-            animateOrb(1.0f, 500L);
-        } catch (Exception e) {
-            status.setText("VOICE STOP REQUEST FAILED");
-        }
+        } catch (Exception ignored) { }
+        setVoiceStatus("VOICE SESSION STOPPED • STANDBY");
+        animateOrb(1.0f, 300L);
+    }
+
+    private void setVoiceStatus(String message) {
+        if (status == null) return;
+        runOnUiThread(() -> status.setText(message));
     }
 
     private void startListening() {
+        aiOffline = false;
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
             status.setText("MICROPHONE PERMISSION NEEDED");
@@ -1468,10 +2240,13 @@ public class MainActivity extends Activity {
     }
 
     private void requestAiReply(String original) {
-        status.setText("CONNECTING TO JARVIS AI…");
+        aiOffline = false;
+        setVoiceStatus("THINKING • CONNECTING TO JARVIS AI…");
         transcript.setText("YOU: " + original + "\n\nJARVIS: Thinking…");
         JarvisAiClient.ask(this, original, reply -> {
-            status.setText("SYSTEM ONLINE • STANDBY");
+            aiOffline = reply != null && (reply.startsWith("JARVIS AI server mein error")
+                    || reply.startsWith("JARVIS AI se connect nahi ho paaya"));
+            if (aiOffline) setVoiceStatus("AI OFFLINE • LOCAL COMMANDS READY");
             replyAndShow(original, reply);
         });
     }
@@ -1602,19 +2377,129 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applySavedVoiceSettings() {
+        if (tts == null) return;
+        String style = preferences.getString("voice_style", "normal");
+        float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
+        float pitch = preferences.getFloat("voice_pitch", 1.0f);
+        tts.setSpeechRate(rate);
+        tts.setPitch(pitch);
+        String savedVoice = preferences.getString("voice_name", "");
+        if (!savedVoice.isEmpty() && android.os.Build.VERSION.SDK_INT >= 21) {
+            try {
+                java.util.Set<android.speech.tts.Voice> voices = tts.getVoices();
+                if (voices != null) {
+                    for (android.speech.tts.Voice voice : voices) {
+                        if (savedVoice.equals(voice.getName())) {
+                            tts.setVoice(voice);
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+    }
+
+    private void showVoiceSettings() {
+        if (tts == null) {
+            status.setText("VOICE ENGINE IS NOT READY");
+            return;
+        }
+
+        java.util.ArrayList<android.speech.tts.Voice> available = new java.util.ArrayList<>();
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
+            try {
+                java.util.Set<android.speech.tts.Voice> voices = tts.getVoices();
+                if (voices != null) {
+                    for (android.speech.tts.Voice voice : voices) {
+                        if (voice != null && !voice.isNetworkConnectionRequired()) available.add(voice);
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+
+        java.util.Collections.sort(available, (a, b) ->
+                a.getLocale().toLanguageTag().compareToIgnoreCase(b.getLocale().toLanguageTag()));
+        String[] labels = new String[available.size()];
+        int selected = -1;
+        String saved = preferences.getString("voice_name", "");
+        for (int i = 0; i < available.size(); i++) {
+            android.speech.tts.Voice voice = available.get(i);
+            labels[i] = voice.getName() + " • " + voice.getLocale().toLanguageTag();
+            if (voice.getName().equals(saved)) selected = i;
+        }
+
+        String voiceSummary = labels.length == 0
+                ? "No additional offline voices are currently listed by the phone's speech engine. You can still change speech speed and pitch."
+                : "Choose an installed offline voice. Names and language tags are shown as supplied by Android; male/female availability depends on the installed TTS engine.";
+        new AlertDialog.Builder(this)
+                .setTitle("JARVIS • Voice Studio")
+                .setMessage(voiceSummary)
+                .setSingleChoiceItems(labels, selected, (dialog, which) -> {
+                    android.speech.tts.Voice chosen = available.get(which);
+                    int result = tts.setVoice(chosen);
+                    if (result == TextToSpeech.SUCCESS) {
+                        preferences.edit().putString("voice_name", chosen.getName()).apply();
+                        status.setText("VOICE SELECTED • " + chosen.getLocale().toLanguageTag());
+                        speak("Voice settings updated. This is my selected voice.");
+                    } else {
+                        status.setText("VOICE COULD NOT BE SELECTED");
+                    }
+                    dialog.dismiss();
+                })
+                .setPositiveButton("Speech style", (dialog, which) -> showSpeechStyleOptions())
+                .setNeutralButton("Pitch", (dialog, which) -> showVoicePitchOptions())
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showSpeechStyleOptions() {
+        String[] styles = {"Calm", "Normal", "Energetic"};
+        String current = preferences.getString("voice_style", "normal");
+        int selected = "calm".equals(current) ? 0 : ("energetic".equals(current) ? 2 : 1);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Speech speed")
+                .setSingleChoiceItems(styles, selected, (dialog, which) -> {
+                    String value = which == 0 ? "calm" : (which == 2 ? "energetic" : "normal");
+                    preferences.edit().putString("voice_style", value).apply();
+                    applySavedVoiceSettings();
+                    status.setText("SPEECH STYLE • " + styles[which].toUpperCase(Locale.ROOT));
+                    dialog.dismiss();
+                    speak("Speech style updated.");
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void showVoicePitchOptions() {
+        String[] pitches = {"Lower", "Normal", "Higher"};
+        float current = preferences.getFloat("voice_pitch", 1.0f);
+        int selected = current < 0.95f ? 0 : (current > 1.05f ? 2 : 1);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Voice pitch")
+                .setSingleChoiceItems(pitches, selected, (dialog, which) -> {
+                    float value = which == 0 ? 0.88f : (which == 2 ? 1.12f : 1.0f);
+                    preferences.edit().putFloat("voice_pitch", value).apply();
+                    applySavedVoiceSettings();
+                    status.setText("VOICE PITCH • " + pitches[which].toUpperCase(Locale.ROOT));
+                    dialog.dismiss();
+                    speak("Voice pitch updated.");
+                }).setNegativeButton("Cancel", null).show();
+    }
+
     private void speak(String text) {
         if (tts != null) {
-            String style = preferences == null ? "normal" : preferences.getString("voice_style", "normal");
-            float rate = "calm".equals(style) ? 0.82f : ("energetic".equals(style) ? 1.05f : 0.92f);
-            tts.setSpeechRate(rate);
-            status.setText("SPEAKING");
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+            setVoiceStatus("SPEAKING");
+            applySavedVoiceSettings();
+            int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
+            if (result == TextToSpeech.ERROR) setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK");
+        } else {
+            setVoiceStatus("VOICE OUTPUT UNAVAILABLE");
         }
     }
 
     @Override
     protected void onDestroy() {
-        if (recognizer != null) recognizer.destroy();
+        if (recognizer != null) {
+            try { recognizer.cancel(); } catch (Exception ignored) { }
+            recognizer.destroy();
+        }
         if (tts != null) tts.shutdown();
         super.onDestroy();
     }
