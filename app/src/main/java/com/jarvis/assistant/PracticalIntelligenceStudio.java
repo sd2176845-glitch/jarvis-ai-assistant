@@ -47,14 +47,16 @@ public final class PracticalIntelligenceStudio {
                 "Emergency Readiness Planner • general checklist",
                 "Legal Document Explainer • selected text only",
                 "Vehicle Maintenance Log • local records",
-                "Smart Asset Inventory • local records"
+                "Smart Asset Inventory • local records",
+                "Offline Emergency Preparedness Pack • works without internet"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Practical Intelligence")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) emergencyPlanner(activity, status, transcript);
                     else if (which == 1) legalExplainer(activity, status, transcript);
                     else if (which == 2) vehicleLogMenu(activity);
-                    else assetInventoryMenu(activity);
+                    else if (which == 3) assetInventoryMenu(activity);
+                    else EmergencyPreparednessPackStudio.show(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
