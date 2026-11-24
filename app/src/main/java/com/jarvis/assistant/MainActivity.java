@@ -9,6 +9,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
+import android.os.StatFs;
+import android.os.Environment;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.provider.AlarmClock;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -99,11 +104,17 @@ public class MainActivity extends Activity {
                 public void onBufferReceived(byte[] buffer) {}
                 public void onEndOfSpeech() { setVoiceStatus("PROCESSING SPEECH…"); animateOrb(1.035f, 700L); }
                 public void onError(int error) {
-                    setVoiceStatus("VOICE INPUT ENDED • TAP TO SPEAK");
+                    String message = error == SpeechRecognizer.ERROR_NO_MATCH
+                            ? "NO SPEECH RECOGNIZED • TAP TO RETRY"
+                            : (error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
+                            ? "LISTENING TIMED OUT • TAP TO RETRY"
+                            : "VOICE INPUT STOPPED • TAP TO RETRY");
+                    setVoiceStatus(message);
                     animateOrb(1.0f, 800L);
                 }
                 public void onResults(Bundle results) {
                     ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    setVoiceStatus("REQUEST RECEIVED");
                     if (matches != null && !matches.isEmpty()) {
                         setVoiceStatus("PROCESSING COMMAND…");
                         understandVoiceCommand(matches.get(0));
@@ -111,6 +122,8 @@ public class MainActivity extends Activity {
                         setVoiceStatus("NO SPEECH RECOGNIZED • TAP TO SPEAK");
                     }
                     animateOrb(1.0f, 800L);
+                    if (matches != null && !matches.isEmpty()) understandVoiceCommand(matches.get(0));
+                    else status.setText("NO SPEECH RECOGNIZED • TAP TO RETRY");
                 }
                 public void onPartialResults(Bundle partialResults) {}
                 public void onEvent(int eventType, Bundle params) {}
@@ -235,7 +248,7 @@ public class MainActivity extends Activity {
         speak.setOnClickListener(v -> startListening());
         LinearLayout.LayoutParams voiceParams = new LinearLayout.LayoutParams(-1,
                 (int) (54 * getResources().getDisplayMetrics().density));
-        voiceParams.setMargins(8, 4, 8, 12);
+        voiceParams.setMargins(8, 4, 8, 6);
         root.addView(speak, voiceParams);
 
         Button stopVoice = new Button(this);
@@ -2018,6 +2031,8 @@ public class MainActivity extends Activity {
         } else if (intent.contains("date") || intent.contains("tarikh") || intent.contains("aaj ki date")) {
             java.text.SimpleDateFormat dateFmt = new java.text.SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("en", "IN"));
             reply = "Aaj " + dateFmt.format(new java.util.Date());
+        } else if (intent.contains("device health") || intent.contains("phone health") || intent.contains("system status") || intent.contains("phone status")) {
+            reply = getDeviceHealthSummary();
         } else if (intent.contains("battery") || intent.contains("charge kitna")) {
             Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             if (batteryIntent != null) {
@@ -2171,6 +2186,57 @@ public class MainActivity extends Activity {
             return;
         }
         replyAndShow(original, reply);
+    }
+
+    private String getDeviceHealthSummary() {
+        String batteryText = "Battery unavailable";
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        if (batteryIntent != null) {
+            int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            if (level >= 0 && scale > 0) batteryText = "Battery " + (level * 100 / scale) + " percent";
+        }
+
+        String storageText = "Storage unavailable";
+        try {
+            StatFs stats = new StatFs(Environment.getDataDirectory().getPath());
+            long totalBytes = stats.getTotalBytes();
+            long availableBytes = stats.getAvailableBytes();
+            storageText = "Internal storage: " + formatStorage(availableBytes) + " free of " + formatStorage(totalBytes);
+        } catch (Exception ignored) {
+            // Keep the rest of the health report available if storage cannot be read.
+        }
+
+        String networkText = "Network status unavailable";
+        try {
+            ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            Network active = manager == null ? null : manager.getActiveNetwork();
+            NetworkCapabilities capabilities = active == null ? null : manager.getNetworkCapabilities(active);
+            if (capabilities == null) {
+                networkText = "Network: offline";
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                networkText = "Network: Wi-Fi connected";
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                networkText = "Network: mobile data connected";
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                networkText = "Network: Ethernet connected";
+            } else {
+                networkText = "Network: connected";
+            }
+        } catch (SecurityException ignored) {
+            networkText = "Network status permission unavailable";
+        } catch (Exception ignored) {
+            // Do not let an optional network check break the health report.
+        }
+
+        return "Device health summary. " + batteryText + ". " + storageText + ". " + networkText
+                + ". This is a basic Android status check, not a full hardware diagnostic.";
+    }
+
+    private String formatStorage(long bytes) {
+        if (bytes < 0) return "unavailable";
+        double gib = bytes / (1024.0 * 1024.0 * 1024.0);
+        return String.format(Locale.US, "%.1f GB", gib);
     }
 
     private void requestAiReply(String original) {
@@ -2419,6 +2485,7 @@ public class MainActivity extends Activity {
 
     private void speak(String text) {
         if (tts != null) {
+            setVoiceStatus("SPEAKING");
             applySavedVoiceSettings();
             int result = tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "jarvis_reply");
             if (result == TextToSpeech.ERROR) setVoiceStatus("VOICE OUTPUT ERROR • TAP TO SPEAK");
