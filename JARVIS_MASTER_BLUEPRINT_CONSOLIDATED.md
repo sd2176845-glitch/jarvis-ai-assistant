@@ -488,7 +488,7 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 ## B33 — Environmental Intelligence expansion (2026-11-24)
-- **Progress:** 1/20 net-new capabilities code-present and CI-verified. The existing manual CPCB AQI observation log remains baseline and is not duplicated or counted as a new B33 increment.
+- **Progress:** 4/20 net-new capabilities code-present and CI-verified. The existing manual CPCB AQI observation log remains baseline and is not duplicated or counted as a new B33 increment.
 - **Feature 1:** live modelled air-quality snapshot by owner-entered city, with selected geocoding match, U.S. AQI, European AQI, PM2.5, PM10, ozone, NO2, SO2, UV index, model time and timezone.
 - **Source/interpretation:** Open-Meteo Air Quality API CAMS model data. Modelled regional grid estimates are not CPCB monitoring-station readings; U.S./European indices are not India's CPCB National AQI scale.
 - **Privacy:** owner-invoked only; no GPS, location permission, background polling, automatic log writes or sharing. Existing weather city search is reused through a shared city-selection helper.
@@ -514,7 +514,7 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 ### B33 Feature 3 — 24-hour modelled UV-index forecast (2026-11-24)
-- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present; CI verification is pending for this increment.
+- **Progress:** 3/20 net-new Environmental Intelligence capabilities are code-present and CI-verified (run #1064 / `45386198143`); Poco M4 Pro 4G physical-device verification remains pending.
 - **Capability:** owner chooses a city using the existing shared city picker and views up to 24 hourly UV-index estimates plus a separately labelled clear-sky reference from the Open-Meteo Air Quality API.
 - **Interpretation:** uses WHO Global Solar UV Index exposure bands (Low, Moderate, High, Very high, Extreme). Protection guidance begins at UVI 3; very high/extreme levels are highlighted. This is general public-safety information, not a personal exposure calculation or medical advice.
 - **Data limits:** CAMS model-grid estimates are not direct ground measurements. Clear-sky values assume cloud-free conditions and are not presented as expected actual exposure.
@@ -522,3 +522,16 @@ Three separate capabilities have been added inside the existing Personal Memory 
 - **Anti-duplication:** a distinct UV outlook, not another air-quality dashboard or AQI forecast; no new data store, location system, scheduler or permissions.
 - **Tests:** added JUnit coverage for WHO UV band boundaries, missing/malformed values, sanitized labels and the 24-entry output cap.
 - **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+
+### B33 Feature 4 — 24-hour modelled weather watch outlook (2026-11-24)
+- Owner-invoked 24-hour city forecast for thunderstorm/hail, heavy precipitation, wind, apparent-temperature and visibility planning indicators.
+- Reuses the existing Environmental Intelligence menu, city picker and network helper; no duplicate weather dashboard, location service, GPS permission, saved location, background monitoring or automatic alerts.
+- Thresholds are planning heuristics, not official IMD warnings. GitHub Actions run #1070 (`45392316586`) passed backend syntax, Android unit tests, debug APK build and artifact upload; Poco physical-device verification pending.
+
+### Priority order for B33 Features 5–20
+1. Official NDMA SACHET disaster-alert reader with source attribution, timestamp handling, CAP detail parsing and the required ETag/304 caching.
+2. High-impact environmental preparedness based on authoritative observations and warnings, including flood, heat and pollution context.
+3. Forecast interpretation and historical context.
+4. Lower-impact reference and convenience features.
+Reliability and source authority are mandatory. Modelled data and heuristics must never be presented as official government alerts.
