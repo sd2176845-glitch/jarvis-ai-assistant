@@ -1215,7 +1215,8 @@ public class MainActivity extends Activity {
                 "Live Information Studio • Weather / Currency / Holidays",
                 "AI Learning Academy • Coding / Science / Technology Roadmaps",
                 "Software Development Studio • Architecture / Debug / Code Review",
-                "Data Intelligence Center • CSV Profile / Quality / Insights"
+                "Data Intelligence Center • CSV Profile / Quality / Insights",
+                "Personal Productivity Studio • Projects / Priority / Weekly Review"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1265,6 +1266,7 @@ public class MainActivity extends Activity {
                     else if (which == 30) LearningAcademyStudio.show(MainActivity.this, status, transcript);
                     else if (which == 31) SoftwareDevelopmentStudio.show(MainActivity.this, status, transcript);
                     else if (which == 32) DataIntelligenceStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 33) ProductivityStudio.show(MainActivity.this);
                 }).setNegativeButton("Close", null).show();
     }
 

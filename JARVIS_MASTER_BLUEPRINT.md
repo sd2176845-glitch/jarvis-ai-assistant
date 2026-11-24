@@ -890,3 +890,16 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 
 
 **B09 verification update (2026-11-22):** code head `0b2a94bdbf88c5cd74c1f71cda62057096f0e16a` passed GitHub Actions run #602 (`45046009488`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14763571783`, SHA-256 `213c503c4a5cc0ad81435fe83a813f7a0a594ed734cdb3a0704d43e72fbd3a8c`. No separate unit-test/lint task ran; target-device verification remains pending. Draft PR #31 is open and unmerged.
+
+
+## Implementation status addendum — M13 Personal Productivity Studio (Batch B10; 2026-11-22)
+- **Project Workspace:** code added; groups existing structured tasks by owner-assigned project label; no duplicate task store; CI/device verification pending.
+- **Priority Matrix:** code added; four priority labels saved on existing task objects; CI/device verification pending.
+- **Weekly Review:** code added; counts tasks created in the last seven days and their current status; does not infer completion dates; CI/device verification pending.
+- Reuses `structured_tasks_v1`; no new permissions or background scheduling.
+
+
+**B10 verification update (2026-11-22):** rebased code/documentation head `5c6b3929c99aafdfd589d83c0921cdf8a3684a4f` passed GitHub Actions run #615 (`45046258241`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14764031146`, SHA-256 `ee320e43e1d627326173b5537b151eb7df29dd42b7c118dc2bb4bd3fe2c19582`. No separate unit-test/lint task ran; target-device verification remains pending.
+
+
+**B10 verification update (2026-11-22):** code/documentation head `f82347780326ecdc4a6bcfd10715a9488ba11f77` passed GitHub Actions run #620 (`45046350249`): backend syntax validation, Gradle debug APK build and APK artifact upload. Artifact `14762974382`, SHA-256 `3186014ea76112d07da2dde3e9595c5c5e70af900a5348522d7c881e12902571`. No separate unit-test/lint task ran; target-device verification remains pending. Replacement draft PR #33 is open and unmerged.
