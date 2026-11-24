@@ -7,10 +7,11 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/priority-2-core-reasoning-engine`, based on the Priority 1 conversation-engine branch; current implementation head before the tracker update is `c835b18b600a2c26e9a23d90d1352f3188cd28fe`.
-- Priority 1 draft PR #56 targets `feature/b33-environmental-intelligence-20`; it is open, draft and unmerged. Its exact tracker head `1d642d9703f5c2b4d4775875bc71e73811dbc9cd` passed CI run #1107 (`45404473584`).
-- Priority 2 Core AI Brain CI: run #1116 (`45405600581`) passed on exact implementation head `c835b18b600a2c26e9a23d90d1352f3188cd28fe`: backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14925851000`.
-- B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged. B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged.
+- Current continuation branch: `feature/priority-3-local-global-hybrid-intelligence`, stacked on the Priority 2 branch; current implementation head before the tracker update is `9494689010607ebca31985fd87da612df1ca9dc1`.
+- Priority 1 draft PR #56 targets `feature/b33-environmental-intelligence-20`; it remains open, draft and unmerged. Final tracker head `1d642d9703f5c2b4d4775875bc71e73811dbc9cd` passed CI run #1107 (`45404473584`).
+- Priority 2 draft PR #57 targets `feature/priority-1-human-conversation-engine`; it remains open, draft and unmerged. Final tracker head `dcaa66e481e8135b12f4324cd9ed089142b07cb5` passed CI run #1117 (`45406022969`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload.
+- Priority 3 Local / Global / Hybrid mode CI: run #1123 (`45406921180`) passed on exact implementation head `9494689010607ebca31985fd87da612df1ca9dc1`: backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14926097021`.
+- B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; B33 draft PR #55 targets `feature/b26-next-20-inventory`; both remain open, draft and unmerged.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched. Do not merge any draft PR without explicit owner approval.
 
 ## Latest implementation batches
@@ -1216,3 +1217,16 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **APK artifact:** `jarvis-debug-apk`, ID `14925851000`, size 23,326,769 bytes.
 - **Poco M4 Pro 4G:** physical-device/backend live-request verification remains pending; CI success is not device or live-provider verification.
 - **Anti-duplication / scope:** reuses the existing Light/Advanced/Ultra processing tiers, existing Groq provider configuration, existing three-worker orchestration and chat endpoint. No second AI provider registry, model router, conversation store or parallel chat engine was created. JARVIS only; Even untouched.
+
+## Priority sequence — Feature 3/15: Local, Global & Hybrid Intelligence Modes (2026-11-24)
+- **Canonical owner:** existing `ConnectivityIntelligenceStudio`, `ConnectivityIntelligenceRules`, `jarvis_preferences` and `JarvisAiClient` chat / standalone / speech-understanding entry points. This extends the existing Connectivity Intelligence module rather than adding another network manager, AI client or data store.
+- **Owner-selected modes:** added Local, Global and Hybrid choices to the existing Connectivity Intelligence menu. The selection is stored under the existing private `jarvis_preferences` key `ai_connectivity_mode`; invalid or missing values safely default to Hybrid.
+- **Local mode:** blocks cloud AI requests from `JarvisAiClient.ask`, `askStandalone` and `understandCommand`. Speech text is passed directly to the existing local command router. The UI and response clearly state that this build has no on-device generative language model; supported local app functions remain available where Android permits.
+- **Global mode:** preserves cloud-first AI chat, standalone AI prompts and speech correction. Provider or network failures are reported rather than being presented as an offline model answer.
+- **Hybrid mode:** tries the existing cloud AI service first; if it fails, it returns a limited offline capability explanation and does not claim to have answered with a local LLM. Fallback text is not stored as a user conversation memory entry.
+- **Scope disclosure:** the setting applies to AI text requests routed through `JarvisAiClient`. Dedicated public-data lookup studios remain separately owner-invoked internet lookups with their own disclosures and confirmation.
+- **Tests:** expanded `ConnectivityIntelligenceRulesTest` for supported/default/invalid mode normalization, cloud gating, mode disclosures and honest local/hybrid fallback language.
+- **CI/build:** PASS — GitHub Actions run #1123 (ID `45406921180`) on exact implementation head `9494689010607ebca31985fd87da612df1ca9dc1`; backend syntax, 11 Node reasoning tests, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14926097021`, size 23,324,303 bytes.
+- **Poco M4 Pro 4G:** physical-device tests remain pending, especially switching modes, confirming Local-mode requests never reach the backend, Global failure messaging and Hybrid fallback behavior.
+- **Anti-duplication / scope:** upgrades the existing M17 Connectivity Intelligence menu and current `JarvisAiClient`; reuses the existing private preferences file and local command router. No new Android permission, background connectivity monitor, offline LLM claim or second data store. JARVIS only; Even untouched.
