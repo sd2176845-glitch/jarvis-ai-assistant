@@ -246,7 +246,7 @@ public final class PracticalIntelligenceStudio {
     }
 
     private static void assetInventoryMenu(Activity activity) {
-        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check"};
+        String[] actions = {"Add item", "View / remove items", "Search inventory", "Warranty overview", "Filter inventory", "Sort inventory", "Category summary", "Condition summary", "Warranty expiry watchlist", "Export inventory", "Clear inventory", "Data quality check", "Purchase-age summary"};
         new AlertDialog.Builder(activity).setTitle("Local Smart Asset Inventory")
                 .setMessage("Owner-entered catalog only. Do not enter serial numbers, passwords, account details or exact home-location information. Nothing is scanned or uploaded.")
                 .setItems(actions, (dialog, which) -> {
@@ -262,6 +262,7 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 9) exportAssetInventory(activity);
                     else if (which == 10) clearAssetInventory(activity);
                     else if (which == 11) auditAssetInventory(activity);
+                    else if (which == 12) assetPurchaseAgeSummary(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -710,6 +711,29 @@ public final class PracticalIntelligenceStudio {
         new AlertDialog.Builder(activity).setTitle("Inventory by condition")
                 .setMessage(summary.toString())
                 .setPositiveButton("OK", null).show();
+    }
+
+    /** Read-only age distribution over optional owner-entered purchase dates. */
+    private static void assetPurchaseAgeSummary(Activity activity) {
+        JSONArray records = readAssetInventory(activity);
+        if (records == null) return;
+        String[] dates = new String[records.length()];
+        for (int i = 0; i < records.length(); i++) {
+            JSONObject item = records.optJSONObject(i);
+            dates[i] = item == null ? "" : item.optString("purchase_date", "");
+        }
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        java.util.Map<String, Integer> counts =
+                AssetInventoryBatchRules.purchaseAgeSummary(dates, today);
+        StringBuilder report = new StringBuilder("Records checked: ").append(records.length());
+        for (java.util.Map.Entry<String, Integer> entry : counts.entrySet()) {
+            report.append("\\n").append(entry.getKey()).append(": ").append(entry.getValue());
+        }
+        report.append("\\n\\nBased only on purchase dates entered by you. "
+                + "Missing, malformed and future dates are shown separately. "
+                + "This summary does not estimate resale value or remaining useful life.");
+        new AlertDialog.Builder(activity).setTitle("Purchase-age summary")
+                .setMessage(report.toString()).setPositiveButton("OK", null).show();
     }
 
     /** Owner-invoked, read-only audit; never changes the stored inventory. */
