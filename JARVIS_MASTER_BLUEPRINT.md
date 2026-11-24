@@ -1038,7 +1038,7 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 
 
 ## B33 — Environmental Intelligence expansion (2026-11-24)
-- **Progress: 4/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
+- **Progress: 5/20 net-new capabilities code-present and CI-verified.** This batch extends the existing Environmental Intelligence menu; it does not duplicate the existing manual CPCB observation log or the existing city-search/weather system.
 - **Feature 1:** owner-entered city search and selected-place lookup for modelled U.S. AQI, European AQI, PM2.5, PM10, ozone, nitrogen dioxide, sulphur dioxide and UV index using Open-Meteo Air Quality API. Provider model timestamp and timezone are shown.
 - **Important distinction:** modelled regional estimates are not CPCB station readings. U.S./European AQI scales are not India's CPCB National AQI scale. No official alert or medical advice is implied.
 - **Privacy:** no GPS, location permission, home address, background polling, automatic storage or sharing. Existing manual CPCB observations remain separately available.
@@ -1086,3 +1086,10 @@ Priority 38 as a whole remains in progress. Smart Asset & Inventory has code-pre
 3. Forecast interpretation and historical context.
 4. Lower-impact environmental reference and convenience features.
 Use authority and reliability of sources as a gate. Never relabel model-derived estimates or heuristics as official alerts.
+
+### B33 Feature 5 — Official NDMA SACHET CAP disaster-alert reader (2026-11-24)
+- Adds an owner-invoked read-only reader for All-India SACHET RSS entries and their linked CAP alert records, with optional local state/district filtering based on CAP affected-area descriptions.
+- Displays sender, sent/effective/expiry times, status, event, urgency, severity, certainty, headline, description, official instruction and affected area when supplied by the source.
+- Accepts CAP links only from the exact HTTPS SACHET host and endpoint path. Stores CAP XML and ETag in the existing private preferences store; subsequent requests use `If-None-Match` and reuse the cached XML on 304, following the NDMA integration guide.
+- No GPS, location permission, background polling, push alerts, automatic emergency action, external sharing or location history. The existing offline emergency-preparedness pack remains unchanged.
+- GitHub Actions run #1079 (`45393701084`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`. Artifact `14919538306`; Poco M4 Pro 4G device verification remains pending.

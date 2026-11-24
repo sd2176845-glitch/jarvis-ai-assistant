@@ -488,7 +488,7 @@ Three separate capabilities have been added inside the existing Personal Memory 
 
 
 ## B33 — Environmental Intelligence expansion (2026-11-24)
-- **Progress:** 4/20 net-new capabilities code-present and CI-verified. The existing manual CPCB AQI observation log remains baseline and is not duplicated or counted as a new B33 increment.
+- **Progress:** 5/20 net-new capabilities code-present and CI-verified. The existing manual CPCB AQI observation log remains baseline and is not duplicated or counted as a new B33 increment.
 - **Feature 1:** live modelled air-quality snapshot by owner-entered city, with selected geocoding match, U.S. AQI, European AQI, PM2.5, PM10, ozone, NO2, SO2, UV index, model time and timezone.
 - **Source/interpretation:** Open-Meteo Air Quality API CAMS model data. Modelled regional grid estimates are not CPCB monitoring-station readings; U.S./European indices are not India's CPCB National AQI scale.
 - **Privacy:** owner-invoked only; no GPS, location permission, background polling, automatic log writes or sharing. Existing weather city search is reused through a shared city-selection helper.
@@ -535,3 +535,10 @@ Three separate capabilities have been added inside the existing Personal Memory 
 3. Forecast interpretation and historical context.
 4. Lower-impact reference and convenience features.
 Reliability and source authority are mandatory. Modelled data and heuristics must never be presented as official government alerts.
+
+### B33 Feature 5 — Official NDMA SACHET CAP disaster-alert reader (2026-11-24)
+- Adds an owner-invoked read-only reader for All-India SACHET RSS entries and their linked CAP alert records, with optional local state/district filtering based on CAP affected-area descriptions.
+- Displays sender, sent/effective/expiry times, status, event, urgency, severity, certainty, headline, description, official instruction and affected area when supplied by the source.
+- Accepts CAP links only from the exact HTTPS SACHET host and endpoint path. Stores CAP XML and ETag in the existing private preferences store; subsequent requests use `If-None-Match` and reuse the cached XML on 304, following the NDMA integration guide.
+- No GPS, location permission, background polling, push alerts, automatic emergency action, external sharing or location history. The existing offline emergency-preparedness pack remains unchanged.
+- GitHub Actions run #1079 (`45393701084`) passed backend syntax, Android unit tests, debug APK build and artifact upload on exact head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`. Artifact `14919538306`; Poco M4 Pro 4G device verification remains pending.

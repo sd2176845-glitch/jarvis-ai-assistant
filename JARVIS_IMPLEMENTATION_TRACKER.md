@@ -7,7 +7,7 @@
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
 ## Current working branch
-- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `15820ec4f928b211f0deabf2073aef1b5f589446`; B33 Environmental Intelligence expansion is at **4/20 net-new capabilities, all CI-verified**. Poco M4 Pro 4G physical-device verification remains pending.
+- Current continuation branch: `feature/b33-environmental-intelligence-20`, latest B33 code head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`; B33 Environmental Intelligence expansion is at **5/20 net-new capabilities, all CI-verified**. Poco M4 Pro 4G physical-device verification remains pending.
 - B26 draft PR #54 targets `feature/b26-integrated-50-capability-batch`; it remains open, draft and unmerged.
 - B33 draft PR #55 targets `feature/b26-next-20-inventory`; it remains open, draft and unmerged. Do not merge either PR without explicit owner approval.
 - `main` has not been changed or merged by this continuation; the separate Even project remains untouched.
@@ -1176,3 +1176,20 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - First priority after Feature 4: read-only access to official NDMA SACHET disaster alerts, using the published CAP/RSS interface and required ETag/304 caching. Do not present modelled forecasts or heuristic thresholds as official government warnings.
 - Next priority tiers: verified environmental observations and flood/heat/pollution preparedness; then useful forecast and historical context; then lower-impact environmental reference features.
 - Every feature remains owner-invoked, source-labelled, timestamped and fail-closed on malformed or unavailable data. No background location collection or automatic emergency action.
+
+## B33 Feature 5 — Official NDMA SACHET CAP disaster-alert reader (2026-11-24)
+- **Progress:** 5/20 net-new Environmental Intelligence capabilities are code-present and CI-verified.
+- **Capability:** added an owner-invoked read-only reader for the All-India NDMA SACHET RSS feed. The owner may optionally enter a state or district keyword; JARVIS filters locally against CAP `areaDesc` values after reading alert details.
+- **CAP fields:** issuer/sender, sent time, status, message type, event, urgency, severity, certainty, effective/expiry times, headline, description, official instruction and affected areas, when supplied by the source.
+- **Source security:** RSS-provided CAP links are accepted only when they use HTTPS, the exact `sachet.ndma.gov.in` host and the expected `FetchXMLFile` path with an identifier. Untrusted links are skipped.
+- **Caching:** CAP XML and ETag are stored in the existing private `jarvis_preferences` store. Subsequent requests send `If-None-Match`; HTTP 304 reuses cached XML, while HTTP 200 replaces the XML and ETag. This follows the NDMA SACHET CAP integration guide.
+- **Privacy / limits:** owner-invoked only; no GPS, location permission, background polling, push notification, automatic emergency action, external sharing or location history. The feed viewer is separate from the existing offline emergency-preparedness guide.
+- **Tests:** URL allow-listing, source-labelled CAP detail formatting, missing-field handling and text sanitization.
+- **CI/build:** PASS — GitHub Actions run #1079 (`45393701084`) on exact head `ed3a0e4286b76b017d6e48b4876b238d6f8a2d72`; backend syntax checks, Android unit tests, debug APK build and artifact upload all succeeded.
+- **APK artifact:** `jarvis-debug-apk`, ID `14919538306`, SHA-256 `55478cd5dfa16890da95c4961b8e4ceaf4f7d6cd7902d922c94414bc5b92705a`.
+- **Poco M4 Pro 4G:** physical-device verification remains pending.
+
+## B33 priority rule for Features 6–20
+- Continue by public-safety importance, source authority/reliability and impact, not convenience or numbering.
+- Next candidates must use authoritative, independently verifiable environmental observations or advisories where available; do not present model output or heuristics as government warnings.
+- Keep all lookups owner-invoked, timestamped, source-labelled, privacy-preserving and fail-closed on malformed or unavailable data.
