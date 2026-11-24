@@ -948,3 +948,20 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - Implementation uses the existing Command Center and memory-isolated AI request path. Only the normal `ACCESS_NETWORK_STATE` permission was added; no API key or private network credentials are stored.
 - Three focused JUnit tests were added and CI now runs `testDebugUnitTest` before the debug APK build. CI and Poco M4 Pro 4G physical-device verification remain pending until results are recorded in `JARVIS_IMPLEMENTATION_TRACKER.md`.
 - JARVIS only. The separate Even project remains untouched.
+
+
+## M18 implementation update — Simulation & Engineering Intelligence (Batch B13; 2026-11-22)
+- Added a text-only Digital World Simulator for benign ecosystem, planetary-motion, water-cycle/climate and sustainable-community learning scenarios.
+- Added a Virtual Experiment Lab for conceptual Physics, Chemistry, Biology and Earth/space science thought experiments; it does not provide real-world experimental procedures.
+- Added a 3D Invention Studio for benign everyday, accessibility, sustainable and educational product-design briefs. It does not create CAD files or manufacturing-ready instructions.
+- All tools use the existing memory-isolated AI request path after explicit owner confirmation; no new permission, persistent data store, physical-device control or API key was added.
+- Three focused JUnit tests were added. CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
+- Safety boundary: no weapons, attacks, harmful devices, hazardous experiments, surveillance/bypass equipment, dangerous fabrication, physical robot control or infrastructure actuation. JARVIS only; Even remains untouched.
+
+
+## M19 implementation update — Personal & Practical Intelligence (Batch B14; 2026-11-22)
+- Added an owner-invoked Emergency Readiness Planner for general flood, cyclone/storm, heatwave, earthquake and emergency preparedness. It does not provide live alerts or evacuation orders and defers to current official authorities.
+- Added a Legal Document Explainer for manually selected excerpts, with explicit confirmation, redaction guidance, memory-isolated processing and a clear informational-only/not-legal-advice boundary.
+- Added a local Vehicle Maintenance Log with owner-entered service records and CRUD controls. It does not request vehicle identifiers, sync to cloud, schedule reminders or duplicate M07 tasks.
+- Three focused JUnit tests were added; CI and Poco M4 Pro 4G device verification remain pending until recorded in the implementation tracker.
+- JARVIS only; Even remains untouched.

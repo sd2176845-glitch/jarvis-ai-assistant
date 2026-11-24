@@ -1219,7 +1219,9 @@ public class MainActivity extends Activity {
                 "Personal Productivity Studio • Projects / Priority / Weekly Review",
                 "Creative Media Studio • Image / Video Script / Storyboard / Presentation",
                 "Smart Home Studio • Setup / Inventory / Manual Routines",
-                "Connectivity Intelligence • Network Snapshot / Guidance"
+                "Connectivity Intelligence • Network / Offline / Satellite",
+                "Simulation & Engineering Studio • Virtual Lab / 3D Design",
+                "Practical Intelligence Suite • Emergency / Legal / Vehicle"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -1273,6 +1275,8 @@ public class MainActivity extends Activity {
                     else if (which == 34) CreativeMediaStudio.show(MainActivity.this, status, transcript);
                     else if (which == 35) SmartHomeStudio.show(MainActivity.this, status, transcript);
                     else if (which == 36) ConnectivityIntelligenceStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 37) SimulationEngineeringStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 38) PracticalIntelligenceStudio.show(MainActivity.this, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
