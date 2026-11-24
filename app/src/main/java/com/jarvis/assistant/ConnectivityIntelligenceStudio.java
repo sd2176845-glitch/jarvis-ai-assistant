@@ -3,6 +3,7 @@ package com.jarvis.assistant;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -24,16 +25,44 @@ public final class ConnectivityIntelligenceStudio {
 
     public static void show(Activity activity, TextView status, TextView transcript) {
         String[] tools = {
+                "AI Operation Mode • Local / Global / Hybrid",
                 "Network Health Snapshot • read-only",
                 "Offline Capability Matrix • local readiness",
                 "Connectivity Strategy Planner • local / hybrid / satellite"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Connectivity Intelligence")
                 .setItems(tools, (dialog, which) -> {
-                    if (which == 0) showNetworkSnapshot(activity);
-                    else if (which == 1) showOfflineMatrix(activity);
+                    if (which == 0) showAiModePicker(activity);
+                    else if (which == 1) showNetworkSnapshot(activity);
+                    else if (which == 2) showOfflineMatrix(activity);
                     else showStrategyPlanner(activity, status, transcript);
                 }).setNegativeButton("Close", null).show();
+    }
+
+    private static void showAiModePicker(Activity activity) {
+        SharedPreferences preferences = activity.getSharedPreferences(
+                "jarvis_preferences", Context.MODE_PRIVATE);
+        String current = ConnectivityIntelligenceRules.normalizeAiMode(
+                preferences.getString("ai_connectivity_mode", "Hybrid"));
+        String[] modes = {
+                "Local • built-in phone functions only",
+                "Global • cloud AI required",
+                "Hybrid • cloud AI with limited local fallback"
+        };
+        int selected = "Local".equals(current) ? 0 : ("Global".equals(current) ? 1 : 2);
+        String disclosure = ConnectivityIntelligenceRules.aiModeDescription(current)
+                + "\n\nThis setting controls AI chat, standalone AI-studio prompts and speech-transcript correction routed through JARVIS AI. "
+                + "Local mode keeps those requests on this phone. Direct public-data lookups in their own studios remain separate, owner-confirmed internet lookups.";
+        new AlertDialog.Builder(activity).setTitle("AI Operation Mode • " + current)
+                .setMessage(disclosure)
+                .setSingleChoiceItems(modes, selected, (dialog, which) -> {
+                    String mode = which == 0 ? "Local" : (which == 1 ? "Global" : "Hybrid");
+                    preferences.edit().putString("ai_connectivity_mode", mode).apply();
+                    Toast.makeText(activity, "AI mode set to " + mode, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private static void showNetworkSnapshot(Activity activity) {
