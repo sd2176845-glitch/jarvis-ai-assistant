@@ -972,3 +972,6 @@ All Priority 38 items remain planned until implemented, built, tested and verifi
 - If notifications are disabled, JARVIS offers Android notification settings and does not claim success. A scheduling failure rolls back the newly saved reminder record.
 - Focused unit coverage added for reminder-title validation. CI and Poco M4 Pro 4G runtime verification are pending until recorded in the implementation tracker.
 - JARVIS only; Even remains untouched.
+
+
+**B27 verification update (2026-11-24):** final documented head `4a41e42681b855e2482926ab5d2806727f7a9d89` passed GitHub Actions run #1032 (`45360490561`): Android unit tests, debug APK build and artifact upload succeeded. An earlier intermediate run #1026 failed because the feature UI referenced a helper not yet present on that intermediate commit; the helper was subsequently included and the final documented head passed. Poco M4 Pro 4G notification delivery, reboot restoration and snooze behavior remain pending.
