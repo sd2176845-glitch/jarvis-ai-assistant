@@ -31,17 +31,19 @@ public final class EnvironmentIntelligenceStudio {
 
     public static void show(Activity activity) {
         String[] actions = {
+                "Live modelled air quality • city search",
                 "Open official CPCB AQI dashboard",
-                "Record a manual AQI reading",
-                "View saved observations",
+                "Record a manual CPCB AQI reading",
+                "View saved manual observations",
                 "AQI categories & data notes"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Environmental Intelligence")
-                .setMessage("Manual city/station readings only. JARVIS does not access your location, fetch live AQI or monitor the environment in the background.")
+                .setMessage("Choose between modelled regional air-quality estimates and manual CPCB station observations. City search is owner-invoked; JARVIS does not access GPS or monitor the environment in the background.")
                 .setItems(actions, (dialog, which) -> {
-                    if (which == 0) openOfficialSource(activity);
-                    else if (which == 1) addObservation(activity);
-                    else if (which == 2) showObservations(activity);
+                    if (which == 0) LiveInfoStudio.showAirQuality(activity);
+                    else if (which == 1) openOfficialSource(activity);
+                    else if (which == 2) addObservation(activity);
+                    else if (which == 3) showObservations(activity);
                     else showCategoryGuide(activity);
                 }).setNegativeButton("Close", null).show();
     }
