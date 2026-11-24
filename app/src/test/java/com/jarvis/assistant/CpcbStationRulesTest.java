@@ -38,6 +38,20 @@ public class CpcbStationRulesTest {
     }
 
     @Test
+    public void stationComparisonKeepsPollutantValuesTiedToEachStation() {
+        String first = CpcbStationRules.comparisonLabel(
+                "Station A", "PM2.5", "18.4", "µg/m³");
+        String second = CpcbStationRules.comparisonLabel(
+                "Station B", "PM2.5", "26.2", "µg/m³");
+        assertTrue(first.contains("PM2.5"));
+        assertTrue(first.contains("Station A"));
+        assertTrue(first.contains("18.4 µg/m³"));
+        assertTrue(second.contains("Station B"));
+        assertTrue(CpcbStationRules.comparisonDisclaimer().contains("does not average readings across stations"));
+        assertNotEquals(first, second);
+    }
+
+    @Test
     public void summaryReportsSourceAndDoesNotClaimCompleteCoverage() {
         String summary = CpcbStationRules.buildSummary("Kolkata", "West Bengal", 8,
                 "24-11-2026 17:00");
