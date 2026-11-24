@@ -172,7 +172,10 @@ const server = http.createServer(async (req, res) => {
         parallelWorkers: true,
         parallelWorkerCount: 3,
         parallelWorkerMode: "ultra-only",
-        note: "Light, Advanced and Ultra use separate default models. Ultra runs three independent workers concurrently, then combines their findings."
+        validatedWorkerOutputs: true,
+        synthesisFallback: true,
+        fallbackModel: GROQ_DEFAULT_MODEL,
+        note: "Light, Advanced and Ultra use separate default models. Ultra uses up to three independent workers, validates their outputs, synthesizes a single answer and falls back to the existing default model when parallel analysis or synthesis is unavailable."
       }
     }));
   }
