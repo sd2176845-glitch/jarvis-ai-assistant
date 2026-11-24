@@ -870,7 +870,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Failure/retest record:** run #976 exposed one incorrect blank-condition sort test expectation. The comparator's blank-label ordering was retained and the expectation corrected. Run #977 passed the full workflow.
 - **CI/build:** PASS — GitHub Actions run #979 (`45188942045`) on exact head `5089769ab97527413fa3c0380abd5be08025c297`; backend syntax, Android unit tests, debug APK build and artifact upload all succeeded.
 - **APK artifact:** `jarvis-debug-apk`, ID `14823994641`, size 23,252,508 bytes, SHA-256 `910900708272c5b5ee41851c909ede5007caffaeb3613f444e19be412d80d440`.
-- **Progress:** 15/20 code-present capabilities; Features 8–15 automated CI gates passed. Feature 16 may start now. Poco M4 Pro 4G physical-device verification remains pending.
+- **Progress correction:** 18/20 M19 inventory capabilities are now code-present: original inventory capabilities 1–15, Feature 16 (data-quality audit), Feature 17 (purchase-age summary), and Feature 19 (purchase-date sort). Feature 18 (vehicle odometer consistency check) is separately tracked under M19 Vehicle Intelligence and is not counted toward the 20 inventory capabilities. Feature 20 remains pending. Poco M4 Pro 4G physical-device verification remains pending.
 
 
 ### Feature 8 — implementation and verification record
@@ -1005,3 +1005,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added a regression test for an ambiguous middle date and adjusted the duplicate-date test expectation.
 - Corrected report line-break escaping so the Android dialog displays the report on separate lines.
 - CI/build: PASS — run #1002 on exact code commit `1087af8891a63f67f48328c56aa89f1764a85c2d`; physical Poco verification remains pending.
+
+
+### Feature 19 — Purchase-date sorting (2026-11-24)
+- **Canonical owner:** M19 Smart Asset Inventory; extends the existing Sort inventory action rather than adding a second inventory screen or sort menu.
+- **Implementation:** adds a "Purchase date (newest first)" display mode using the existing owner-entered `purchase_date` field. Strict valid ISO dates are ordered newest-first; missing or malformed legacy values remain at the end. Values are trimmed for comparison. The result explicitly displays the purchase date alongside the item label.
+- **Data behavior:** sorting uses an in-memory display copy only; the stored inventory array and item records are not reordered or modified.
+- **Tests:** focused unit tests cover newest-first ordering, older/newer boundary order, missing and malformed dates, whitespace trimming and null-safe behavior.
+- **Privacy:** local and owner-invoked; no new preference key, permission, background work, network request or external sharing.
+- **Anti-duplication:** distinct from purchase-date text search (Feature 15) and purchase-age buckets (Feature 17); no second date store or summary engine. JARVIS only; Even untouched.
+- **Implementation commits:** `c00478bee574002b2083abe52e6e43ed0982fbb2` (rules), `4d416a3027d1a7751342a53d672670e25164bf19` (tests), `68203ddc899974ec454223f91cf75cbd908b1ebe` (existing inventory UI).
+- **CI/build:** pending final-head workflow verification at the time of this entry.
+- **Poco M4 Pro 4G:** physical-device verification pending.
