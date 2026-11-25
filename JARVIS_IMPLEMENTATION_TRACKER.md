@@ -1370,5 +1370,6 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Reliability / parser:** three-second minimum local request interval, 12-second connect timeout, 20-second read timeout, 500 KB response cap, safe XML parser rejecting DOCTYPE/external entities, strict arXiv host/path validation and bounded output.
 - **Tests:** JUnit cases cover valid Atom feed formatting, empty feeds, provider error records, five-valid-result cap despite an invalid external record, rejection of external paper links, malformed/unsafe query checks and DOCTYPE/entity rejection.
 - **Source:** arXiv API User's Manual: https://info.arxiv.org/help/api/user-manual.html.
-- **Validation:** code and focused tests are on `feature/m03-academic-research-explorer`; final-head CI, Android unit tests, debug APK build and artifact upload pending. Poco M4 Pro 4G device verification pending.
+- **Validation:** CI PASS — GitHub Actions PR run #1228 (ID 45632201087) on application-code head `dab491badbe150c59392a8ce178ba5b231d616e4`: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded. Push run #1227 (ID 45632182102) also passed on the same SHA.
+- **APK artifact:** `jarvis-debug-apk`, ID `15032095825`, SHA-256 `77d76d60ff9fdb15cc2f03e96d59ce669194d101b945a7dad21f222c31a2d4a5`. Poco M4 Pro 4G device verification remains pending.
 - **Merge:** keep as a separate draft PR; do not merge to `main` without owner approval. JARVIS only; Even untouched.
