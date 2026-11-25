@@ -249,6 +249,7 @@ public final class JarvisAiClient {
         else if ("Funny".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: FUNNY. Use gentle, situational humor when appropriate, not during serious topics.\n";
         else if ("Serious".equalsIgnoreCase(mode)) modeGuidance = "Assistant mode: SERIOUS. Be direct, focused, and factual.\n";
         else modeGuidance = "Assistant mode: NORMAL. Be helpful, respectful, and natural.\n";
+        modeGuidance += HumanIntelligenceRules.buildGuidance(mode, originalMessage);
         String requestMessage = ConversationContextRules.buildRequestMessage(modeGuidance, prior, originalMessage);
         Thread worker = new Thread(() -> {
             String answer;
