@@ -55,7 +55,7 @@ public class ArxivResearchRulesTest {
 
     @Test
     public void providerErrorEntryIsShownAsAnErrorNotAResearchResult() throws Exception {
-        String feed = "<feed xmlns=\\"http://www.w3.org/2005/Atom\\">"
+        String feed = "<feed xmlns=\"http://www.w3.org/2005/Atom\">"
                 + "<title>ArXiv Query</title><entry>"
                 + "<id>http://arxiv.org/api/errors#bad_query</id>"
                 + "<title>Error</title><summary>Invalid query syntax</summary>"
