@@ -20,12 +20,17 @@
 **Formatting rule:** every capability is listed line-by-line under exactly one canonical module. Use checkboxes for individual sub-features and add status/dependency/test notes as implementation begins. Do not create a new M-number for a sub-feature that belongs to an existing module.
 
 ### M01 — Owner Identity, Access & Privacy
-- [ ] Owner sign-in, profile, session expiry and sign-out.
-- [ ] OTP setup and recovery through supported providers.
-- [ ] Guest mode and owner-only settings.
-- [ ] Privacy lock, consent and permission explanations.
-- [ ] Review, correct, export and delete owner-controlled data.
-- [ ] Credential protection, data minimization and shared access-control rules.
+- [ ] **Owner authentication & profile:** Google Sign-In through Android Credential Manager and Firebase Authentication; verified phone-number OTP through Firebase Phone Authentication; minimal owner profile; explicit guest/signing-in/signed-in/error states; session restoration and expiry; sign-out; account recovery. Never store passwords or OTPs locally.
+- [ ] **Guest access & private-data isolation:** allow clearly labelled guest use without an account; hide owner-only notes, tasks, workflows, memory, privacy exports and account details from guest UI, voice responses, notifications and share/export flows; require owner re-authentication before leaving Guest Mode; test every private-data entry point.
+- [ ] **Privacy lock & owner re-authentication:** use Android's secure device-credential confirmation for sensitive private screens/actions; fail closed when the device has no secure lock, the system prompt is unavailable, or authentication is cancelled. JARVIS must not create or store the phone's PIN, pattern or password, and a cosmetic in-app lock is not authentication.
+- [ ] **Consent & permission transparency:** explain why a permission or data use is needed before asking; request permissions only at the point of use; allow denial without making unrelated permissions a condition of signing in.
+- [ ] **Owner data rights & privacy controls:** let the owner inspect, correct, export and delete owner-controlled profile/preferences/content; preview disclosures and use data-minimized exports by default; reuse M09 as the single canonical memory/knowledge store.
+- [ ] **Credential, session & device protection:** use provider-managed authentication tokens; protect traffic with HTTPS; support session revocation/sign-out; minimize profile data; never place service secrets in the APK or Git history and never log passwords, OTPs, ID tokens or access tokens.
+
+**Current implementation evidence and gates (do not upgrade status without tests):**
+- **Code-present; target-device verification pending:** the current Android source includes a Guest Mode toggle, private-action re-authentication through Android's device-credential prompt, and an OwnerPrivacyStudio for read-only permission review and aggregate-count-only privacy export. OwnerPrivacyRules has focused JVM unit tests. These are partial M01 capabilities, not full account authentication.
+- **Not implemented / setup-blocked:** Google Sign-In, phone OTP sign-in, provider-backed owner profile and managed account sessions are not wired. OWNER_AUTH_SETUP.md records that Firebase project setup and local-only Android configuration are still required. Do not commit google-services.json or credentials.
+- **Release acceptance:** verify Google sign-in and session restoration; test valid, invalid, expired and cancelled OTP flows; verify sign-out and account recovery; test guest isolation across screens, voice, notifications and export; test missing device lock, cancelled re-authentication and unavailable system prompt; inspect logs/history for credential leakage; run unit tests and debug build; then physically verify on the Poco M4 Pro 4G. Until then, retain Planned, Code-present — device test needed, or Platform-dependent labels as appropriate.
 
 ### M02 — Core Voice, Conversation & Human Intelligence
 - [ ] Speech recognition, text-to-speech and supported language handling.
