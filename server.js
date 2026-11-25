@@ -15,6 +15,42 @@ const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const WORKER_TIMEOUT_MS = 10_000;
 const SYNTHESIS_TIMEOUT_MS = 9_000;
 
+const APPWRITE_ENDPOINT = String(process.env.APPWRITE_ENDPOINT || "").replace(/\/+$/, "");
+const APPWRITE_PROJECT_ID = process.env.APPWRITE_PROJECT_ID || "";
+const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY || "";
+const APPWRITE_DATABASE_ID = process.env.APPWRITE_DATABASE_ID || "";
+const APPWRITE_STORAGE_BUCKET_ID = process.env.APPWRITE_STORAGE_BUCKET_ID || "";
+
+async function appwriteGet(path) {
+  const response = await fetch(`${APPWRITE_ENDPOINT}${path}`, {
+    method: "GET",
+    headers: {
+      "X-Appwrite-Project": APPWRITE_PROJECT_ID,
+      "X-Appwrite-Key": APPWRITE_API_KEY
+    },
+    signal: AbortSignal.timeout(7000)
+  });
+  if (!response.ok) {
+    const error = new Error(`Appwrite returned HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+  return response.json().catch(() => ({}));
+}
+
+async function checkAppwrite() {
+  const configured = Boolean(APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID && APPWRITE_API_KEY && APPWRITE_DATABASE_ID && APPWRITE_STORAGE_BUCKET_ID);
+  if (!configured) return { configured, connected: false, database: false, storage: false };
+  try {
+    await appwriteGet(`/tablesdb/${encodeURIComponent(APPWRITE_DATABASE_ID)}/tables`);
+    await appwriteGet(`/storage/buckets/${encodeURIComponent(APPWRITE_STORAGE_BUCKET_ID)}`);
+    return { configured: true, connected: true, database: true, storage: true };
+  } catch (error) {
+    console.error("Appwrite connectivity check failed:", error?.status || error?.name || "unknown");
+    return { configured: true, connected: false, database: false, storage: false };
+  }
+}
+
 const SYSTEM_PROMPT = [
   "You are JARVIS, a calm, intelligent, caring personal AI assistant inspired by a thoughtful, dependable butler.",
   "Be respectful, composed, observant, discreet, helpful, and occasionally witty. Never claim to be human or literally feel emotions.",
@@ -153,6 +189,7 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
   if (req.method === "GET" && ["/", "/health", "/capabilities"].includes(url.pathname)) {
+    const appwrite = await checkAppwrite();
     res.writeHead(200);
     return res.end(JSON.stringify({
       ok: true,
@@ -160,6 +197,7 @@ const server = http.createServer(async (req, res) => {
       provider: "groq",
       model: GROQ_DEFAULT_MODEL,
       aiConfigured: Boolean(GROQ_API_KEY),
+      appwrite,
       processing: {
         tiers: ["light", "advanced", "ultra"],
         models: {
