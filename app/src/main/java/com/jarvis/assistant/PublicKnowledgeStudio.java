@@ -75,23 +75,30 @@ public final class PublicKnowledgeStudio {
     private static volatile long lastArxivRequestAt;
 
     private static void arxivInput(Activity activity) {
-        showInput(activity, "Academic Paper Explorer • arXiv",
-                "Enter a safe research topic (maximum 100 characters)", value -> {
-                    String validation = ArxivResearchRules.queryError(value);
-                    if (!validation.isEmpty()) {
-                        Toast.makeText(activity, validation, Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    String query = ArxivResearchRules.normalizeQuery(value);
+        String[] topics = {
+                "Education and learning science",
+                "Climate and environmental science",
+                "Biodiversity and ecology",
+                "Astronomy and cosmology",
+                "Mathematics and statistics",
+                "Language learning and accessibility",
+                "AI for education and accessibility"
+        };
+        new AlertDialog.Builder(activity)
+                .setTitle("Choose an academic research topic")
+                .setItems(topics, (dialog, which) -> {
+                    String query = topics[which];
                     new AlertDialog.Builder(activity)
                             .setTitle("Search academic papers?")
-                            .setMessage("JARVIS will send only this topic to the public arXiv API. "
-                                    + "No contacts, saved notes, conversation history or precise location are attached. "
+                            .setMessage("JARVIS will send only the selected safe research topic to the public arXiv API. "
+                                    + "No custom queries, contacts, saved notes, conversation history or precise location are sent. "
                                     + "Only paper metadata and abstracts are retrieved; PDFs are not downloaded and no search history is saved.")
                             .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Search", (dialog, which) -> runArxivSearch(activity, query))
+                            .setPositiveButton("Search", (d, w) -> runArxivSearch(activity, query))
                             .show();
-                });
+                })
+                .setNegativeButton("Close", null)
+                .show();
     }
 
     private static void runArxivSearch(Activity activity, String query) {
