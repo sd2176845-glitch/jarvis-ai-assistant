@@ -1,56 +1,55 @@
-# JARVIS Owner Authentication — Setup & Implementation Plan
+# JARVIS Owner Authentication — Appwrite Implementation Plan
 
-This document defines the safe path for adding Owner Login to the Android app. It is intentionally a setup plan, not a claim that authentication is already implemented.
+This document is the implementation specification for M01 Owner Authentication & Account Setup. Appwrite is the authentication backend; Firebase is not used for this module.
 
-## Goals
-- Let the owner sign in with Google or a verified phone number (SMS OTP).
-- Keep a small owner profile: Firebase UID, display name, email (if available), phone (if verified), and profile photo URL (if available).
-- Restore the signed-in session after app restart.
-- Provide sign-out and account-state visibility.
-- Keep JARVIS usable in a clearly labelled guest mode until sign-in is configured.
+## Appwrite project
+- Endpoint: https://sgp.cloud.appwrite.io/v1
+- Project ID: 6b06d3aa003d717934a0
+- Android application ID: com.jarvis.assistant
+- Android SDK: io.appwrite:sdk-for-android:31.2.0
 
-## Required Firebase setup by the repository owner
-1. Create a Firebase project in the Firebase console.
-2. Register the Android app using the exact application ID: `com.jarvis.assistant`.
-3. Download the project's `google-services.json` and place it at `app/google-services.json` locally. Do not paste its contents into chat or commit it to a public repository.
-4. Enable Google and Phone providers in Firebase Authentication.
-5. For Google sign-in, configure the app's SHA-1 and SHA-256 signing certificate fingerprints in Firebase and use the current Android Credential Manager sign-in flow.
-6. For phone sign-in, configure allowed SMS regions and review Firebase phone-auth quotas and billing requirements. OTP delivery depends on Firebase and carrier availability.
-7. Keep test phone numbers limited to Firebase's test-number facility. Never hardcode a real OTP or bypass verification.
+## Feature scope
+1. Google Sign-In through Appwrite OAuth2.
+2. Phone-number sign-in through Appwrite Phone Token + OTP session verification.
+3. Owner profile using the authenticated Appwrite user record: user ID, name, email, phone, and verification flags. Do not store provider tokens or OTPs in the profile.
+4. Session restore by asking Appwrite for the current account when the app starts/resumes; the SDK owns session-cookie persistence.
+5. Sign-out by deleting the current Appwrite session and clearing only local UI/account-state caches.
+6. Guest Mode remains available without creating an account. Keep the existing local Guest Mode privacy gates, and integrate them with explicit GUEST / SIGNED_IN state without treating Android device-unlock as an Appwrite login.
 
-## Android implementation design
-- Add the Google Services Gradle plugin and Firebase Authentication dependency only after the Firebase project configuration is available.
-- Use Credential Manager for Google account selection; exchange the returned Google ID token with Firebase Auth.
-- Use Firebase Phone Auth's verification callbacks for SMS OTP. Do not build a custom SMS interception flow.
-- Add an `OwnerProfile` model with only the fields listed above.
-- Store no passwords or OTPs. Let Firebase manage authentication tokens and session persistence.
-- Show explicit states: `GUEST`, `SIGNING_IN`, `SIGNED_IN`, and `SIGN_IN_ERROR`.
-- Provide a visible sign-out action and a way to continue as guest.
-- Do not request contacts, microphone, SMS-reading, or call permissions as a condition of signing in.
-- Never send contact lists, message contents, precise location, or other phone data to Firebase as profile fields.
-- Do not log ID tokens, phone verification codes, access tokens, or full authentication responses.
+## Security rules
+- Never put an Appwrite API key in the Android app. Client apps use only endpoint + project ID.
+- Never log OTPs, session secrets, cookies, access tokens, or full authentication responses.
+- Never request SMS-reading permission for OTP verification. The user enters the code manually; no SMS interception.
+- Keep private database rows and files owner-scoped with Appwrite permissions. Guest mode must not gain owner access.
+- Use E.164 phone format (for India, +91 followed by the number). Do not send an SMS until the user explicitly starts a phone login.
+- Do not store passwords or OTPs locally.
+- Do not collect unrelated phone data for the owner profile.
 
-## Owner profile data minimization
-Suggested profile fields:
-- `uid` (Firebase UID; required)
-- `displayName` (optional)
-- `email` (optional)
-- `phoneNumber` (optional; only after successful phone verification)
-- `photoUrl` (optional)
+## Required Appwrite Console setup
+- Register an Android platform with application ID `com.jarvis.assistant`.
+- Enable Google in Auth > Social providers and configure the OAuth client credentials/redirect URI shown by Appwrite.
+- Enable Phone authentication in Auth settings and review SMS delivery/country availability and pricing before any real-number test.
+- Confirm the Appwrite project endpoint and platform configuration in the console.
 
-Do not collect date of birth, home address, contacts, call history, SMS contents, or unrelated personal details for the owner profile.
+## Implementation sequence
+- [x] Add the official Appwrite Android SDK dependency and OAuth callback activity.
+- [x] Add the Appwrite client configuration for the JARVIS project.
+- [ ] Implement Google OAuth sign-in and callback account refresh.
+- [ ] Implement phone token request and OTP verification.
+- [ ] Implement owner profile display/state.
+- [ ] Implement session restore and sign-out.
+- [ ] Integrate guest mode with authentication state.
+- [ ] Add automated tests, run Android build/unit tests, and verify on Poco M4 Pro.
 
-## Acceptance checks before release
-- Google sign-in succeeds and survives app restart.
-- Phone OTP succeeds with a Firebase-configured test number and with a real number only after explicit user action.
-- Incorrect/expired OTP displays a clear error and never signs in.
-- Cancelled sign-in returns safely to guest mode.
-- Sign-out clears the visible owner session.
-- No secrets, OTPs, or tokens appear in Git history or logs.
-- Core JARVIS features still open in guest mode.
-- Build and test on the target Poco device before marking authentication verified.
+## Acceptance checks
+- Google sign-in succeeds only after the provider is configured and returns to JARVIS.
+- Phone OTP succeeds with Appwrite mock/test numbers first; a real SMS test requires explicit user action and may incur a charge.
+- Incorrect or expired OTP never authenticates.
+- App restart restores a valid session; expired/revoked sessions return to guest state.
+- Sign-out invalidates the current session.
+- Guest mode cannot read owner-only resources.
+- No secrets, OTPs, or session tokens appear in Git history or logs.
+- Build and tests pass; target-device verification is recorded separately.
 
 ## Current status
-- Repository owner has not yet supplied a Firebase project configuration.
-- Google and Phone providers have not yet been wired into the Android app.
-- This file is a security/setup specification only; it is not a working login screen or authentication implementation.
+The SDK/client foundation is being added. Authentication flows and Appwrite Console provider/platform configuration are not yet verified. Do not mark M01 authentication complete until every acceptance check passes.
