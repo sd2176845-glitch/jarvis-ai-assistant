@@ -117,7 +117,7 @@ public final class PublicKnowledgeStudio {
             String output;
             try {
                 String address = "https://export.arxiv.org/api/query?search_query="
-                        + pathEncode("all:" + query)
+                        + pathEncode("all:\"" + query + "\"")
                         + "&start=0&max_results=5&sortBy=relevance&sortOrder=descending";
                 connection = (HttpURLConnection) new URL(address).openConnection();
                 connection.setRequestMethod("GET");
