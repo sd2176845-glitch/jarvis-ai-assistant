@@ -45,6 +45,8 @@ public final class ArxivResearchRules {
     }
 
     private static boolean isAllowedResearchQuery(String lower) {
+        String normalized = lower.replaceAll("[^a-z0-9]+", " ").trim();
+        String padded = " " + normalized + " ";
         String[] blocked = {
                 "weapon", "firearm", "gun", "bomb", "explosive", "grenade",
                 "weaponization", "missile guidance", "drug synthesis",
@@ -52,7 +54,7 @@ public final class ArxivResearchRules {
                 "exploit development", "unauthorized intrusion", "stealth attack"
         };
         for (String marker : blocked) {
-            if (lower.contains(marker)) return false;
+            if (padded.contains(" " + marker + " ")) return false;
         }
         return true;
     }
@@ -117,8 +119,7 @@ public final class ArxivResearchRules {
         if (!total.matches("[0-9]{1,12}")) total = "Not supplied";
 
         int shown = 0;
-        int considered = Math.min(entries.getLength(), MAX_RESULTS);
-        for (int i = 0; i < considered; i++) {
+        for (int i = 0; i < entries.getLength() && shown < MAX_RESULTS; i++) {
             Node node = entries.item(i);
             if (!(node instanceof Element)) continue;
             Element entry = (Element) node;
