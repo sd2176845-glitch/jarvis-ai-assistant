@@ -28,14 +28,14 @@
 - [ ] Credential protection, data minimization and shared access-control rules.
 
 ### M02 — Core Voice, Conversation & Human Intelligence
-- [ ] Speech recognition, text-to-speech and supported language handling.
-- [ ] Wake phrase, listening/thinking/speaking/offline/standby states, stop and pause controls.
-- [ ] Natural conversation, context tracking, intent understanding and concise clarification.
-- [ ] Personality and empathetic response style without claiming human feelings.
-- [ ] Emotion-signal interpretation from permitted words/voice/context; report uncertainty and allow correction—never claim 100% accuracy or make a diagnosis.
+- [~] Speech recognition and text-to-speech foundations exist; supported language availability and target-device behaviour still need verification.
+- [~] Wake phrase and listening/thinking/speaking/offline/standby feedback plus foreground stop control are code-present; background wake-word stop remains a separate control. Poco testing pending.
+- [~] Natural conversation, context tracking and clarification have existing foundations; broader scenario coverage remains pending.
+- [~] Personality modes and empathetic response guidance are code-present; no claim of literal human feelings.
+- [~] Explicit current-text emotion cues (sadness, stress, joy, loneliness and frustration) now have tentative, owner-correctable handling. This is not voice emotion analysis or diagnosis.
 - [ ] Body-language analysis only on owner-selected media or an explicitly started camera session; describe observable gestures/expressions, not hidden thoughts, intentions or truthfulness.
-- [ ] Social-context reasoning that offers possible explanations rather than certainty or labels.
-- [ ] Owner-controlled conversational context and relevant memory integration; reuse M09 rather than creating another memory store.
+- [~] Initial social-context guardrails separate observable events from assumptions and require balanced possibilities; a fuller reasoning engine remains pending.
+- [~] Owner-controlled conversational context uses existing context/memory foundations; reuse M09 rather than creating another memory store.
 
 ### M03 — Knowledge, Search, Research & Learning
 - [ ] Web search, source-aware answers, citations, timestamps and freshness indicators.
