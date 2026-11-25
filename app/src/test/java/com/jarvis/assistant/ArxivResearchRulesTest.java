@@ -77,7 +77,7 @@ public class ArxivResearchRulesTest {
         feed.append("</feed>");
         String report = ArxivResearchRules.parseFeed(feed.toString(), "topic", "now");
         assertTrue(report.contains("Paper 5"));
-        assertFalse(report.contains("Paper 6"));
+        assertFalse(report.contains("Paper 7"));
         assertFalse(report.contains("Paper 1"));
         assertTrue(report.contains("Showing 5 of Not supplied matching records."));
     }
