@@ -8,6 +8,7 @@ public class ArxivResearchRulesTest {
     @Test
     public void queryValidationAcceptsNormalTopicsAndRejectsUnsafeOrMalformedInput() {
         assertEquals("", ArxivResearchRules.queryError("machine learning for education"));
+        assertEquals("", ArxivResearchRules.queryError("fungi and biodiversity"));
         assertTrue(ArxivResearchRules.queryError(null).length() > 0);
         assertTrue(ArxivResearchRules.queryError("   ").length() > 0);
         assertTrue(ArxivResearchRules.queryError("https://example.com").length() > 0);
@@ -50,6 +51,18 @@ public class ArxivResearchRulesTest {
                 + "<title>ArXiv Query</title></feed>";
         String report = ArxivResearchRules.parseFeed(feed, "unknown topic", "now");
         assertTrue(report.contains("No matching papers were returned"));
+    }
+
+    @Test
+    public void providerErrorEntryIsShownAsAnErrorNotAResearchResult() throws Exception {
+        String feed = "<feed xmlns=\\"http://www.w3.org/2005/Atom\\">"
+                + "<title>ArXiv Query</title><entry>"
+                + "<id>http://arxiv.org/api/errors#bad_query</id>"
+                + "<title>Error</title><summary>Invalid query syntax</summary>"
+                + "</entry></feed>";
+        String report = ArxivResearchRules.parseFeed(feed, "topic", "now");
+        assertTrue(report.contains("arXiv could not process this search"));
+        assertTrue(report.contains("Invalid query syntax"));
     }
 
     @Test
