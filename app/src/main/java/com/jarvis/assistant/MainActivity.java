@@ -226,6 +226,16 @@ public class MainActivity extends Activity {
         root.addView(transcript, new LinearLayout.LayoutParams(-1, -2));
         DisplayAccessibilityStudio.apply(this, status, transcript);
 
+        Button ownerAccount = new Button(this);
+        ownerAccount.setText("OWNER ACCOUNT • SIGN IN");
+        ownerAccount.setTextColor(Color.WHITE);
+        ownerAccount.setAllCaps(false);
+        ownerAccount.setOnClickListener(v -> startActivity(new Intent(this, OwnerAuthActivity.class)));
+        LinearLayout.LayoutParams ownerAccountParams = new LinearLayout.LayoutParams(-1,
+                (int) (48 * getResources().getDisplayMetrics().density));
+        ownerAccountParams.setMargins(8, 4, 8, 10);
+        root.addView(ownerAccount, ownerAccountParams);
+
         Button speak = new Button(this);
         speak.setText("◉   ACTIVATE VOICE");
         speak.setTextColor(Color.WHITE);
