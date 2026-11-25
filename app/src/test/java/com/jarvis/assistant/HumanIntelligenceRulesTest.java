@@ -20,6 +20,10 @@ public class HumanIntelligenceRulesTest {
                 HumanIntelligenceRules.classifyExplicitTextCue("I feel alone").signal);
         assertEquals(HumanIntelligenceRules.Signal.FRUSTRATION,
                 HumanIntelligenceRules.classifyExplicitTextCue("I am frustrated hoon").signal);
+        assertEquals(HumanIntelligenceRules.Signal.LONELINESS,
+                HumanIntelligenceRules.classifyExplicitTextCue("Mujhe lagta hai koi nahi hai").signal);
+        assertEquals(HumanIntelligenceRules.Signal.SADNESS,
+                HumanIntelligenceRules.classifyExplicitTextCue("Mann nahi lag raha").signal);
     }
 
     @Test public void negatedOrAmbiguousPhrasesDoNotTriggerEmotionCue() {
