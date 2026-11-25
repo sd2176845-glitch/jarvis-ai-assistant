@@ -35,6 +35,16 @@
         android:label="JARVIS"
         android:allowBackup="false"
         android:supportsRtl="true">
+        <activity
+            android:name="io.appwrite.views.CallbackActivity"
+            android:exported="true">
+            <intent-filter android:label="appwrite_oauth_callback">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="appwrite-callback-6b06d3aa003d717934a0" />
+            </intent-filter>
+        </activity>
         <receiver android:name=".ReminderReceiver" android:enabled="true" android:exported="false" />
         <receiver android:name=".ReminderBootReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
