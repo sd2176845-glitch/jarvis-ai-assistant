@@ -162,12 +162,12 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 The following modules are approved product decisions and are **planned**, not implemented or verified merely by being listed here. Build them incrementally using the implementation sequence, security rules and platform limitations above.
 
 ### Priority 8 — Human Intelligence 1.0
-- [ ] Emotion-signal interpretation: estimate possible emotional cues from the owner's words, voice (only when voice analysis is enabled) and conversational context. Show uncertainty/confidence, allow correction, and never claim 100% accuracy or present an inference as a fact, diagnosis or substitute for asking the person.
+- [~] Emotion-signal interpretation: partial foundation added for explicit current-text cues only, with tentative confidence and owner-correctable language. Voice analysis, broader context modelling and device verification remain pending. Never claim 100% accuracy or present an inference as a fact or diagnosis.
 - [ ] Behaviour-pattern analysis: identify patterns in observable conversation and interaction context without claiming to know a person's hidden thoughts or motives.
 - [ ] Communication intelligence: understand tone, wording, conversational context and the owner's preferred Hindi/Hinglish/English communication style.
 - [ ] Body-language understanding: describe observable expressions, posture and gestures only in owner-selected media or an explicitly started camera session. Explain that cues vary by person, culture and context; offer possible interpretations, never claim to know hidden intentions, thoughts, honesty or motives from body language alone. Request permission and explain processing before use.
-- [ ] Empathy system: adapt responses to the situation with respectful, supportive language without pretending to literally feel human emotions.
-- [ ] Social intelligence: reason cautiously about observable signals related to friendship, trust, ego, jealousy and selfish behaviour; present possibilities, not certainty or labels.
+- [~] Empathy system: partial foundation added through cautious local supportive replies and AI response guidance; broader scenario coverage and device verification remain pending. Never pretend to literally feel human emotions.
+- [~] Social intelligence: initial response guardrails added to separate observable events from assumptions and offer balanced possibilities; a fuller social-context reasoning engine remains pending. Never present labels or hidden motives as facts.
 - [ ] Context memory: use relevant prior conversation context only with owner-controlled, reviewable memory and privacy controls.
 
 ### Priority 9 — Universal App Intelligence Engine 1.0
