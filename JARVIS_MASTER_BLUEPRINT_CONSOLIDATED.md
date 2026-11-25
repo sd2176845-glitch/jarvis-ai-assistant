@@ -17,62 +17,168 @@
 
 ## 2. Canonical advanced modules
 
+**Formatting rule:** every capability is listed line-by-line under exactly one canonical module. Use checkboxes for individual sub-features and add status/dependency/test notes as implementation begins. Do not create a new M-number for a sub-feature that belongs to an existing module.
+
 ### M01 — Owner Identity, Access & Privacy
-Includes owner sign-in/profile/session, Google/phone OTP setup, sign-out and expiry handling, guest mode, privacy lock, owner-only settings, permission explanations, consent, review/export/delete controls, data minimization and secure handling of credentials. Reuses Android permissions and one shared identity/access layer; no duplicate PIN/authentication systems.
+- [ ] Owner sign-in, profile, session expiry and sign-out.
+- [ ] OTP setup and recovery through supported providers.
+- [ ] Guest mode and owner-only settings.
+- [ ] Privacy lock, consent and permission explanations.
+- [ ] Review, correct, export and delete owner-controlled data.
+- [ ] Credential protection, data minimization and shared access-control rules.
 
 ### M02 — Core Voice, Conversation & Human Intelligence
-Includes speech recognition, TTS, wake phrase, listening/thinking/speaking/offline/standby states, stop/pause controls, follow-up commands, tested language support, natural conversation, context/intent understanding, personality, cautious emotion-signal interpretation, empathy and user-selected-media body-language analysis. Emotion and body-language outputs are uncertain observations—not diagnoses, mind-reading or reliable proof of someone's intentions. Basic voice/conversation remains part of this engine.
+- [ ] Speech recognition, text-to-speech and supported language handling.
+- [ ] Wake phrase, listening/thinking/speaking/offline/standby states, stop and pause controls.
+- [ ] Natural conversation, context tracking, intent understanding and concise clarification.
+- [ ] Personality and empathetic response style without claiming human feelings.
+- [ ] Emotion-signal interpretation from permitted words/voice/context; report uncertainty and allow correction—never claim 100% accuracy or make a diagnosis.
+- [ ] Body-language analysis only on owner-selected media or an explicitly started camera session; describe observable gestures/expressions, not hidden thoughts, intentions or truthfulness.
+- [ ] Social-context reasoning that offers possible explanations rather than certainty or labels.
+- [ ] Owner-controlled conversational context and relevant memory integration; reuse M09 rather than creating another memory store.
 
 ### M03 — Knowledge, Search, Research & Learning
-Includes browser-search foundations, source-aware in-app search, public API lookups, news/sports, translation, current-source research, citations/freshness, knowledge vault integration, scheduled research, scientific discovery, reality checks, learning tips, AI Learning Academy, Personal Education & Skill Academy, global knowledge and multilingual research. Each provider is a connector under one research/data layer; browser shortcuts must not be described as native live integrations.
+- [ ] Web search, source-aware answers, citations, timestamps and freshness indicators.
+- [ ] Public API lookups, news/sports, translation and multilingual research.
+- [ ] Scientific discovery, source comparison, contradiction checks and reality verification.
+- [ ] Scheduled/owner-started research with reviewable reports.
+- [ ] AI Learning Academy and Personal Education & Skill Academy.
+- [ ] Public knowledge and learning content integrated with the single M09 knowledge vault.
 
 ### M04 — Universal App Intelligence & Knowledge Brain
-Includes an Android-permitted installed-app catalogue, discovery of newly installed apps where visible, public app documentation/research, feature/settings explanations, version/update checks and source freshness. Refreshes are bounded by Android visibility and public sources; app knowledge never grants access to private app data or guarantees awareness of every release.
+- [ ] Catalogue installed apps using Android-supported package visibility.
+- [ ] Discover newly installed apps when Android permits visibility.
+- [ ] Research public app documentation, purpose, features, settings, compatibility and updates.
+- [ ] Explain app features/settings using available app and version context.
+- [ ] Refresh app knowledge through owner-invoked or bounded scheduled public-source checks.
+- [ ] Show sources, freshness and what could not be inspected; do not promise awareness of every app/update.
+- [ ] Keep app knowledge separate from app-control permission and private app data.
 
 ### M05 — Universal Application & Phone Control
-Includes app launching, Android settings handoffs, supported UI actions, explicitly enabled accessibility-based controls, context-aware interface handling and supported cross-app workflows. Use per-integration permissions and visible capability limits; never bypass Android/app protections or promise unrestricted control. Sensitive actions require fresh, action-specific owner confirmation. Unknown controls must stop and ask rather than guess.
+- [ ] Launch apps and open supported Android settings handoffs.
+- [ ] Operate supported features through documented APIs, intents or explicitly enabled Accessibility Service actions.
+- [ ] Discover supported capabilities and show each integration's permission boundary.
+- [ ] Handle changed/unknown interfaces cautiously; stop and ask instead of guessing.
+- [ ] Run supported cross-app actions through M08 workflows.
+- [ ] Never promise unrestricted control or bypass Android/app protections, authentication or protected screens.
+- [ ] Require fresh, action-specific approval for sensitive actions and important setting changes.
 
 ### M06 — Communication Intelligence & Unified Communication Hub
-Includes contact resolution, call requests, spoken confirmation, SMS/message drafts, WhatsApp assistance, email/messaging/calendar connectors, live translation/captions where supported, recipient disambiguation, call/SMS event announcements and communication history. Draft first; require fresh explicit approval before calling, sending, sharing or changing external records.
+- [ ] Resolve contacts and clarify duplicate/ambiguous recipients.
+- [ ] Convert voice requests into editable SMS/message/email drafts.
+- [ ] Show recipient and exact content before sending; require fresh approval.
+- [ ] Place calls only after clear confirmation.
+- [ ] Read messages only through explicitly granted, supported integrations.
+- [ ] Provide supported WhatsApp, SMS, email, calendar and messaging handoffs.
+- [ ] Support Hindi, Hinglish, English and other languages only as implemented and tested.
 
 ### M07 — Personal Secretary, Productivity & Life Management
-Includes local notes, structured notes, to-dos, preferences, goals, reminders, calendar handoff/connected schedule, daily briefing, multi-step personal planning, Life Management Intelligence, Personal Productivity Studio, asset/inventory tracking, vehicle records and maintenance reminders, journey preparation and personal finance organization using manually entered data. One shared task/calendar/reminder store; do not create duplicate schedulers.
+- [ ] One shared notes, task, goals and reminder experience.
+- [ ] Calendar handoff/connected schedule and daily briefing.
+- [ ] Personal planning, checklists, routine planning and life-management overview.
+- [ ] Personal Productivity Studio, asset/inventory tracking and vehicle records.
+- [ ] Journey preparation and manually entered personal finance organization.
+- [ ] Reuse existing task/reminder/calendar stores; do not add duplicate schedulers.
 
 ### M08 — Workflow Automation & Orchestration
-Includes command-chain planning, workflow builder, manual/time/event triggers, supported cross-app runners, conditions, approval gates, state/recovery, bounded retries, safe stop, history/audit, templates, dry-run/test mode and resource-aware scheduling. Sensitive actions always require fresh approval.
+- [ ] Convert requests into visible multi-step plans with dependencies and permissions.
+- [ ] Workflow builder, templates, manual/time/event triggers and supported cross-app runners.
+- [ ] Conditions, progress, bounded retries, interruption recovery and safe stop.
+- [ ] Dry-run/test mode, history and owner-readable audit records.
+- [ ] Independently perform only pre-authorized, reversible, low-risk actions within configured limits.
+- [ ] Pause for fresh approval before consequential, sensitive, irreversible or uncertain actions; never claim safe autonomous decisions in every situation.
 
 ### M09 — Personal Memory, Knowledge Vault & Timeline
-Includes recent conversation context, owner-approved long-term preferences, structured knowledge, provenance, knowledge graph, Digital Time Machine, Personal Knowledge Vault, Personal Experience Timeline, idea evolution and Digital Legacy Archive. Every saved item must be reviewable, correctable, exportable and deletable; avoid a second memory store in another module.
+- [ ] Recent conversation context and owner-approved long-term preferences.
+- [ ] Structured knowledge, provenance and searchable knowledge graph.
+- [ ] Digital Time Machine, Personal Experience Timeline and idea evolution.
+- [ ] Personal Knowledge Vault and Digital Legacy Archive.
+- [ ] Review, correct, export and delete saved items; protect sensitive content.
+- [ ] Provide one canonical memory/knowledge store shared through authorized module interfaces.
 
 ### M10 — Vision, OCR, Spatial & Media Intelligence
-Includes user-selected image/document OCR, camera sessions initiated visibly by the owner, selected video/audio analysis, scene/object understanding, spatial intelligence, image understanding and media workflows. Show exactly what will be processed; no silent camera/gallery/microphone monitoring.
+- [ ] OCR for owner-selected images and documents.
+- [ ] Camera analysis only during a clearly indicated, owner-started session.
+- [ ] Owner-selected image, video and audio understanding through supported models.
+- [ ] Scene/object and spatial understanding with uncertainty labels.
+- [ ] Preview what will be processed or sent; no silent camera, gallery or microphone monitoring.
 
 ### M11 — Creative Media & Creator Studio
-Includes image/video/presentation creation, creative project organization, media editing workflows and the Creative Media Studio. Reuse the media/vision layer where appropriate; respect ownership, licensing, copyright and provider terms.
+- [ ] Image, video and presentation creation workflows.
+- [ ] Media editing, project organization and creator workspace.
+- [ ] Reuse M10 media inputs where appropriate.
+- [ ] Respect ownership, licensing, copyright and provider terms.
 
 ### M12 — AI Development, Software & Data Intelligence Studio
-Includes coding help, project explanations, developer workshop, app/website/software design and build workflows, project-aware code assistance, test plans, architecture, data analysis, visualization and reporting. This is the home for Software Development Studio and Data Intelligence Center. Generated code and analysis are proposals until reviewed and tested; process only owner-authorized data.
+- [ ] Coding help, project explanations, architecture and developer workshop.
+- [ ] App, website and software design/build assistance.
+- [ ] Generate reviewable code proposals, diffs, documentation and test plans.
+- [ ] Analyze authorized datasets and create visualizations/reports.
+- [ ] Self-improvement may identify issues and prepare proposed code/configuration changes.
+- [ ] Test proposals in an isolated workspace and preserve backup/rollback evidence.
+- [ ] Do not silently apply source/configuration changes, commit, deploy or replace an APK; require explicit approval for the specific change.
 
 ### M13 — Security Intelligence & Secure Evidence Vault
-Includes permission/build review, privacy controls, read-only security checks, owner-approved security-event interpretation, secure evidence/document storage, encryption in transit/at rest, least privilege, strong authentication, dual approval for sensitive exports, integrity hashes, chain-of-custody/access logs, encrypted backups, retention/deletion, breach response and controlled disclosure. This is not a stealth-surveillance, interception or unauthorized-access system.
+- [ ] Permission/build review and read-only security checks.
+- [ ] Owner-approved interpretation of security events.
+- [ ] Encrypt evidence and records in transit and at rest.
+- [ ] Least-privilege access, strong authentication and dual approval for sensitive exports.
+- [ ] Integrity hashes, access/chain-of-custody logs and encrypted backups.
+- [ ] Retention/deletion controls, breach response and controlled disclosure.
+- [ ] No stealth surveillance, interception or unauthorized access.
 
 ### M14 — Diagnostics, Reliability & Controlled Recovery
-Includes self-diagnostics, problem reports, sanitized logs, health checks, troubleshooting, repair handoff, pre-authorized reversible maintenance, checkpoints, rollback, test gates and recovery journal. Keep diagnostics read-only by default. Code/configuration changes must be proposed as reviewable diffs, tested in isolation and explicitly approved before applying; no arbitrary commands, silent source edits, APK replacement, permission weakening or deployment.
+- [ ] Health checks, self-diagnostics, problem reports and sanitized logs.
+- [ ] Troubleshooting, error analysis and developer repair handoff.
+- [ ] Pre-authorized, reversible low-risk maintenance with visible limits.
+- [ ] Backup/checkpoints, rollback, test gates and recovery journal.
+- [ ] Keep diagnostics read-only by default.
+- [ ] Code/configuration repair proposals require review, isolated tests and explicit approval before application.
+- [ ] No arbitrary commands, silent source edits, APK replacement, permission weakening or deployment.
 
 ### M15 — Adaptive UI, Command Center & Accessibility
-Includes JARVIS dashboard/orb, red/black theme reconciliation, status feedback, command center, creator/project status, adaptive design proposals, preview/approval, versioning/rollback, gestures, widgets, dashboard profiles, visual defect checks, dynamic information display, accessibility options and universal accessibility mode. Preserve essential controls and readable contrast.
+- [ ] JARVIS dashboard/orb, theme, status feedback and command center.
+- [ ] Creator/project status, adaptive design proposals and preview/approval.
+- [ ] Versioning, rollback, gestures, widgets and dashboard profiles.
+- [ ] Visual-defect checks and dynamic information display.
+- [ ] Accessibility options and universal accessibility mode.
+- [ ] Preserve essential controls, readable contrast and owner override.
 
 ### M16 — Connected Ecosystem, Smart Environment & Collaboration
-Includes compatible smart-home devices, authorized Bluetooth accessories, device discovery/pairing, device status, owner-approved collaboration spaces, role-based sharing, cross-device sync, plugin/extension registry, local device communication and authorized connected systems. Pairing, permissions, revocation and audit are mandatory; being on the same network grants no access.
+- [ ] Compatible smart-home devices and authorized Bluetooth accessories.
+- [ ] Device discovery, explicit pairing, status and permission controls.
+- [ ] Owner-approved collaboration spaces and role-based sharing.
+- [ ] Cross-device sync with encryption, conflict handling and revoke controls.
+- [ ] Reviewed plugin/extension registry with declared permissions and disable/uninstall controls.
+- [ ] Local device communication and authorized connected-system integrations.
+- [ ] A network connection alone never grants access to another device.
 
 ### M17 — Platform, Resource & Connectivity Intelligence
-Includes battery/network/storage management, hardware compatibility, authorized network health, local/global/hybrid routing, offline capability, private local wireless design, official-source satellite-internet research and educational CubeSat roadmap. Satellite service requires compatible approved hardware and a provider/service plan where applicable; the phone/JARVIS cannot independently create satellite internet. A local network is not internet access.
+- [ ] Battery, storage, device-resource and authorized network-health information.
+- [ ] Hardware compatibility research with trusted specifications.
+- [ ] Local, Global and Hybrid Intelligence routing with offline fallback.
+- [ ] Private local wireless network design with authenticated pairing and revocation.
+- [ ] Research legally available satellite-internet services, coverage, approved terminals, cost and Indian authorization requirements.
+- [ ] Explain that satellite internet needs compatible hardware and a supported provider/service; the phone/JARVIS cannot independently create satellite internet.
+- [ ] Educational CubeSat/space-technology research only; no claim of direct satellite access or control.
 
 ### M18 — Simulation, Robotics & Engineering Intelligence
-Includes Digital World Simulator, Digital Twin, Virtual Experiment Laboratory, on-screen 3D/AR workspace, component library, robotics architecture/interfaces, simulated robot coordination and engineering compatibility research. A screen-based 3D/AR view is not a true free-space hologram. Begin robotics with simulation/read-only telemetry; physical actuation requires hardware-specific safety review, supervised testing, manual override, emergency stop and explicit authorization.
+- [ ] Digital World Simulator, Digital Twin and Virtual Experiment Laboratory.
+- [ ] On-screen 3D/AR workspace; clearly distinguish it from a true free-space holographic display.
+- [ ] Engineering component library, compatibility research and 3D design tools.
+- [ ] Authenticated modular interfaces for compatible, owner-approved robotics hardware.
+- [ ] Begin with simulation and read-only telemetry; show simulated versus real states clearly.
+- [ ] Before physical actuation, require hardware-specific safety review, supervised staged testing, manual override and accessible emergency stop.
+- [ ] Stop physical actions safely on faults, disconnection or uncertain state; no unsupervised unrestricted robot control.
 
 ### M19 — Personal & Practical Intelligence Suite
-Includes disaster preparedness using official sources, environmental information with timestamp/source, legal-document explanation with source passages and professional-review boundaries, intelligent journey planning, smart asset inventory, vehicle intelligence, collaborative project intelligence and owner-curated milestones. Reuse M07/M09/M03 rather than creating duplicate schedulers, memories or research engines.
+- [ ] Disaster preparedness using official sources and clearly labelled offline guidance.
+- [ ] Environmental information with source, timestamp and model/measurement limitations.
+- [ ] Legal-document explanation with source passages and professional-review boundaries.
+- [ ] Intelligent journey planning with approval before bookings or purchases.
+- [ ] Smart asset inventory, vehicle intelligence and maintenance records.
+- [ ] Collaborative project intelligence and owner-curated milestones.
+- [ ] Reuse M03 research, M07 productivity and M09 memory rather than creating duplicates.
 
 ## 3. Legacy priority crosswalk — no capability is discarded
 
