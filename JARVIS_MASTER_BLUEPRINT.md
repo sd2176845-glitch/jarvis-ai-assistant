@@ -194,7 +194,7 @@ The following modules are approved product decisions and are **planned**, not im
 
 ### Priority 12 — Autonomous Intelligence & Personality Engine
 - [ ] Independent analysis: assess the current request and available, authorized information before suggesting a useful next step.
-- [ ] Decision intelligence: compare options and explain recommendations, assumptions, risks and uncertainty; leave consequential decisions with the owner.
+- [ ] Decision intelligence: compare options and explain recommendations, assumptions, risks and uncertainty. JARVIS may independently choose only pre-authorized, reversible, low-risk actions within configured limits; pause and ask for fresh owner approval for consequential, sensitive, irreversible or uncertain situations. Never claim it can safely decide every situation.
 - [ ] Learning ability: update app/API knowledge and owner-approved preferences through controlled, reviewable processes.
 - [ ] Self-improvement: identify errors from evidence, explain a proposed code/configuration change and prepare a reviewable diff. Run permitted tests in an isolated workspace; back up affected files and provide rollback. Never apply source/configuration changes, commit, build-release, deploy or replace the installed APK until the owner/developer explicitly approves the specific change.
 - [ ] Human understanding: use observable language, conversation history and user-corrected context to adapt responses; distinguish evidence from guesses, state uncertainty and ask when the context is insufficient.
