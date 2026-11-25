@@ -29,7 +29,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.13"
+          gradle-version: "9.3.1"
       # Keep the generated debug signing key between builds so users can install
       # future APKs as updates instead of getting a signature/package conflict.
       - name: Restore stable debug signing key
