@@ -1,6 +1,7 @@
 # JARVIS Master Blueprint
 
-This document is the single source of truth for the JARVIS Android assistant project.
+This document is the detailed requirements and implementation-history record for the JARVIS Android assistant project.
+Canonical feature ownership and the line-by-line M01–M19 module checklist live in `JARVIS_MASTER_BLUEPRINT_CONSOLIDATED.md`. Every new or modified capability must first be placed under its existing canonical M-module; do not create duplicate priority/module entries. Keep this document as the detailed legacy requirement and implementation record, and cross-reference the canonical module owner when adding or updating a requirement.
 Target device: Poco M4 Pro 4G. Development is browser/Chrome-first.
 JARVIS is separate from the Even project.
 
