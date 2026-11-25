@@ -38,10 +38,10 @@
 - [ ] Owner-controlled conversational context and relevant memory integration; reuse M09 rather than creating another memory store.
 
 ### M03 — Knowledge, Search, Research & Learning
-- [ ] Web search, source-aware answers, citations, timestamps and freshness indicators.
-- [ ] Public API lookups, news/sports, translation and multilingual research.
+- [~] Source-linked, timestamped academic paper lookup for curated learning/science subjects; full general web search with multi-source citations and freshness indicators remains planned.
+- [~] Owner-invoked public API lookups and Hindi/Bengali/English translation; live news/sports and broader multilingual research remain planned.
 - [ ] Scientific discovery, source comparison, contradiction checks and reality verification.
-- [ ] Scheduled/owner-started research with reviewable reports.
+- [~] Owner-invoked academic paper discovery for curated topics; scheduled research and saved/reviewable reports remain planned.
 - [ ] AI Learning Academy and Personal Education & Skill Academy.
 - [ ] Public knowledge and learning content integrated with the single M09 knowledge vault.
 
@@ -715,3 +715,15 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 - Added pure-Java tests for partial matches, case-insensitivity, whitespace normalization, empty search and non-matches.
 - No duplicate reminder hub/store/scheduler, new permission, other-app notification access, cloud upload or background collection.
 - **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+## B34 — M03 Academic Paper Explorer (2026-11-25)
+
+- **Canonical owner:** M03 — Knowledge, Search, Research & Learning. Extends the existing Public Knowledge Studio; it does not create a separate research menu or duplicate the Wikipedia topic lookup.
+- **Code-present:** adds an owner-invoked arXiv paper search for a fixed list of safe academic subjects: education/learning science, climate/environment, biodiversity/ecology, astronomy/cosmology, mathematics/statistics, language/accessibility, and AI for education/accessibility.
+- **Results:** up to five valid records with title, up to three author names, publication date, latest-version update date, arXiv subject category, bounded abstract, canonical arXiv source link and local retrieval timestamp.
+- **Interpretation:** results are scholarly preprints/listings. JARVIS explicitly states that an arXiv listing or update date does not establish peer review, acceptance or independent verification.
+- **Privacy / limits:** sends only the selected fixed subject after confirmation; no custom query text, GPS, contacts, notes, conversation history, saved search history, PDF download, background polling, new Android permission or extra data store. The UI throttles requests with at least a three-second interval and caps the XML response at 500 KB.
+- **Parser safety:** bounded XML parsing rejects DOCTYPE/external entity declarations, accepts only canonical arxiv.org abstract links, caps visible result count and text lengths, and has focused JUnit regression tests.
+- **Source:** arXiv API User's Manual: https://info.arxiv.org/help/api/user-manual.html (Atom response format, query/sort parameters and recommended delay between consecutive requests).
+- **Status:** source and tests added on `feature/m03-academic-research-explorer`; exact-head CI/build/artifact validation pending. Poco M4 Pro 4G physical-device testing pending. This is a partial M03 increment, not completion of the M03 module. JARVIS only; Even untouched.
