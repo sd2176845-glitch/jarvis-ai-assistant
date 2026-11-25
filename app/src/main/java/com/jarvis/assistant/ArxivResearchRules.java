@@ -107,11 +107,12 @@ public final class ArxivResearchRules {
                     .append("\n\nSource: arXiv public API.").toString();
         }
 
-        String firstTitle = childText(root, ATOM_NS, "title");
-        if ("Error".equalsIgnoreCase(firstTitle)) {
-            String message = childText(root, ATOM_NS, "summary");
-            return out.append("\narXiv could not process this search.")
-                    .append(message.isEmpty() ? "" : "\nProvider message: " + clean(message, 240))
+        Element firstEntry = entries.getLength() > 0 && entries.item(0) instanceof Element
+                ? (Element) entries.item(0) : null;
+        if (firstEntry != null && "Error".equalsIgnoreCase(childText(firstEntry, ATOM_NS, "title"))) {
+            String message = childText(firstEntry, ATOM_NS, "summary");
+            return out.append("\\narXiv could not process this search.")
+                    .append(message.isEmpty() ? "" : "\\nProvider message: " + clean(message, 240))
                     .toString();
         }
 
