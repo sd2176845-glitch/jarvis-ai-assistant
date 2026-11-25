@@ -89,9 +89,6 @@ Adopt these ideas selectively; do not copy an unknown project's code blindly:
 - [ ] Anime recommendations based on user-selected genres/preferences; do not imply Jikan recommendations are personalized unless implemented.
 - [ ] Anime scene identification using Trace Moe; requires an explicit user-selected screenshot/image upload, upload-size handling, and clear privacy notice. Do not silently access the gallery.
 - [ ] ISRO information lookup using the community-hosted ISRO API; label it as an unofficial data source and handle downtime.
-- [ ] Joke retrieval using JokeAPI with safe-content filtering and language-aware presentation.
-- [ ] Fun-fact retrieval using a suitable public endpoint; validate availability and source quality before release.
-- [ ] Meme discovery using Imgflip only after reviewing its API terms, attribution rules and rate limits; do not assume unrestricted image reuse.
 
 ### Priority 4 — Memory and personal secretary
 - [ ] User-approved long-term preferences with review/edit/delete controls.
