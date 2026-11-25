@@ -1,6 +1,6 @@
 package com.jarvis.assistant;
 
-import android.app.Activity;
+import androidx.activity.ComponentActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -19,7 +19,7 @@ import io.appwrite.exceptions.AppwriteException;
 import io.appwrite.enums.OAuthProvider;
 import io.appwrite.services.Account;
 
-public class OwnerAuthActivity extends Activity {
+public class OwnerAuthActivity extends ComponentActivity {
     private AppwriteAuthManager authManager;
     private Account account;
     private TextView status;
@@ -278,7 +278,7 @@ public class OwnerAuthActivity extends Activity {
         }
     }
 
-    private String safeError(Exception error) {
+    private String safeError(Throwable error) {
         String message = error.getMessage();
         if (message == null || message.trim().isEmpty()) return "Please check Appwrite settings and try again.";
         return message.length() > 140 ? message.substring(0, 140) : message;
