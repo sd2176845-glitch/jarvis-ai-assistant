@@ -41,14 +41,19 @@ async function appwriteGet(path) {
 async function checkAppwrite() {
   const configured = Boolean(APPWRITE_ENDPOINT && APPWRITE_PROJECT_ID && APPWRITE_API_KEY && APPWRITE_DATABASE_ID && APPWRITE_STORAGE_BUCKET_ID);
   if (!configured) return { configured, connected: false, database: false, storage: false };
-  try {
-    await appwriteGet(`/tablesdb/${encodeURIComponent(APPWRITE_DATABASE_ID)}/tables`);
-    await appwriteGet(`/storage/buckets/${encodeURIComponent(APPWRITE_STORAGE_BUCKET_ID)}`);
-    return { configured: true, connected: true, database: true, storage: true };
-  } catch (error) {
-    console.error("Appwrite connectivity check failed:", error?.status || error?.name || "unknown");
-    return { configured: true, connected: false, database: false, storage: false };
+
+  const [databaseResult, storageResult] = await Promise.allSettled([
+    appwriteGet(`/tablesdb/${encodeURIComponent(APPWRITE_DATABASE_ID)}/tables`),
+    appwriteGet(`/storage/buckets/${encodeURIComponent(APPWRITE_STORAGE_BUCKET_ID)}`)
+  ]);
+  const database = databaseResult.status === "fulfilled";
+  const storage = storageResult.status === "fulfilled";
+
+  if (!database || !storage) {
+    const failure = databaseResult.status === "rejected" ? databaseResult.reason : storageResult.reason;
+    console.error("Appwrite connectivity check failed:", failure?.status || failure?.name || "unknown");
   }
+  return { configured: true, connected: database && storage, database, storage };
 }
 
 const SYSTEM_PROMPT = [
