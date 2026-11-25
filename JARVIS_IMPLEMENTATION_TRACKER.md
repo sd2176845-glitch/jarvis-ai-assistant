@@ -1358,3 +1358,24 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added pure-Java tests for case-insensitive partial matching, whitespace normalization, empty queries and non-matches.
 - No second reminder manager, scheduler or store; no new permission, external notification access, cloud upload or background collection.
 - **Status:** code added; final-head CI pending; Poco M4 Pro 4G physical-device verification pending. JARVIS only; Even untouched.
+
+## M02 — Human Intelligence Foundation (2026-11-25)
+
+**Branch:** `feature/m02-human-intelligence-foundation` (separate from the M01 owner-authentication PR; based on current main).
+
+### Existing M02 capabilities retained — no duplicates
+- Core voice session feedback and foreground Stop control were already implemented in the earlier M02 batch. The foreground stop does not stop the separate background wake-word service.
+- Existing Caring/Funny/Serious and other assistant modes are retained and reused.
+- Existing conversation context and clear-memory controls are reused; no new memory store is created.
+- Existing local supportive response handling is upgraded in place, not duplicated.
+
+### New M02 foundation — code added on this branch
+1. **Explicit text emotion cues:** tentative text-only classification for sadness, stress, joy, loneliness and frustration. Negated and ambiguous phrases should not trigger a cue. No raw audio or camera analysis.
+2. **Empathetic response guidance:** local supportive responses and AI prompt guidance acknowledge what was actually said, allow correction, and distinguish listening from practical help.
+3. **Social-context guardrails:** prompt guidance separates observable events from assumptions, offers balanced explanations, and avoids certainty about hidden motives, honesty or character.
+
+**Files:** `HumanIntelligenceRules.java`, `HumanIntelligenceRulesTest.java`, existing `MainActivity.java`, existing `JarvisAiClient.java`.
+
+**Privacy and scope:** current text/transcript only; no new permission, background monitoring, external request, or persistent emotion-label storage. Body-language analysis, voice emotion analysis, behaviour-pattern analysis and full social reasoning remain planned. JARVIS only; Even untouched.
+
+**Validation:** automated CI for the final branch head is pending. Do not mark M02 complete until the final branch build/tests pass and target Poco M4 Pro 4G checks are performed.
