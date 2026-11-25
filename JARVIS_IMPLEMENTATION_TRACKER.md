@@ -1358,3 +1358,17 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added pure-Java tests for case-insensitive partial matching, whitespace normalization, empty queries and non-matches.
 - No second reminder manager, scheduler or store; no new permission, external notification access, cloud upload or background collection.
 - **Status:** code added; final-head CI pending; Poco M4 Pro 4G physical-device verification pending. JARVIS only; Even untouched.
+
+
+## B34 — M03 Academic Paper Explorer (2026-11-25)
+
+- **Canonical owner:** M03 — Knowledge, Search, Research & Learning. Extends the existing Public Knowledge Studio; no second research menu or duplicate Wikipedia topic lookup.
+- **Code-present:** owner chooses from a fixed list of safe academic subjects (education/learning science, climate/environment, biodiversity/ecology, astronomy/cosmology, mathematics/statistics, language/accessibility, and AI for education/accessibility). Search requires an explicit confirmation.
+- **Results:** up to five valid arXiv records with title, up to three authors, publication date, latest-version update date, primary category, bounded abstract, canonical arXiv abstract link and local retrieval timestamp. Source links are clickable in the result dialog.
+- **Research caveat:** arXiv records may be preprints. A listing or update date does not establish peer review, acceptance or independent verification.
+- **Privacy:** only the selected fixed topic is sent to the arXiv API. No custom free-text query, GPS, contacts, private notes, conversation history, local search history, automatic PDF download, background polling, new permission or new persistent store.
+- **Reliability / parser:** three-second minimum local request interval, 12-second connect timeout, 20-second read timeout, 500 KB response cap, safe XML parser rejecting DOCTYPE/external entities, strict arXiv host/path validation and bounded output.
+- **Tests:** JUnit cases cover valid Atom feed formatting, empty feeds, provider error records, five-valid-result cap despite an invalid external record, rejection of external paper links, malformed/unsafe query checks and DOCTYPE/entity rejection.
+- **Source:** arXiv API User's Manual: https://info.arxiv.org/help/api/user-manual.html.
+- **Validation:** code and focused tests are on `feature/m03-academic-research-explorer`; final-head CI, Android unit tests, debug APK build and artifact upload pending. Poco M4 Pro 4G device verification pending.
+- **Merge:** keep as a separate draft PR; do not merge to `main` without owner approval. JARVIS only; Even untouched.
