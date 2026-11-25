@@ -42,6 +42,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import java.util.ArrayList;
 import java.util.Locale;
+import io.appwrite.coroutines.CoroutineCallback;
 
 public class MainActivity extends Activity {
     private TextView status, transcript;
@@ -72,6 +73,7 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(bg);
         preferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
         buildInterface();
+        restoreOwnerSessionState();
         tts = new TextToSpeech(this, result -> {
             if (result == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("en", "IN"));
@@ -118,6 +120,25 @@ public class MainActivity extends Activity {
                 public void onPartialResults(Bundle partialResults) {}
                 public void onEvent(int eventType, Bundle params) {}
             });
+        }
+    }
+
+    private void restoreOwnerSessionState() {
+        try {
+            new AppwriteAuthManager(getApplicationContext()).getAccount().get(
+                    new CoroutineCallback<>((user, error) -> runOnUiThread(() -> {
+                        boolean signedIn = error == null;
+                        preferences.edit().putBoolean("guest_mode_enabled", !signedIn).apply();
+                        if (status != null) {
+                            status.setText(signedIn
+                                    ? "OWNER SESSION RESTORED"
+                                    : "GUEST MODE • SIGN IN FOR OWNER ACCESS");
+                        }
+                    }))
+            );
+        } catch (Exception e) {
+            preferences.edit().putBoolean("guest_mode_enabled", true).apply();
+            if (status != null) status.setText("GUEST MODE • OWNER SESSION UNAVAILABLE");
         }
     }
 
