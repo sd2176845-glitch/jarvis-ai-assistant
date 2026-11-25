@@ -30,19 +30,19 @@ public final class HumanIntelligenceRules {
         if (text.isEmpty()) return new Cue(Signal.NONE, "none");
 
         if (matchesAny(text, "udaas hoon", "i am sad", "i feel sad", "dil kharab hai",
-                "mann nahi lag raha", "man nahi lag raha", "rona aa raha hai", "rona aa raha")) {
+                "mann nahi lag", "man nahi lag", "mann nahi lag raha", "man nahi lag raha", "rona aa raha hai", "rona aa raha")) {
             return new Cue(Signal.SADNESS, "tentative");
         }
         if (matchesAny(text, "tension ho rahi", "tension hai", "pareshan hoon",
-                "ghabra raha", "ghabrahat ho rahi", "darr lag raha", "dar lag raha",
+                "ghabra", "ghabra raha", "ghabrahat ho rahi", "darr lag", "dar lag", "darr lag raha", "dar lag raha",
                 "i am anxious", "i feel overwhelmed")) {
             return new Cue(Signal.STRESS, "tentative");
         }
         if (matchesAny(text, "khush hoon", "bahut khush", "bohot khush",
-                "happy hoon", "i am happy", "i feel happy", "good news hai")) {
+                "happy hoon", "i am happy", "i feel happy", "good news", "good news hai")) {
             return new Cue(Signal.JOY, "tentative");
         }
-        if (matchesAny(text, "akela feel", "akela hoon", "lonely hoon",
+        if (matchesAny(text, "akela feel", "akela hoon", "lonely", "lonely hoon", "koi nahi hai",
                 "i feel alone", "koi nahi sunta")) {
             return new Cue(Signal.LONELINESS, "tentative");
         }
