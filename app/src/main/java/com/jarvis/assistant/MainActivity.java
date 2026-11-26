@@ -2138,17 +2138,17 @@ public class MainActivity extends Activity {
                         status.setText("WORKFLOW CHANGED • REVIEW IT AGAIN");
                         return;
                     }
-                    org.json.JSONArray updated = current.optJSONArray("done");
-                    if (updated == null) updated = new org.json.JSONArray();
-                    org.json.JSONArray completionTimes = current.optJSONArray("done_at");
-                    if (completionTimes == null) completionTimes = new org.json.JSONArray();
-                    for (int i = 0; i < currentSteps.length(); i++) {
-                        updated.put(i, updated.optBoolean(i, false));
-                        completionTimes.put(i, completionTimes.optLong(i, 0L));
-                    }
+                    org.json.JSONArray previousDone = current.optJSONArray("done");
+                    org.json.JSONArray previousTimes = current.optJSONArray("done_at");
+                    org.json.JSONArray updated = new org.json.JSONArray();
+                    org.json.JSONArray completionTimes = new org.json.JSONArray();
                     long now = System.currentTimeMillis();
-                    updated.put(stepIndex, true);
-                    completionTimes.put(stepIndex, now);
+                    for (int i = 0; i < currentSteps.length(); i++) {
+                        boolean isDone = i == stepIndex || (previousDone != null && previousDone.optBoolean(i, false));
+                        long completedAt = i == stepIndex ? now : (previousTimes == null ? 0L : previousTimes.optLong(i, 0L));
+                        updated.put(isDone);
+                        completionTimes.put(completedAt);
+                    }
                     org.json.JSONArray audit = current.optJSONArray("owner_confirmations");
                     if (audit == null) audit = new org.json.JSONArray();
                     if (audit.length() >= 100) audit.remove(0);
