@@ -1480,3 +1480,24 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** pending for the final combined branch head. Do not mark build-verified until the Actions run completes successfully.
 - **Poco M4 Pro 4G:** physical-device verification pending. Camera intent return-thumbnail behavior, ML Kit model availability, image picker, OCR and private vault search need device testing.
 - **Scope:** JARVIS only; Even untouched. No automatic capture, cloud vision processing, autonomous surveillance or real-world spatial measurement.
+
+
+## Canonical M11 + M12 integration reconciliation (2026-11-27)
+
+The following modules are already present and integrated on the active continuation branch `feature/m06-confirmed-sms-send` (head before this tracker-only update: `f39c075c8f28d7032ee0b1ac1de88295e94d9070`). This entry reconciles older historical batch labels with the current canonical M01–M19 blueprint; it does not create duplicate studios or claim new implementation beyond the inspected source.
+
+### M11 — Creative Media & Creator Studio
+- **Code-present and Command Center-integrated:** `CreativeMediaStudio.java`, opened from MainActivity menu item 34.
+- **Included tools:** Image Concept Builder, Video Script Planner, Storyboard & Shot List, Presentation Builder, and Creative Project Organizer.
+- **Scope:** the current Android studio is text-first planning/prompt generation. It does not itself render or save image/video/presentation files. The image prompt flow requests original age-appropriate concepts, avoids living-artist imitation/copyrighted character or logo reproduction, and includes alt text. Video/storyboard prompts prohibit dangerous stunts and copyrighted lyrics/scripts; presentation prompts request sources-to-verify and prohibit invented citations/statistics.
+- **Privacy/interaction:** owner starts each flow; request text is sent through the existing standalone AI path only after a confirmation dialog. No automatic media capture or background processing is added by this studio.
+- **Validation:** present in the exact M10 merge head; post-merge GitHub Actions run #1280 (run ID `45882000096`) passed Android unit tests, backend reasoning tests, debug APK build and artifact upload. No dedicated CreativeMediaStudio-specific unit test file was found in the active branch. Poco M4 Pro 4G UI/device verification remains pending.
+
+### M12 — AI Development, Software & Data Intelligence Studio
+- **Code-present and Command Center-integrated:** `SoftwareDevelopmentStudio.java` (MainActivity menu item 31) and `DataIntelligenceStudio.java` (menu item 32).
+- **Software tools:** Project Architect, Bug & Error Explainer, Code Quality Review, Software Project Notebook, Build & Test Report Viewer, and read-only Public GitHub Repository Overview. These produce reviewable plans/analysis; pasted-code review does not execute code, edit files, deploy, or certify the whole project. Inputs are capped at 5,000 characters and the owner is warned to remove secrets; each AI submission requires confirmation.
+- **Data tools:** Dataset Profiler, Data Quality Inspector, Aggregate AI Insight Report, and Saved Data Reports. CSV parsing/structural checks are local-first, with limits of 50,000 characters, 1,000 rows and 50 columns. For the optional AI report, the owner sees a preview and confirms; only anonymized column labels and aggregate statistics are sent, not raw CSV rows/cell values. Structural checks do not prove factual correctness.
+- **No duplicate modules:** these classes extend the canonical M12 responsibility. Historical tracker entries that called Software Development M11 and Data Intelligence M12 are legacy batch numbering; use the canonical module ownership above going forward. Creative Media belongs to canonical M11.
+- **Validation:** present in the exact M10 merge head; post-merge GitHub Actions run #1280 (run ID `45882000096`) passed Android unit tests, backend reasoning tests, debug APK build and artifact upload. No dedicated SoftwareDevelopmentStudio/DataIntelligenceStudio-specific unit test files were found in the active branch. Poco M4 Pro 4G UI/device verification remains pending.
+
+**Branch boundary:** this is a tracker-only clarification on `feature/m06-confirmed-sms-send`; `main` remains unchanged and the separate Even project remains untouched.
