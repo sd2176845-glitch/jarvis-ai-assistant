@@ -1447,3 +1447,10 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** pending for this exact branch head; do not mark build-verified until the Actions run completes.
 - **Poco M4 Pro 4G:** physical-device verification pending.
 - **Merge:** this is one combined M07/M08 change set. Keep it stacked on the M06 branch until its CI is green and the existing PR stack can be merged coherently. JARVIS only; Even untouched.
+
+
+### M07/M08 CI correction audit
+- **Run #1264** (run ID `45880837642`, intermediate head `09b733e909581b7f500d5a6d59478fb72cdad88a`) exposed a Java compile error in the first owner-confirmation progress-array implementation: indexed `JSONArray.put(index, value)` calls throw checked `JSONException` and were outside the guarded block.
+- **Correction:** rebuilt the completion and timestamp arrays sequentially using append-only `put(value)`, preserving prior completion states and adding the newly confirmed step. No indexed writes remain in that path.
+- **Run #1265** (run ID `45880869833`, exact corrected application-code head `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227`) completed **SUCCESS**: backend syntax/tests, Android unit tests, debug APK build and artifact upload all passed.
+- Documentation-only tracker/blueprint commits followed. Final branch-head runs #1266/#1267 were still in progress at the time of this note; the exact final branch head must pass before merge.
