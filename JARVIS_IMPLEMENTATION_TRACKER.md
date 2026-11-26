@@ -1399,3 +1399,15 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** pending for this exact branch head; do not mark verified until the final-head workflow passes.
 - **Poco M4 Pro 4G device verification:** pending.
 - **Merge policy:** keep as a draft stacked change; do not merge into PR #63 or `main` without explicit owner approval.
+
+
+## M06 Communication Intelligence — Batch C02 (owner-confirmed SMS execution; 2026-11-27)
+
+- **Canonical owner:** M06 — Communication Intelligence & Unified Communication Hub. Extends the existing SMS draft/contact-selection path; no duplicate messaging module.
+- **Implemented in code:** addressed SMS commands resolve the selected contact, show an editable draft, then show a second confirmation containing the exact normalized recipient number and exact message. Only the explicit **Send SMS** action proceeds.
+- **Permission boundary:** adds Android `SEND_SMS` as a runtime permission. If permission is not granted, JARVIS retains only the pending owner-confirmed one-message request while Android displays its permission prompt. Denial clears the pending request and sends nothing.
+- **Execution:** uses Android `SmsManager` for single-part or multipart SMS. The UI reports submission to the carrier only; it does not claim delivery or read receipts. Invalid data, permission denial and send exceptions fail closed.
+- **Non-addressed SMS:** continues to open the messaging composer because no recipient has been selected. It does not guess a recipient.
+- **Email / WhatsApp:** the previous C01 email and personal-WhatsApp composer handoffs remain drafts only. Email needs a user-authorized provider integration; ordinary personal WhatsApp has no supported general Android API for silently/directly sending a message. No brittle accessibility/UI automation or bypass was added.
+- **Tests:** added pure-Java SMS number normalization and validation tests. CI/build and Poco M4 Pro 4G device verification are pending for this exact head.
+- **Run #1247:** the connected GitHub workflow lookup available here returns PR-triggered runs by commit SHA, not an Actions run by display number. Run #1247 has not yet been identified from the repository data returned; its exact failed job/log must be matched before claiming a repair. Keep this batch draft and unmerged; JARVIS only, Even untouched.
