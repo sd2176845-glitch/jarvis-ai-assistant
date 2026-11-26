@@ -53,6 +53,14 @@
 - [ ] Refresh app knowledge through owner-invoked or bounded scheduled public-source checks.
 - [ ] Show sources, freshness and what could not be inspected; do not promise awareness of every app/update.
 - [ ] Keep app knowledge separate from app-control permission and private app data.
+- [ ] Build an app identity profile from package name, publisher/developer, official website and trusted public listings; flag mismatches or missing verification instead of declaring an app safe/unsafe without evidence.
+- [ ] Maintain version-aware app profiles with release notes, changed features, known compatibility notes and the date each fact was checked.
+- [ ] Explain an app's publicly documented permissions and privacy practices in plain language; distinguish requested permissions from permissions actually granted on this phone.
+- [ ] Provide a device-compatibility view using documented Android/API, hardware and app-version requirements; label unknown or untested combinations clearly.
+- [ ] Compare owner-selected apps by documented features, supported platforms, accessibility, privacy disclosures and update history, with sources for each comparison.
+- [ ] Offer source-linked troubleshooting guidance for common app errors and settings; separate official guidance from community reports and mark uncertain fixes.
+- [ ] Let the owner organize apps into editable categories and maintain an owner-selected app knowledge shortlist without reading private in-app content.
+- [ ] Track owner-requested app/watchlist changes such as major releases, support end dates or documented service incidents; make checks opt-in, bounded and easy to pause.
 
 ### M05 — Universal Application & Phone Control
 - [ ] Launch apps and open supported Android settings handoffs.
