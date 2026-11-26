@@ -1399,3 +1399,134 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** pending for this exact branch head; do not mark verified until the final-head workflow passes.
 - **Poco M4 Pro 4G device verification:** pending.
 - **Merge policy:** keep as a draft stacked change; do not merge into PR #63 or `main` without explicit owner approval.
+
+
+## M06 Communication Intelligence — Batch C02 (owner-confirmed SMS execution; 2026-11-27)
+
+- **Canonical owner:** M06 — Communication Intelligence & Unified Communication Hub. Extends the existing SMS draft/contact-selection path; no duplicate messaging module.
+- **Implemented in code:** addressed SMS commands resolve the selected contact, show an editable draft, then show a second confirmation containing the exact normalized recipient number and exact message. Only the explicit **Send SMS** action proceeds.
+- **Permission boundary:** adds Android `SEND_SMS` as a runtime permission. If permission is not granted, JARVIS retains only the pending owner-confirmed one-message request while Android displays its permission prompt. Denial clears the pending request and sends nothing.
+- **Execution:** uses Android `SmsManager` for single-part or multipart SMS. The UI reports submission to the carrier only; it does not claim delivery or read receipts. Invalid data, permission denial and send exceptions fail closed.
+- **Non-addressed SMS:** continues to open the messaging composer because no recipient has been selected. It does not guess a recipient.
+- **Email / WhatsApp:** the previous C01 email and personal-WhatsApp composer handoffs remain drafts only. Email needs a user-authorized provider integration; ordinary personal WhatsApp has no supported general Android API for silently/directly sending a message. No brittle accessibility/UI automation or bypass was added.
+- **Tests:** added pure-Java SMS number normalization and validation tests. CI/build and Poco M4 Pro 4G device verification are pending for this exact head.
+- **Run #1247:** the connected GitHub workflow lookup available here returns PR-triggered runs by commit SHA, not an Actions run by display number. Run #1247 has not yet been identified from the repository data returned; its exact failed job/log must be matched before claiming a repair. Keep this batch draft and unmerged; JARVIS only, Even untouched.
+
+
+## M06 — CI failure audit and correction record (2026-11-27)
+
+- **Run #1247** (run ID `45878873715`, commit `b5ce20bed85685da458d93f3a56868d312ff06f7`): failed Android compilation because `MainActivity` referenced `M06CommunicationRules` before that helper class was present in the branch. The helper was added in the following commit (`a98ebf10d1dc4da71c06a8c0458557098e8cbcef`); later C01 runs #1248 and #1249 passed.
+- **Run #1252** (run ID `45879607062`) and **run #1253** (run ID `45879610473`): failed Android compilation because `MainActivity` referenced `normalizeSmsNumber(String)` and `isValidSmsNumber(String)` before those helper methods were present in `M06CommunicationRules`. The helper was subsequently updated and recipient validation tests were added; runs #1254 and #1255 passed.
+- **Latest exact PR #66 head validation:** run #1256 (run ID `45879624265`, head `2be0817ea233a0867f8354707bca864ca6e7261f`) completed **SUCCESS**. Verified workflow steps: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded.
+- **Interpretation:** the recorded M06 failures were intermediate commit-order/helper API mismatches and are corrected on the current PR #66 head. No evidence from these runs indicates a remaining M06 compile failure. Do not claim physical-device sending, carrier delivery, email sending or personal WhatsApp direct-send is validated.
+- **Current PR state:** PR #66 remains open and draft, based on `feature/m06-communication-hub-3pack`; not merged. Poco M4 Pro 4G verification remains pending. JARVIS only; Even untouched.
+
+
+## M07 + M08 — Productivity routines and workflow orchestration (2026-11-27)
+
+**Branch:** `feature/m07-m08-productivity-orchestration`, based on the current M06 SMS implementation branch. This is one combined M07/M08 increment; it does not create duplicate task or workflow stores.
+
+### M07 — Personal Secretary, Productivity & Life Management
+- **Existing code reused:** `ProductivityStudio`, `structured_tasks_v1`, existing task categories/priorities/due dates, project grouping, priority matrix and weekly review.
+- **New code-present capability — Routine Planner:** owner can assign Daily, Weekly or Monthly recurrence to an existing task, review recurring tasks, and manually create the next occurrence after marking the current occurrence complete.
+- **Date handling:** recurrence uses local calendar dates; monthly recurrence clamps safely at month-end (for example, January 31 advances to the last valid day in February). Invalid dates/cadences fail closed.
+- **Duplicate/limit protections:** a duplicate next occurrence for the same title/date/cadence is rejected; the existing 200-task limit is respected; the original completed task is preserved; the cloned next task starts incomplete and receives a fresh creation timestamp.
+- **Automation boundary:** no background task creation, alarm, notification, calendar polling or second scheduler was introduced. The owner explicitly taps the action to create each next occurrence.
+- **Tests:** `M07RoutineRulesTest` covers supported cadence values, daily/weekly advancement, month-end behavior, blank-date handling and invalid inputs.
+
+### M08 — Workflow Automation & Orchestration
+- **Existing code reused:** `Workflow Studio` and `manual_workflows_v1`; existing manual checklist, dry-run preview, progress timestamps, history and duplication remain in place.
+- **New code-present capability — workflow templates:** four local starter templates (Morning planning, Study session, Project review, Weekly review) can be copied into the existing workflow store. Template creation respects the existing 50-workflow cap.
+- **New code-present capability — owner-confirmed step gate:** the owner can approve the next unfinished step. JARVIS displays the exact step and requires a deliberate confirmation before marking it complete; confirmation timestamp and a bounded owner-confirmation history are saved.
+- **Execution boundary:** these are manual checklists, not autonomous cross-app actions. JARVIS does not perform the step, send messages, place calls, change device settings, schedule triggers or run workflows in the background. Dry-run remains explicitly read-only.
+- **Backward compatibility:** existing workflows with plain string steps and missing approval metadata continue to work; new metadata is additive.
+- **Tests:** `B22WorkflowOrchestrationRulesTest` covers next-pending-step selection, completed/empty/null input, template bounds and defensive copies.
+
+### Validation and status
+- **Code branch head:** `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227` (latest MainActivity integration/hardening commit at tracker update time).
+- **CI/build:** pending for this exact branch head; do not mark build-verified until the Actions run completes.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+- **Merge:** this is one combined M07/M08 change set. Keep it stacked on the M06 branch until its CI is green and the existing PR stack can be merged coherently. JARVIS only; Even untouched.
+
+
+### M07/M08 CI correction audit
+- **Run #1264** (run ID `45880837642`, intermediate head `09b733e909581b7f500d5a6d59478fb72cdad88a`) exposed a Java compile error in the first owner-confirmation progress-array implementation: indexed `JSONArray.put(index, value)` calls throw checked `JSONException` and were outside the guarded block.
+- **Correction:** rebuilt the completion and timestamp arrays sequentially using append-only `put(value)`, preserving prior completion states and adding the newly confirmed step. No indexed writes remain in that path.
+- **Run #1265** (run ID `45880869833`, exact corrected application-code head `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227`) completed **SUCCESS**: backend syntax/tests, Android unit tests, debug APK build and artifact upload all passed.
+- Documentation-only tracker/blueprint commits followed. Final branch-head runs #1266/#1267 were still in progress at the time of this note; the exact final branch head must pass before merge.
+
+
+## M09 + M10 — Searchable Memory Vault & Owner-Started Vision Analysis (2026-11-27)
+
+**Branch:** `feature/m09-m10-memory-vision`, stacked on `feature/m06-confirmed-sms-send` so the current M06/M07/M08 work remains in the same implementation line. One combined M09/M10 batch.
+
+### M09 — Personal Memory, Knowledge Vault & Timeline
+- **Existing foundation reused:** saved notes, owner-created `memory_timeline_v1`, `memory_graph_v1`, `idea_versions_v1`, encrypted device-bound legacy archive and existing export/delete controls.
+- **New code-present feature — local memory search:** the Personal Memory Vault now searches saved notes, timeline entries, graph nodes/links and versioned idea snapshots. Results identify the source category, display bounded previews, and cap the result list at 30 items.
+- **Privacy boundary:** search is local-only and does not send memory to the AI backend. Recent conversational context is deliberately excluded from saved-memory search. Malformed JSON is reported as unreadable and not overwritten.
+- **New code-present provenance fields:** new timeline entries can include an optional owner-entered source/reference; records are tagged `Owner-entered`. Older timeline records remain readable and are labelled as legacy/source-not-recorded when appropriate.
+- **Tests:** `MemorySearchRulesTest` covers case-insensitive matching, empty/null queries and bounded whitespace-normalized previews.
+
+### M10 — Vision, OCR, Spatial & Media Intelligence
+- **Existing OCR reused:** owner-selected image OCR and first-page PDF OCR continue to run on-device; sending extracted text to the AI backend remains a separate, explicit user action.
+- **New code-present feature — image scene labels:** owner selects one image through Android's document picker; ML Kit image labeling runs locally and displays conservative confidence bands.
+- **New code-present feature — one-shot camera analysis:** owner explicitly starts the camera action; JARVIS analyzes only the preview thumbnail returned by the camera app. No continuous camera stream, background monitoring, gallery scanning, image persistence or image upload is introduced.
+- **New code-present feature — coarse spatial regions:** on-device object detection reports approximate image regions (upper/middle/lower and left/center/right) from bounding-box centers. It does not claim real-world coordinates, distance or certainty.
+- **Dependencies:** ML Kit image labeling `17.0.9` and object detection `17.0.2`; no camera or storage permission added.
+- **Tests:** `VisionConfidenceRulesTest` covers conservative confidence filtering/labels and coarse image-region mapping.
+
+### Validation and status
+- **Implementation files:** `MemorySearchRules.java`, `VisionConfidenceRules.java`, `VisionAnalysisStudio.java`; existing `MainActivity.java` and `app/build.gradle` extended; focused JVM tests added.
+- **CI/build:** pending for the final combined branch head. Do not mark build-verified until the Actions run completes successfully.
+- **Poco M4 Pro 4G:** physical-device verification pending. Camera intent return-thumbnail behavior, ML Kit model availability, image picker, OCR and private vault search need device testing.
+- **Scope:** JARVIS only; Even untouched. No automatic capture, cloud vision processing, autonomous surveillance or real-world spatial measurement.
+
+
+## Canonical M11 + M12 integration reconciliation (2026-11-27)
+
+The following modules are already present and integrated on the active continuation branch `feature/m06-confirmed-sms-send` (head before this tracker-only update: `f39c075c8f28d7032ee0b1ac1de88295e94d9070`). This entry reconciles older historical batch labels with the current canonical M01–M19 blueprint; it does not create duplicate studios or claim new implementation beyond the inspected source.
+
+### M11 — Creative Media & Creator Studio
+- **Code-present and Command Center-integrated:** `CreativeMediaStudio.java`, opened from MainActivity menu item 34.
+- **Included tools:** Image Concept Builder, Video Script Planner, Storyboard & Shot List, Presentation Builder, and Creative Project Organizer.
+- **Scope:** the current Android studio is text-first planning/prompt generation. It does not itself render or save image/video/presentation files. The image prompt flow requests original age-appropriate concepts, avoids living-artist imitation/copyrighted character or logo reproduction, and includes alt text. Video/storyboard prompts prohibit dangerous stunts and copyrighted lyrics/scripts; presentation prompts request sources-to-verify and prohibit invented citations/statistics.
+- **Privacy/interaction:** owner starts each flow; request text is sent through the existing standalone AI path only after a confirmation dialog. No automatic media capture or background processing is added by this studio.
+- **Validation:** present in the exact M10 merge head; post-merge GitHub Actions run #1280 (run ID `45882000096`) passed Android unit tests, backend reasoning tests, debug APK build and artifact upload. No dedicated CreativeMediaStudio-specific unit test file was found in the active branch. Poco M4 Pro 4G UI/device verification remains pending.
+
+### M12 — AI Development, Software & Data Intelligence Studio
+- **Code-present and Command Center-integrated:** `SoftwareDevelopmentStudio.java` (MainActivity menu item 31) and `DataIntelligenceStudio.java` (menu item 32).
+- **Software tools:** Project Architect, Bug & Error Explainer, Code Quality Review, Software Project Notebook, Build & Test Report Viewer, and read-only Public GitHub Repository Overview. These produce reviewable plans/analysis; pasted-code review does not execute code, edit files, deploy, or certify the whole project. Inputs are capped at 5,000 characters and the owner is warned to remove secrets; each AI submission requires confirmation.
+- **Data tools:** Dataset Profiler, Data Quality Inspector, Aggregate AI Insight Report, and Saved Data Reports. CSV parsing/structural checks are local-first, with limits of 50,000 characters, 1,000 rows and 50 columns. For the optional AI report, the owner sees a preview and confirms; only anonymized column labels and aggregate statistics are sent, not raw CSV rows/cell values. Structural checks do not prove factual correctness.
+- **No duplicate modules:** these classes extend the canonical M12 responsibility. Historical tracker entries that called Software Development M11 and Data Intelligence M12 are legacy batch numbering; use the canonical module ownership above going forward. Creative Media belongs to canonical M11.
+- **Validation:** present in the exact M10 merge head; post-merge GitHub Actions run #1280 (run ID `45882000096`) passed Android unit tests, backend reasoning tests, debug APK build and artifact upload. No dedicated SoftwareDevelopmentStudio/DataIntelligenceStudio-specific unit test files were found in the active branch. Poco M4 Pro 4G UI/device verification remains pending.
+
+**Branch boundary:** this is a tracker-only clarification on `feature/m06-confirmed-sms-send`; `main` remains unchanged and the separate Even project remains untouched.
+
+
+## M09 + M10 — final CI result (2026-11-27)
+- Post-merge push workflow run #1280 (ID `45882000096`) completed **SUCCESS** on feature branch head `f39c075c8f28d7032ee0b1ac1de88295e94d9070`.
+- This confirms the merged M09/M10 branch passed the connected Android workflow after merge. Poco M4 Pro 4G physical-device verification remains pending.
+
+
+## M11 + M12 — Creator Production Preflight & Development Patch Review (2026-11-27)
+
+**Branch:** `feature/m11-m12-creator-dev-studio`, based on `feature/m06-confirmed-sms-send`. One combined M11/M12 increment; existing studios are extended in place, not duplicated.
+
+### M11 — Creative Media & Creator Studio
+- **Existing code reused:** image concept prompt builder, video script planner, storyboard/shot list, presentation outline, local creative project organizer and saved drafts.
+- **New code-present capability — Production Preflight:** owner selects image/graphic, video/short-form or presentation and enters a bounded project brief. JARVIS generates a local checklist covering original/licensed assets, permissions for identifiable people and private locations, factual-claim review, safe production, captions, contrast/readability, audio balance, privacy review, credits and final preview.
+- **New code-present capability — scene timing helper:** pure-Java utility distributes a total duration across a bounded scene count, preserving the exact total and spreading remainder seconds deterministically.
+- **Limitations:** checklist and scene timing are planning aids only. This increment does not render images, video or slide files, publish content or upload the creative brief. Existing AI prompt workflows still require their explicit send confirmation.
+
+### M12 — AI Development, Software & Data Intelligence Studio
+- **Existing code reused:** project architecture, bug/error explanation, code review, local software project notebook, pasted build-report viewer, read-only public GitHub metadata overview, local CSV profiling/quality checks and aggregate-only AI narrative.
+- **New code-present capability — Patch & Change Review:** owner pastes a bounded diff/excerpt; local rules count added/removed lines, detect whether diff markers are present and flag high-attention patterns involving secrets, permissions/access, process/shell execution, destructive file operations, network endpoints and background execution. It produces a manual review checklist.
+- **Safety boundary:** patch review is advisory pattern matching, not a security audit. No code is executed, applied, committed, downloaded or automatically modified. It does not access private repositories. Flags can be false positives/negatives; complete human review and isolated tests remain required.
+- **Tests:** `CreativeProductionRulesTest` covers rights/accessibility checklist output, exact scene-duration distribution and invalid inputs. `DevChangeReviewRulesTest` covers diff counts, manual-review requirement, permission/secret flags and input bounds.
+
+### Validation and status
+- **Files added:** `CreativeProductionRules.java`, `DevChangeReviewRules.java` and focused JVM tests.
+- **Existing studios extended:** `CreativeMediaStudio.java`, `SoftwareDevelopmentStudio.java`; existing MainActivity routing and menu already exposed both studios, so no duplicate menu entry or module was created.
+- **CI/build:** pending for the final combined branch head; do not mark verified until the exact head's Actions workflow succeeds.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+- **Scope:** JARVIS only; Even untouched. No media rendering, code execution, automatic patch application or main-branch merge.

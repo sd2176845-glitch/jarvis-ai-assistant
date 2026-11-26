@@ -28,6 +28,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -55,9 +56,12 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int SMS_SEND_PERMISSION_REQUEST = 1005;
     private boolean startWakeAfterPermission = false;
     private String pendingDirectCallNumber = null;
     private String pendingDirectCallName = null;
+    private String pendingSmsNumber = null;
+    private String pendingSmsText = null;
     private SharedPreferences preferences;
     private ImageView avatar;
     private android.os.CountDownTimer activeFocusTimer;
@@ -399,18 +403,21 @@ public class MainActivity extends Activity {
     }
 
     private void openVisionTools() {
-        new AlertDialog.Builder(this)
-                .setTitle("JARVIS • Vision tools")
-                .setMessage("Open the camera to capture a photo, or open Google Lens in your browser to identify objects and read text from an image. Lens requires internet and may ask you to upload/select a photo.")
-                .setPositiveButton("Open Camera", (d, w) -> {
-                    try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
-                    catch (Exception e) { status.setText("CAMERA NOT AVAILABLE"); }
-                })
-                .setNeutralButton("Open Google Lens", (d, w) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://lens.google.com/"))); }
-                    catch (Exception e) { status.setText("BROWSER NOT AVAILABLE"); }
-                })
-                .setNegativeButton("Close", null).show();
+        if (blockPrivateInGuestMode()) return;
+        String[] actions = {
+                "Analyze one selected image • on-device",
+                "One-shot camera analysis • on-device",
+                "Read text from one image • OCR",
+                "Read first page of one PDF • OCR"
+        };
+        new AlertDialog.Builder(this).setTitle("JARVIS • Vision & spatial tools")
+                .setMessage("Nothing is scanned automatically. Choose one image or start one camera capture. Scene/object results are estimates with confidence labels; OCR runs locally.")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) VisionAnalysisStudio.chooseImage(this);
+                    else if (which == 1) VisionAnalysisStudio.captureOneShot(this);
+                    else if (which == 2) ImageOcrStudio.chooseImage(this);
+                    else DocumentOcrStudio.choosePdf(this);
+                }).setNegativeButton("Close", null).show();
     }
 
     private void showTaskAndReminderHub() {
@@ -1011,26 +1018,95 @@ public class MainActivity extends Activity {
         message.setMaxLines(8);
         message.setGravity(Gravity.TOP | Gravity.START);
         new AlertDialog.Builder(this).setTitle("JARVIS • Message draft")
-                .setMessage("Review or edit the message. JARVIS will only open your messaging app; it will not send the message.")
+                .setMessage(recipientNumber == null || recipientNumber.trim().isEmpty()
+                        ? "Review or edit the message. Choose a recipient in your messaging app."
+                        : "Review or edit the message. JARVIS will show one final confirmation before sending this SMS.")
                 .setView(message)
                 .setNegativeButton("Cancel", (d, w) -> status.setText("MESSAGE DRAFT CANCELLED"))
-                .setPositiveButton("Review in messaging app", (d, w) -> {
+                .setPositiveButton(recipientNumber == null || recipientNumber.trim().isEmpty()
+                        ? "Open messaging app" : "Continue to confirmation", (d, w) -> {
                     String approvedText = message.getText().toString().trim();
                     if (!B21MessageDraftRules.isValidDraft(approvedText)) {
-                        status.setText("MESSAGE DRAFT INVALID • NOTHING OPENED");
+                        status.setText("MESSAGE DRAFT INVALID • NOTHING SENT");
                         return;
                     }
-                    try {
-                        String target = recipientNumber == null || recipientNumber.trim().isEmpty()
-                                ? "smsto:" : "smsto:" + android.net.Uri.encode(recipientNumber);
-                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse(target));
-                        sms.putExtra("sms_body", approvedText);
-                        startActivity(sms);
-                        status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
-                    } catch (Exception e) {
-                        status.setText("MESSAGE APP NOT AVAILABLE");
+                    if (recipientNumber == null || recipientNumber.trim().isEmpty()) {
+                        try {
+                            Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                            sms.putExtra("sms_body", approvedText);
+                            startActivity(sms);
+                            status.setText("MESSAGE COMPOSER OPENED • SEND MANUALLY");
+                        } catch (Exception e) {
+                            status.setText("MESSAGE APP NOT AVAILABLE");
+                        }
+                    } else {
+                        confirmSmsSend(recipientNumber, approvedText);
                     }
                 }).show();
+    }
+
+    /**
+     * The owner reviews the exact recipient and message here. Android's runtime
+     * permission is requested only after this explicit confirmation.
+     */
+    private void confirmSmsSend(String recipientNumber, String approvedText) {
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (!M06CommunicationRules.isValidSmsNumber(number)
+                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+            status.setText("SMS DETAILS INVALID • NOTHING SENT");
+            return;
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Confirm SMS send")
+                .setMessage("Recipient: " + number + "\n\nExact message:\n" + approvedText
+                        + "\n\nSend this one SMS now?")
+                .setNegativeButton("Cancel", (d, w) -> {
+                    pendingSmsNumber = null;
+                    pendingSmsText = null;
+                    status.setText("SMS CANCELLED • NOTHING SENT");
+                })
+                .setPositiveButton("Send SMS", (d, w) -> {
+                    if (checkSelfPermission(Manifest.permission.SEND_SMS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        sendApprovedSms(number, approvedText);
+                    } else {
+                        pendingSmsNumber = number;
+                        pendingSmsText = approvedText;
+                        requestPermissions(new String[]{Manifest.permission.SEND_SMS},
+                                SMS_SEND_PERMISSION_REQUEST);
+                    }
+                }).show();
+    }
+
+    /** Sends only the exact owner-confirmed SMS; provider acceptance is not delivery proof. */
+    private void sendApprovedSms(String recipientNumber, String approvedText) {
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED
+                || !M06CommunicationRules.isValidSmsNumber(number)
+                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+            status.setText("SMS NOT SENT • PERMISSION OR DETAILS INVALID");
+            return;
+        }
+        try {
+            SmsManager manager = SmsManager.getDefault();
+            ArrayList<String> parts = manager.divideMessage(approvedText);
+            if (parts == null || parts.isEmpty()) {
+                status.setText("SMS NOT SENT • MESSAGE COULD NOT BE SPLIT");
+                return;
+            }
+            if (parts.size() == 1) {
+                manager.sendTextMessage(number, null, approvedText, null, null);
+            } else {
+                manager.sendMultipartTextMessage(number, null, parts, null, null);
+            }
+            status.setText("SMS SUBMITTED TO CARRIER • DELIVERY NOT CONFIRMED");
+            speak("SMS bhejne ki request phone network ko de di gayi hai. Delivery abhi confirm nahi hai.");
+        } catch (SecurityException e) {
+            status.setText("SMS NOT SENT • ANDROID DENIED PERMISSION");
+        } catch (IllegalArgumentException e) {
+            status.setText("SMS NOT SENT • INVALID RECIPIENT OR MESSAGE");
+        } catch (Exception e) {
+            status.setText("SMS SEND FAILED • CHECK SIM AND NETWORK");
+        }
     }
 
     private void showEmailRecipientChoices(String requestedName, String draft) {
@@ -1512,6 +1588,10 @@ public class MainActivity extends Activity {
         timeline.setText("OPEN PERSONAL TIMELINE");
         timeline.setOnClickListener(v -> showPersonalTimeline());
         panel.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
+        Button searchMemory = new Button(this);
+        searchMemory.setText("SEARCH MEMORY VAULT");
+        searchMemory.setOnClickListener(v -> showMemorySearch());
+        panel.addView(searchMemory, new LinearLayout.LayoutParams(-1, -2));
         Button memoryExpansion = new Button(this);
         memoryExpansion.setText("MEMORY EXPANSION STUDIO");
         memoryExpansion.setOnClickListener(v ->
@@ -1526,6 +1606,88 @@ public class MainActivity extends Activity {
                 .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
                 .setNeutralButton("Close", null)
                 .show();
+    }
+
+    /** Searches owner-curated local memory records; transient conversation is deliberately excluded. */
+    private void showMemorySearch() {
+        if (blockPrivateInGuestMode()) return;
+        EditText queryInput = new EditText(this);
+        queryInput.setSingleLine(true);
+        queryInput.setHint("Search notes, timeline, graph and idea versions");
+        new AlertDialog.Builder(this).setTitle("JARVIS • Search Memory Vault")
+                .setMessage("Search stays on this phone. Recent conversation context is not included in this saved-memory search.")
+                .setView(queryInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Search", (dialog, which) -> {
+                    String query = queryInput.getText().toString().trim();
+                    if (query.isEmpty() || query.length() > 100) {
+                        status.setText("ENTER A SEARCH TERM (1–100 CHARACTERS)");
+                        return;
+                    }
+                    StringBuilder results = new StringBuilder();
+                    int[] count = {0};
+                    String notes = getSavedNotes();
+                    if (MemorySearchRules.matches(query, notes)) {
+                        results.append("SAVED NOTES\n")
+                                .append(MemorySearchRules.preview(notes, 700)).append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray timeline = readPersonalTimeline();
+                    if (timeline == null) results.append("Timeline data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < timeline.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = timeline.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query,
+                                item.optString("title", ""), item.optString("detail", ""),
+                                item.optString("source", ""), item.optString("provenance", ""))) continue;
+                        results.append("TIMELINE • ").append(item.optString("title", "Untitled entry"))
+                                .append("\nSource: ").append(item.optString("source", "Legacy • source not recorded"))
+                                .append("\n").append(MemorySearchRules.preview(item.optString("detail", ""), 350))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray graph;
+                    try { graph = new org.json.JSONArray(preferences.getString("memory_graph_v1", "[]")); }
+                    catch (org.json.JSONException e) { graph = null; }
+                    if (graph == null) results.append("Knowledge graph data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < graph.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = graph.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query,
+                                item.optString("name", ""), item.optString("detail", ""),
+                                item.optString("from", ""), item.optString("relation", ""),
+                                item.optString("to", ""), item.optString("provenance", ""))) continue;
+                        results.append("KNOWLEDGE GRAPH • ")
+                                .append(item.optString("kind", "item")).append("\n")
+                                .append(item.optString("name", item.optString("from", "Relationship")))
+                                .append(item.has("relation") ? " — " + item.optString("relation") + " — " + item.optString("to", "") : "")
+                                .append("\nProvenance: ").append(item.optString("provenance", "Legacy • source not recorded"))
+                                .append("\n").append(MemorySearchRules.preview(item.optString("detail", ""), 250))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray versions;
+                    try { versions = new org.json.JSONArray(preferences.getString("idea_versions_v1", "[]")); }
+                    catch (org.json.JSONException e) { versions = null; }
+                    if (versions == null) results.append("Idea version data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < versions.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = versions.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query, item.optString("content", ""))) continue;
+                        results.append("IDEA VERSION ").append(i + 1).append("\n")
+                                .append(MemorySearchRules.preview(item.optString("content", ""), 400))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    if (count[0] == 0) results.append("No matching saved memory was found.");
+                    else results.insert(0, "MATCHES: " + count[0] + " (maximum 30 shown)\n\n");
+                    TextView output = new TextView(this);
+                    output.setText(results.toString());
+                    output.setTextIsSelectable(true);
+                    output.setTextSize(14);
+                    output.setPadding(28, 20, 28, 20);
+                    ScrollView scroll = new ScrollView(this);
+                    scroll.addView(output);
+                    new AlertDialog.Builder(this).setTitle("Memory search results")
+                            .setView(scroll).setPositiveButton("Close", null).show();
+                }).show();
     }
 
     private org.json.JSONArray readPersonalTimeline() {
@@ -1582,7 +1744,9 @@ public class MainActivity extends Activity {
                             : "Date unavailable";
                     new AlertDialog.Builder(this)
                             .setTitle(item.optString("title", "Timeline entry"))
-                            .setMessage(date + "\n\n" + item.optString("detail", ""))
+                            .setMessage(date + "\n\n" + item.optString("detail", "")
+                                    + "\n\nSource: " + item.optString("source", "Legacy • source not recorded")
+                                    + "\nProvenance: " + item.optString("provenance", "Legacy • source not recorded"))
                             .setPositiveButton("Close", null).show();
                 })
                 .setPositiveButton("Add entry", (d, w) -> showAddPersonalTimelineEntry())
@@ -1606,6 +1770,10 @@ public class MainActivity extends Activity {
         detailInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         form.addView(detailInput, new LinearLayout.LayoutParams(-1, -2));
+        EditText sourceInput = new EditText(this);
+        sourceInput.setSingleLine(true);
+        sourceInput.setHint("Source / reference (optional)");
+        form.addView(sourceInput, new LinearLayout.LayoutParams(-1, -2));
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Add timeline entry")
                 .setMessage("Only information you enter here is saved. JARVIS does not collect events in the background.")
@@ -1625,6 +1793,9 @@ public class MainActivity extends Activity {
                     try {
                         item.put("title", title);
                         item.put("detail", detailInput.getText().toString().trim());
+                        String source = sourceInput.getText().toString().trim();
+                        item.put("source", source.isEmpty() ? "Owner-entered" : source);
+                        item.put("provenance", "Owner-entered");
                         item.put("createdAt", System.currentTimeMillis());
                         entries.put(item);
                         savePersonalTimeline(entries);
@@ -1876,6 +2047,7 @@ public class MainActivity extends Activity {
                 .setMessage("Manual checklist only. No automatic app/device actions or background triggers.")
                 .setView(panel)
                 .setNegativeButton("Cancel", null)
+                .setNeutralButton("Templates", (dialog, which) -> showWorkflowTemplates())
                 .setPositiveButton("Save", (dialog, which) -> {
                     String title = titleInput.getText().toString().trim();
                     String rawSteps = stepsInput.getText().toString();
@@ -1899,7 +2071,11 @@ public class MainActivity extends Activity {
                         item.put("title", title);
                         item.put("steps", steps);
                         item.put("done", new org.json.JSONArray());
+                        item.put("done_at", new org.json.JSONArray());
+                        item.put("approval_mode", "owner_confirm_each_step");
+                        item.put("execution_mode", "manual_only");
                         item.put("created_at", System.currentTimeMillis());
+                        item.put("updated_at", System.currentTimeMillis());
                         workflows.put(item);
                         saveManualWorkflows(workflows);
                         status.setText("MANUAL WORKFLOW SAVED");
@@ -1951,23 +2127,23 @@ public class MainActivity extends Activity {
                     }
                     showWorkflowStudio();
                 })
-                .setNeutralButton("Dry-run preview", (dialog, which) -> {
-                    String[] previewSteps = new String[steps.length()];
-                    for (int step = 0; step < steps.length(); step++) {
-                        previewSteps[step] = steps.optString(step, "Unavailable step");
-                    }
-                    String preview = B21WorkflowPreviewRules.buildPreview(
-                            item.optString("title", "Untitled workflow"), previewSteps);
-                    new AlertDialog.Builder(this).setTitle("Workflow preview")
-                            .setMessage(preview)
-                            .setPositiveButton("Back", null).show();
-                })
+                .setNeutralButton("Approve next step", (dialog, which) -> approveNextManualWorkflowStep(index))
                 .setNegativeButton("More", (dialog, which) ->
                         new AlertDialog.Builder(this).setTitle("Workflow options")
-                                .setItems(new String[]{"View step history", "Duplicate workflow", "Reset checklist", "Close"}, (d, option) -> {
-                                    if (option == 0) showManualWorkflowHistory(item, steps);
-                                    else if (option == 1) duplicateManualWorkflow(workflows, item, steps);
-                                    else if (option == 2) {
+                                .setItems(new String[]{"Dry-run preview", "View step history", "Duplicate workflow", "Reset checklist", "Close"}, (d, option) -> {
+                                    if (option == 0) {
+                                        String[] previewSteps = new String[steps.length()];
+                                        for (int step = 0; step < steps.length(); step++) {
+                                            previewSteps[step] = steps.optString(step, "Unavailable step");
+                                        }
+                                        String preview = B21WorkflowPreviewRules.buildPreview(
+                                                item.optString("title", "Untitled workflow"), previewSteps);
+                                        new AlertDialog.Builder(this).setTitle("Workflow preview")
+                                                .setMessage(preview)
+                                                .setPositiveButton("Back", null).show();
+                                    } else if (option == 1) showManualWorkflowHistory(item, steps);
+                                    else if (option == 2) duplicateManualWorkflow(workflows, item, steps);
+                                    else if (option == 3) {
                                         try {
                                             item.put("done", new org.json.JSONArray());
                                             item.put("done_at", new org.json.JSONArray());
@@ -1980,6 +2156,119 @@ public class MainActivity extends Activity {
                                         showWorkflowStudio();
                                     }
                                 }).show()).show();
+    }
+
+    private void showWorkflowTemplates() {
+        if (blockPrivateInGuestMode()) return;
+        String[] titles = B22WorkflowOrchestrationRules.templateTitles();
+        new AlertDialog.Builder(this).setTitle("M08 • Workflow templates")
+                .setMessage("Choose a starter checklist. Templates are saved locally and never run automatically.")
+                .setItems(titles, (dialog, which) -> {
+                    org.json.JSONArray workflows = readManualWorkflows();
+                    if (workflows == null) {
+                        status.setText("WORKFLOW DATA COULD NOT BE READ");
+                        return;
+                    }
+                    if (workflows.length() >= 50) {
+                        status.setText("WORKFLOW LIMIT REACHED • NOTHING CREATED");
+                        return;
+                    }
+                    try {
+                        org.json.JSONArray steps = new org.json.JSONArray();
+                        for (String step : B22WorkflowOrchestrationRules.templateSteps(which)) steps.put(step);
+                        org.json.JSONObject item = new org.json.JSONObject();
+                        long now = System.currentTimeMillis();
+                        item.put("title", titles[which]);
+                        item.put("template_name", titles[which]);
+                        item.put("steps", steps);
+                        item.put("done", new org.json.JSONArray());
+                        item.put("done_at", new org.json.JSONArray());
+                        item.put("approval_mode", "owner_confirm_each_step");
+                        item.put("execution_mode", "manual_only");
+                        item.put("created_at", now);
+                        item.put("updated_at", now);
+                        workflows.put(item);
+                        if (saveManualWorkflows(workflows)) {
+                            status.setText("WORKFLOW TEMPLATE ADDED • OWNER CONTROLLED");
+                            showWorkflowStudio();
+                        } else status.setText("WORKFLOW TEMPLATE COULD NOT BE SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW TEMPLATE COULD NOT BE CREATED");
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void approveNextManualWorkflowStep(int workflowIndex) {
+        if (blockPrivateInGuestMode()) return;
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) {
+            status.setText("WORKFLOW DATA COULD NOT BE READ");
+            return;
+        }
+        org.json.JSONObject item = workflows.optJSONObject(workflowIndex);
+        org.json.JSONArray steps = item == null ? null : item.optJSONArray("steps");
+        if (item == null || steps == null || steps.length() == 0) {
+            status.setText("WORKFLOW STEP IS NOT AVAILABLE");
+            return;
+        }
+        org.json.JSONArray done = item.optJSONArray("done");
+        boolean[] completed = new boolean[steps.length()];
+        for (int i = 0; i < completed.length; i++) completed[i] = done != null && done.optBoolean(i, false);
+        int next = B22WorkflowOrchestrationRules.nextPendingStep(completed);
+        if (next < 0) {
+            new AlertDialog.Builder(this).setTitle("Workflow complete")
+                    .setMessage("All checklist steps are already marked complete.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        final int stepIndex = next;
+        final String stepText = steps.optString(stepIndex, "Unavailable step");
+        new AlertDialog.Builder(this).setTitle("Owner approval required")
+                .setMessage("Next manual step:\\n\\n" + (stepIndex + 1) + ". " + stepText
+                        + "\\n\\nJARVIS will not perform this step. Confirm only after you personally complete it.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("I completed this step", (dialog, which) -> {
+                    org.json.JSONArray latest = readManualWorkflows();
+                    org.json.JSONObject current = latest == null ? null : latest.optJSONObject(workflowIndex);
+                    org.json.JSONArray currentSteps = current == null ? null : current.optJSONArray("steps");
+                    if (current == null || currentSteps == null || stepIndex >= currentSteps.length()
+                            || !stepText.equals(currentSteps.optString(stepIndex, ""))) {
+                        status.setText("WORKFLOW CHANGED • REVIEW IT AGAIN");
+                        return;
+                    }
+                    org.json.JSONArray previousDone = current.optJSONArray("done");
+                    org.json.JSONArray previousTimes = current.optJSONArray("done_at");
+                    org.json.JSONArray updated = new org.json.JSONArray();
+                    org.json.JSONArray completionTimes = new org.json.JSONArray();
+                    long now = System.currentTimeMillis();
+                    for (int i = 0; i < currentSteps.length(); i++) {
+                        boolean isDone = i == stepIndex || (previousDone != null && previousDone.optBoolean(i, false));
+                        long completedAt = i == stepIndex ? now : (previousTimes == null ? 0L : previousTimes.optLong(i, 0L));
+                        updated.put(isDone);
+                        completionTimes.put(completedAt);
+                    }
+                    org.json.JSONArray audit = current.optJSONArray("owner_confirmations");
+                    if (audit == null) audit = new org.json.JSONArray();
+                    if (audit.length() >= 100) audit.remove(0);
+                    org.json.JSONObject record = new org.json.JSONObject();
+                    try {
+                        record.put("step_index", stepIndex);
+                        record.put("step_label", stepText);
+                        record.put("confirmed_at", now);
+                        record.put("confirmation_type", "owner_marked_manually_completed");
+                        audit.put(record);
+                        current.put("done", updated);
+                        current.put("done_at", completionTimes);
+                        current.put("owner_confirmations", audit);
+                        current.put("updated_at", now);
+                        if (saveManualWorkflows(latest)) {
+                            status.setText("OWNER CONFIRMATION SAVED • NO AUTOMATIC ACTION PERFORMED");
+                            showManualWorkflow(workflowIndex);
+                        } else status.setText("CONFIRMATION COULD NOT BE SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("CONFIRMATION COULD NOT BE SAVED");
+                    }
+                }).show();
     }
 
     private void duplicateManualWorkflow(org.json.JSONArray workflows,
@@ -3004,6 +3293,7 @@ public class MainActivity extends Activity {
         }
         if (PracticalIntelligenceStudio.handleAssetDocumentPickerResult(
                 this, requestCode, resultCode, data)) return;
+        if (VisionAnalysisStudio.handleResult(this, requestCode, resultCode, data)) return;
         if (!ImageOcrStudio.handleResult(this, requestCode, resultCode, data)) {
             DocumentOcrStudio.handleResult(this, requestCode, resultCode, data);
         }
@@ -3028,6 +3318,18 @@ public class MainActivity extends Activity {
             for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;
             status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");
             if (allGranted) speak("Call aur SMS announcements enabled.");
+        } else if (requestCode == SMS_SEND_PERMISSION_REQUEST) {
+            String number = pendingSmsNumber;
+            String text = pendingSmsText;
+            pendingSmsNumber = null;
+            pendingSmsText = null;
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && number != null && text != null) {
+                sendApprovedSms(number, text);
+            } else {
+                status.setText("SMS PERMISSION DENIED • MESSAGE NOT SENT");
+                speak("SMS permission nahi mili. Message nahi bheja gaya.");
+            }
         } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 String number = pendingDirectCallNumber;
@@ -3340,9 +3642,8 @@ public class MainActivity extends Activity {
             showConnectedSystems();
             return;
         } else if (intent.contains("open camera") || intent.contains("camera kholo") || intent.equals("camera")) {
-            speak("Camera khol raha hoon.");
-            try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
-            catch (Exception e) { transcript.append("\nCamera abhi nahi khul paaya."); }
+            speak("Ek photo ke liye camera khol raha hoon. Analysis sirf tumhari confirmation ke baad ek baar hoga.");
+            VisionAnalysisStudio.captureOneShot(this);
             return;
         } else if (intent.contains("open maps") || intent.contains("maps kholo") || intent.contains("google maps") || intent.contains("map kholo")) {
             speak("Maps khol raha hoon.");

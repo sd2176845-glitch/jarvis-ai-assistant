@@ -20,7 +20,8 @@ public final class CreativeMediaStudio {
                 "Video Script Planner • hook / narration / scenes",
                 "Storyboard & Shot List • scene-by-scene plan",
                 "Presentation Builder • slides / speaker notes",
-                "Creative Project Organizer • saved drafts"
+                "Creative Project Organizer • saved drafts",
+                "Production Preflight • rights / consent / accessibility"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Creative Media Studio")
                 .setItems(options, (d, which) -> {
@@ -28,10 +29,28 @@ public final class CreativeMediaStudio {
                     else if (which == 1) videoScript(activity, status, transcript);
                     else if (which == 2) storyboard(activity, status, transcript);
                     else if (which == 3) presentation(activity, status, transcript);
-                    else showProjects(activity);
+                    else if (which == 4) showProjects(activity);
+                    else productionPreflight(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
+
+
+    private static void productionPreflight(Activity activity) {
+        String[] types = {"Image / graphic", "Video / short-form", "Presentation"};
+        new AlertDialog.Builder(activity).setTitle("Creator Production Preflight")
+                .setItems(types, (dialog, which) ->
+                        askTopic(activity, "Production brief",
+                                "Describe the project (maximum 500 characters)",
+                                brief -> {
+                                    String checklist = CreativeProductionRules.buildChecklist(types[which], brief);
+                                    new AlertDialog.Builder(activity).setTitle("JARVIS • Production Checklist")
+                                            .setMessage(checklist)
+                                            .setPositiveButton("Done", null)
+                                            .show();
+                                }))
+                .setNegativeButton("Cancel", null).show();
+    }
 
     private static void imageConcept(Activity activity, TextView status, TextView transcript) {
         String[] formats = {"Square 1:1", "Portrait 9:16", "Landscape 16:9"};

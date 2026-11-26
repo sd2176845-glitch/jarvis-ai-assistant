@@ -312,7 +312,27 @@ The existing Tasks & reminders hub is being upgraded in place with a local struc
 The existing Command Center now includes a Workflow Studio foundation. Owners can create a named checklist (up to 12 steps), mark steps complete, save progress, reset a checklist and delete it. The workflow records use a dedicated local preference key and do not duplicate the M07 task list or notes. This first increment is deliberately manual-only: no background triggers, autonomous execution, cross-app actions, calls/messages or device-setting changes. Code is present on the feature branch. CI passed on runs #479 and #480; run #480 uploaded debug artifact `14761207706`. Target-device verification remains pending.
 
 
-### M09 implementation progress — Personal Memory Vault foundation
+### M07 + M08 implementation increment — Routine Planner & Workflow Orchestration (2026-11-27)
+
+### M07 — code-present additions
+- Routine Planner extends the existing structured task list and Productivity Studio.
+- Owner can set Daily, Weekly or Monthly repeat rules on an existing task, review recurring tasks, and manually create the next occurrence after completing the current task.
+- The original task is retained; next-occurrence creation checks for duplicates and respects the existing task cap. Monthly date advancement handles month-end dates.
+- No background task generation, second scheduler, calendar polling or automatic notifications are introduced.
+
+### M08 — code-present additions
+- Four owner-selected local workflow templates: Morning planning, Study session, Project review and Weekly review.
+- Owner-confirmed next-step gate: JARVIS displays the next unfinished checklist step and records it only after explicit confirmation from the owner.
+- Confirmation timestamps and a bounded owner-confirmation history are stored alongside the existing manual workflow record.
+- Existing dry-run preview, manual checklist progress, step history and duplication are retained.
+
+### Boundaries and verification
+- M08 remains manual-only: JARVIS does not execute checklist steps, launch cross-app actions, send messages, place calls, change device settings or run background triggers.
+- Existing task and workflow stores are reused; no duplicate task database, workflow store or scheduler is created.
+- Focused JVM tests were added for recurrence date rules and workflow orchestration/template behavior.
+- CI for the combined feature branch and Poco M4 Pro 4G verification are pending. These capabilities are code-present, not yet build- or device-verified.
+
+## M09 implementation progress — Personal Memory Vault foundation
 - **Code-present on feature branch:** Command Center now opens an owner-controlled vault over the existing local notes and recent AI conversation stores.
 - Review and correction use the existing notes store; export uses Android's explicit share chooser; notes deletion and recent-conversation clearing are separate, confirmed actions.
 - No parallel memory database, background capture, or automatic retention of new information was added.
@@ -729,3 +749,20 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 - **Verification:** CI PASS — GitHub Actions PR run #1228 (ID 45632201087) on application-code head `dab491badbe150c59392a8ce178ba5b231d616e4`: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded. Push run #1227 (ID 45632182102) also passed on the same SHA.
 - **APK artifact:** `jarvis-debug-apk`, ID `15032095825`, SHA-256 `77d76d60ff9fdb15cc2f03e96d59ce669194d101b945a7dad21f222c31a2d4a5`.
 - **Status:** CI-verified source and tests on `feature/m03-academic-research-explorer`; Poco M4 Pro 4G physical-device testing remains pending. This is a partial M03 increment, not completion of the M03 module. JARVIS only; Even untouched.
+
+
+### M09/M10 implementation increment — searchable memory and owner-started vision (2026-11-27)
+- **M09 code-present:** Personal Memory Vault adds local search across saved notes, owner-created timeline, knowledge graph and versioned idea snapshots. Results are bounded and source-labelled; recent conversation context is excluded from this saved-memory search.
+- **M09 code-present:** new timeline entries accept an optional owner-entered source/reference and store explicit owner-entry provenance. Legacy records remain readable and are not rewritten.
+- **M10 code-present:** selected-image scene labeling and object detection run on-device using ML Kit. Results show confidence bands and coarse image-relative regions from object bounding boxes.
+- **M10 code-present:** one-shot camera capture is explicitly owner-started and analyzes only the camera app's returned preview thumbnail. Existing local image OCR and first-page PDF OCR remain available.
+- **Safety/limitations:** no silent gallery scan, continuous camera feed, background monitoring, image persistence or image upload. The spatial output is only a rough region inside the image, not a real-world position or distance. Sending OCR text to AI remains a separate explicit action.
+- **Validation:** focused JVM tests added for memory matching/preview and vision confidence/spatial-region rules. Combined branch CI and Poco M4 Pro 4G testing are pending; these additions are not yet build- or device-verified.
+
+
+### M11/M12 implementation increment — creator preflight and patch review (2026-11-27)
+- M11 extends the existing Creative Media Studio with an owner-invoked production preflight checklist for rights/licensing, consent, factual review, safe production, accessibility, privacy and final review; a pure-Java helper distributes total runtime across scene counts.
+- M12 extends the existing Software Development Studio with local, bounded review of owner-pasted code diffs. It counts added/removed lines and flags selected high-attention patterns involving secrets, permissions, process execution, destructive file operations, network endpoints and background execution.
+- These are additive upgrades to existing M11/M12 studios. Existing project organizer, saved plans, data profiling, and report workflows remain the canonical implementations.
+- Patch review is advisory only; it does not execute/apply code or prove a change is safe. Creator preflight does not render media or publish content. No new Android permissions, data stores, network access or background services were added.
+- Focused JVM tests added for creator checklist/scene timing and patch review bounds/flags. GitHub Actions run #1296 (ID `45882536899`) passed backend checks, Android unit tests, debug APK build and APK upload on exact head `d51fca6d1ede468e7066a901009e2940468ef152`. Poco M4 Pro 4G device verification remains pending.

@@ -21,7 +21,8 @@ public final class SoftwareDevelopmentStudio {
                 "Code Quality Review • review pasted code",
                 "Software Project Notebook • saved plans",
                 "Build & Test Report Viewer • pasted CI summary",
-                "Public GitHub Repository Overview • read-only"
+                "Public GitHub Repository Overview • read-only",
+                "Patch & Change Review • inspect pasted diff"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Software Development Studio")
                 .setItems(options, (d, which) -> {
@@ -30,7 +31,8 @@ public final class SoftwareDevelopmentStudio {
                     else if (which == 2) codeReview(activity, status, transcript);
                     else if (which == 3) showSavedPlans(activity);
                     else if (which == 4) buildReportViewer(activity);
-                    else showRepositoryOverview(activity);
+                    else if (which == 5) showRepositoryOverview(activity);
+                    else patchReview(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -126,6 +128,25 @@ public final class SoftwareDevelopmentStudio {
                                 .setNegativeButton("Done", null).show();
                     });
                 }).show();
+    }
+
+
+    private static void patchReview(Activity activity) {
+        askText(activity, "Patch & Change Review",
+                "Paste a unified diff or small code-change excerpt (maximum 5,000 characters). Remove secrets first.",
+                diff -> {
+                    try {
+                        String report = DevChangeReviewRules.review(diff);
+                        new AlertDialog.Builder(activity).setTitle("JARVIS • Patch Review")
+                                .setMessage(report)
+                                .setPositiveButton("Done", null)
+                                .show();
+                    } catch (IllegalArgumentException e) {
+                        new AlertDialog.Builder(activity).setTitle("Patch could not be reviewed")
+                                .setMessage(e.getMessage())
+                                .setPositiveButton("Close", null).show();
+                    }
+                });
     }
 
     private static void showRepositoryOverview(Activity activity) {

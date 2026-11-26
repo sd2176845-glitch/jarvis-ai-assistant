@@ -32,13 +32,15 @@ public final class ProductivityStudio {
         String[] options = {
                 "Project Workspace • group existing tasks",
                 "Priority Matrix • classify existing tasks",
-                "Weekly Review • last 7 days"
+                "Weekly Review • last 7 days",
+                "Routine Planner • recurring task templates"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Personal Productivity Studio")
                 .setItems(options, (d, which) -> {
                     if (which == 0) projectWorkspace(activity);
                     else if (which == 1) priorityMatrix(activity);
-                    else weeklyReview(activity);
+                    else if (which == 2) weeklyReview(activity);
+                    else routinePlanner(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -203,6 +205,124 @@ public final class ProductivityStudio {
                         }
                     }).setNegativeButton("Cancel", null).show();
         });
+    }
+
+    private static void routinePlanner(Activity activity) {
+        String[] options = {"Set repeat schedule on a task", "Create next occurrence now", "Review recurring tasks"};
+        new AlertDialog.Builder(activity).setTitle("Routine Planner")
+                .setMessage("Recurring tasks are owner-managed. JARVIS does not create tasks in the background.")
+                .setItems(options, (d, which) -> {
+                    if (which == 0) setRepeatSchedule(activity);
+                    else if (which == 1) createNextOccurrence(activity);
+                    else reviewRecurringTasks(activity);
+                }).setNegativeButton("Close", null).show();
+    }
+
+    private static void setRepeatSchedule(Activity activity) {
+        chooseTask(activity, "Choose a task for a routine", index -> {
+            String[] cadence = {"Daily", "Weekly", "Monthly", "No repeat"};
+            new AlertDialog.Builder(activity).setTitle("Repeat schedule")
+                    .setItems(cadence, (d, which) -> {
+                        JSONArray tasks = readTasks(activity);
+                        JSONObject item = tasks == null ? null : tasks.optJSONObject(index);
+                        if (item == null) {
+                            showMessage(activity, "Routine Planner", "The selected task is no longer available.");
+                            return;
+                        }
+                        try {
+                            if (which == 3) item.remove("repeat_rule");
+                            else item.put("repeat_rule", cadence[which]);
+                            if (saveTasks(activity, tasks)) {
+                                showMessage(activity, "Routine Planner",
+                                        which == 3 ? "Repeat schedule removed." : "Saved " + cadence[which]
+                                                + " repeat. JARVIS will only create the next task when you request it.");
+                            } else showMessage(activity, "Routine Planner", "Could not save the repeat schedule.");
+                        } catch (Exception e) {
+                            showMessage(activity, "Routine Planner", "Could not update this task.");
+                        }
+                    }).setNegativeButton("Cancel", null).show();
+        });
+    }
+
+    private static void createNextOccurrence(Activity activity) {
+        chooseTask(activity, "Choose a recurring task", index -> {
+            JSONArray tasks = readTasks(activity);
+            JSONObject original = tasks == null ? null : tasks.optJSONObject(index);
+            if (original == null) {
+                showMessage(activity, "Routine Planner", "The selected task is no longer available.");
+                return;
+            }
+            String cadence = original.optString("repeat_rule", "");
+            if (!M07RoutineRules.isValidCadence(cadence)) {
+                showMessage(activity, "Routine Planner", "This task has no valid repeat schedule. Set Daily, Weekly or Monthly first.");
+                return;
+            }
+            if (!original.optBoolean("done", false)) {
+                showMessage(activity, "Routine Planner", "Complete the current task before creating its next occurrence.");
+                return;
+            }
+            if (tasks.length() >= 200) {
+                showMessage(activity, "Routine Planner", "Task limit reached. Complete or delete old tasks first.");
+                return;
+            }
+            String nextDate = M07RoutineRules.nextDueDate(
+                    original.optString("due_date", ""), cadence, System.currentTimeMillis());
+            if (nextDate == null) {
+                showMessage(activity, "Routine Planner", "The task due date is invalid. Correct it before creating the next occurrence.");
+                return;
+            }
+            String title = original.optString("title", "Recurring task");
+            for (int i = 0; i < tasks.length(); i++) {
+                JSONObject existing = tasks.optJSONObject(i);
+                if (existing != null && title.equals(existing.optString("title", ""))
+                        && nextDate.equals(existing.optString("due_date", ""))
+                        && cadence.equals(existing.optString("repeat_rule", ""))) {
+                    showMessage(activity, "Routine Planner", "The next occurrence for " + nextDate + " already exists.");
+                    return;
+                }
+            }
+            try {
+                JSONObject next = new JSONObject(original.toString());
+                next.put("done", false);
+                next.put("created_at", System.currentTimeMillis());
+                next.put("due_date", nextDate);
+                next.remove("done_at");
+                next.remove("completed_at");
+                next.remove("completion_time");
+                tasks.put(next);
+                if (saveTasks(activity, tasks)) {
+                    showMessage(activity, "Routine Planner", "Next occurrence created: " + title
+                            + "\\nDue: " + nextDate + "\\nThe original completed task was kept unchanged.");
+                } else showMessage(activity, "Routine Planner", "Could not save the next occurrence.");
+            } catch (Exception e) {
+                showMessage(activity, "Routine Planner", "Could not create the next occurrence.");
+            }
+        });
+    }
+
+    private static void reviewRecurringTasks(Activity activity) {
+        JSONArray tasks = readTasks(activity);
+        if (tasks == null) {
+            showMessage(activity, "Routine Planner", "Task data could not be read. Existing data has been preserved.");
+            return;
+        }
+        StringBuilder out = new StringBuilder("RECURRING TASKS\\n\\n");
+        int count = 0;
+        for (int i = 0; i < tasks.length(); i++) {
+            JSONObject item = tasks.optJSONObject(i);
+            if (item == null) continue;
+            String cadence = item.optString("repeat_rule", "");
+            if (!M07RoutineRules.isValidCadence(cadence)) continue;
+            count++;
+            out.append("• ").append(item.optString("title", "Untitled task"))
+                    .append(" — ").append(cadence)
+                    .append(" — ").append(item.optBoolean("done", false) ? "Completed" : "Pending")
+                    .append(" — Due: ").append(item.optString("due_date", "Not set"))
+                    .append("\\n");
+        }
+        if (count == 0) out.append("No recurring tasks yet.");
+        out.append("\\nNext occurrences are created only when you tap the manual action. No background scheduling is used.");
+        showMessage(activity, "Routine Planner", out.toString());
     }
 
     private static void weeklyReview(Activity activity) {
