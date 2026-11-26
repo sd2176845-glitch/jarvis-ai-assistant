@@ -1480,3 +1480,33 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** pending for the final combined branch head. Do not mark build-verified until the Actions run completes successfully.
 - **Poco M4 Pro 4G:** physical-device verification pending. Camera intent return-thumbnail behavior, ML Kit model availability, image picker, OCR and private vault search need device testing.
 - **Scope:** JARVIS only; Even untouched. No automatic capture, cloud vision processing, autonomous surveillance or real-world spatial measurement.
+
+
+
+## M09 + M10 — final CI result (2026-11-27)
+- Post-merge push workflow run #1280 (ID `45882000096`) completed **SUCCESS** on feature branch head `f39c075c8f28d7032ee0b1ac1de88295e94d9070`.
+- This confirms the merged M09/M10 branch passed the connected Android workflow after merge. Poco M4 Pro 4G physical-device verification remains pending.
+
+
+## M11 + M12 — Creator Production Preflight & Development Patch Review (2026-11-27)
+
+**Branch:** `feature/m11-m12-creator-dev-studio`, based on `feature/m06-confirmed-sms-send`. One combined M11/M12 increment; existing studios are extended in place, not duplicated.
+
+### M11 — Creative Media & Creator Studio
+- **Existing code reused:** image concept prompt builder, video script planner, storyboard/shot list, presentation outline, local creative project organizer and saved drafts.
+- **New code-present capability — Production Preflight:** owner selects image/graphic, video/short-form or presentation and enters a bounded project brief. JARVIS generates a local checklist covering original/licensed assets, permissions for identifiable people and private locations, factual-claim review, safe production, captions, contrast/readability, audio balance, privacy review, credits and final preview.
+- **New code-present capability — scene timing helper:** pure-Java utility distributes a total duration across a bounded scene count, preserving the exact total and spreading remainder seconds deterministically.
+- **Limitations:** checklist and scene timing are planning aids only. This increment does not render images, video or slide files, publish content or upload the creative brief. Existing AI prompt workflows still require their explicit send confirmation.
+
+### M12 — AI Development, Software & Data Intelligence Studio
+- **Existing code reused:** project architecture, bug/error explanation, code review, local software project notebook, pasted build-report viewer, read-only public GitHub metadata overview, local CSV profiling/quality checks and aggregate-only AI narrative.
+- **New code-present capability — Patch & Change Review:** owner pastes a bounded diff/excerpt; local rules count added/removed lines, detect whether diff markers are present and flag high-attention patterns involving secrets, permissions/access, process/shell execution, destructive file operations, network endpoints and background execution. It produces a manual review checklist.
+- **Safety boundary:** patch review is advisory pattern matching, not a security audit. No code is executed, applied, committed, downloaded or automatically modified. It does not access private repositories. Flags can be false positives/negatives; complete human review and isolated tests remain required.
+- **Tests:** `CreativeProductionRulesTest` covers rights/accessibility checklist output, exact scene-duration distribution and invalid inputs. `DevChangeReviewRulesTest` covers diff counts, manual-review requirement, permission/secret flags and input bounds.
+
+### Validation and status
+- **Files added:** `CreativeProductionRules.java`, `DevChangeReviewRules.java` and focused JVM tests.
+- **Existing studios extended:** `CreativeMediaStudio.java`, `SoftwareDevelopmentStudio.java`; existing MainActivity routing and menu already exposed both studios, so no duplicate menu entry or module was created.
+- **CI/build:** pending for the final combined branch head; do not mark verified until the exact head's Actions workflow succeeds.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+- **Scope:** JARVIS only; Even untouched. No media rendering, code execution, automatic patch application or main-branch merge.
