@@ -1420,3 +1420,37 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Latest exact PR #66 head validation:** run #1256 (run ID `45879624265`, head `2be0817ea233a0867f8354707bca864ca6e7261f`) completed **SUCCESS**. Verified workflow steps: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded.
 - **Interpretation:** the recorded M06 failures were intermediate commit-order/helper API mismatches and are corrected on the current PR #66 head. No evidence from these runs indicates a remaining M06 compile failure. Do not claim physical-device sending, carrier delivery, email sending or personal WhatsApp direct-send is validated.
 - **Current PR state:** PR #66 remains open and draft, based on `feature/m06-communication-hub-3pack`; not merged. Poco M4 Pro 4G verification remains pending. JARVIS only; Even untouched.
+
+
+## M07 + M08 — Productivity routines and workflow orchestration (2026-11-27)
+
+**Branch:** `feature/m07-m08-productivity-orchestration`, based on the current M06 SMS implementation branch. This is one combined M07/M08 increment; it does not create duplicate task or workflow stores.
+
+### M07 — Personal Secretary, Productivity & Life Management
+- **Existing code reused:** `ProductivityStudio`, `structured_tasks_v1`, existing task categories/priorities/due dates, project grouping, priority matrix and weekly review.
+- **New code-present capability — Routine Planner:** owner can assign Daily, Weekly or Monthly recurrence to an existing task, review recurring tasks, and manually create the next occurrence after marking the current occurrence complete.
+- **Date handling:** recurrence uses local calendar dates; monthly recurrence clamps safely at month-end (for example, January 31 advances to the last valid day in February). Invalid dates/cadences fail closed.
+- **Duplicate/limit protections:** a duplicate next occurrence for the same title/date/cadence is rejected; the existing 200-task limit is respected; the original completed task is preserved; the cloned next task starts incomplete and receives a fresh creation timestamp.
+- **Automation boundary:** no background task creation, alarm, notification, calendar polling or second scheduler was introduced. The owner explicitly taps the action to create each next occurrence.
+- **Tests:** `M07RoutineRulesTest` covers supported cadence values, daily/weekly advancement, month-end behavior, blank-date handling and invalid inputs.
+
+### M08 — Workflow Automation & Orchestration
+- **Existing code reused:** `Workflow Studio` and `manual_workflows_v1`; existing manual checklist, dry-run preview, progress timestamps, history and duplication remain in place.
+- **New code-present capability — workflow templates:** four local starter templates (Morning planning, Study session, Project review, Weekly review) can be copied into the existing workflow store. Template creation respects the existing 50-workflow cap.
+- **New code-present capability — owner-confirmed step gate:** the owner can approve the next unfinished step. JARVIS displays the exact step and requires a deliberate confirmation before marking it complete; confirmation timestamp and a bounded owner-confirmation history are saved.
+- **Execution boundary:** these are manual checklists, not autonomous cross-app actions. JARVIS does not perform the step, send messages, place calls, change device settings, schedule triggers or run workflows in the background. Dry-run remains explicitly read-only.
+- **Backward compatibility:** existing workflows with plain string steps and missing approval metadata continue to work; new metadata is additive.
+- **Tests:** `B22WorkflowOrchestrationRulesTest` covers next-pending-step selection, completed/empty/null input, template bounds and defensive copies.
+
+### Validation and status
+- **Code branch head:** `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227` (latest MainActivity integration/hardening commit at tracker update time).
+- **CI/build:** pending for this exact branch head; do not mark build-verified until the Actions run completes.
+- **Poco M4 Pro 4G:** physical-device verification pending.
+- **Merge:** this is one combined M07/M08 change set. Keep it stacked on the M06 branch until its CI is green and the existing PR stack can be merged coherently. JARVIS only; Even untouched.
+
+
+### M07/M08 CI correction audit
+- **Run #1264** (run ID `45880837642`, intermediate head `09b733e909581b7f500d5a6d59478fb72cdad88a`) exposed a Java compile error in the first owner-confirmation progress-array implementation: indexed `JSONArray.put(index, value)` calls throw checked `JSONException` and were outside the guarded block.
+- **Correction:** rebuilt the completion and timestamp arrays sequentially using append-only `put(value)`, preserving prior completion states and adding the newly confirmed step. No indexed writes remain in that path.
+- **Run #1265** (run ID `45880869833`, exact corrected application-code head `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227`) completed **SUCCESS**: backend syntax/tests, Android unit tests, debug APK build and artifact upload all passed.
+- Documentation-only tracker/blueprint commits followed. Final branch-head runs #1266/#1267 were still in progress at the time of this note; the exact final branch head must pass before merge.

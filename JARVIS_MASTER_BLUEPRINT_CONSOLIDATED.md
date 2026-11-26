@@ -312,7 +312,27 @@ The existing Tasks & reminders hub is being upgraded in place with a local struc
 The existing Command Center now includes a Workflow Studio foundation. Owners can create a named checklist (up to 12 steps), mark steps complete, save progress, reset a checklist and delete it. The workflow records use a dedicated local preference key and do not duplicate the M07 task list or notes. This first increment is deliberately manual-only: no background triggers, autonomous execution, cross-app actions, calls/messages or device-setting changes. Code is present on the feature branch. CI passed on runs #479 and #480; run #480 uploaded debug artifact `14761207706`. Target-device verification remains pending.
 
 
-### M09 implementation progress — Personal Memory Vault foundation
+### M07 + M08 implementation increment — Routine Planner & Workflow Orchestration (2026-11-27)
+
+### M07 — code-present additions
+- Routine Planner extends the existing structured task list and Productivity Studio.
+- Owner can set Daily, Weekly or Monthly repeat rules on an existing task, review recurring tasks, and manually create the next occurrence after completing the current task.
+- The original task is retained; next-occurrence creation checks for duplicates and respects the existing task cap. Monthly date advancement handles month-end dates.
+- No background task generation, second scheduler, calendar polling or automatic notifications are introduced.
+
+### M08 — code-present additions
+- Four owner-selected local workflow templates: Morning planning, Study session, Project review and Weekly review.
+- Owner-confirmed next-step gate: JARVIS displays the next unfinished checklist step and records it only after explicit confirmation from the owner.
+- Confirmation timestamps and a bounded owner-confirmation history are stored alongside the existing manual workflow record.
+- Existing dry-run preview, manual checklist progress, step history and duplication are retained.
+
+### Boundaries and verification
+- M08 remains manual-only: JARVIS does not execute checklist steps, launch cross-app actions, send messages, place calls, change device settings or run background triggers.
+- Existing task and workflow stores are reused; no duplicate task database, workflow store or scheduler is created.
+- Focused JVM tests were added for recurrence date rules and workflow orchestration/template behavior.
+- CI for the combined feature branch and Poco M4 Pro 4G verification are pending. These capabilities are code-present, not yet build- or device-verified.
+
+## M09 implementation progress — Personal Memory Vault foundation
 - **Code-present on feature branch:** Command Center now opens an owner-controlled vault over the existing local notes and recent AI conversation stores.
 - Review and correction use the existing notes store; export uses Android's explicit share chooser; notes deletion and recent-conversation clearing are separate, confirmed actions.
 - No parallel memory database, background capture, or automatic retention of new information was added.
