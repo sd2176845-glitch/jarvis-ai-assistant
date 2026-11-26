@@ -94,6 +94,26 @@ public class AppIntelligenceActivity extends Activity {
         note.setPadding(0, dp(8), 0, dp(18));
         root.addView(note);
 
+        LinearLayout intelligenceActions = new LinearLayout(this);
+        intelligenceActions.setOrientation(LinearLayout.HORIZONTAL);
+        Button compareApps = new Button(this);
+        compareApps.setText("COMPARE APPS");
+        compareApps.setTextSize(10);
+        compareApps.setAllCaps(false);
+        compareApps.setTextColor(Color.WHITE);
+        compareApps.setOnClickListener(v -> beginAppComparison());
+        intelligenceActions.addView(compareApps,
+                new LinearLayout.LayoutParams(0, dp(46), 1f));
+        Button deviceCheck = new Button(this);
+        deviceCheck.setText("DEVICE CHECK");
+        deviceCheck.setTextSize(10);
+        deviceCheck.setAllCaps(false);
+        deviceCheck.setTextColor(Color.WHITE);
+        deviceCheck.setOnClickListener(v -> showDeviceCompatibilityOverview());
+        intelligenceActions.addView(deviceCheck,
+                new LinearLayout.LayoutParams(0, dp(46), 1f));
+        root.addView(intelligenceActions, new LinearLayout.LayoutParams(-1, -2));
+
         LinearLayout filters = new LinearLayout(this);
         filters.setOrientation(LinearLayout.HORIZONTAL);
         filters.setGravity(Gravity.CENTER);
@@ -243,6 +263,8 @@ public class AppIntelligenceActivity extends Activity {
         message.append("App: ").append(app.label)
                 .append("\nPackage: ").append(app.packageName)
                 .append("\nVersion: ").append(version)
+                .append("\nAndroid minimum SDK: ").append(getMinSdk(app.packageName))
+                .append("\nAndroid target SDK: ").append(getTargetSdk(app.packageName))
                 .append("\n\nDeclared permissions (not grant status):");
         if (requested == null || requested.length == 0) {
             message.append("\nNo declared permissions returned by Android.");
@@ -354,6 +376,89 @@ public class AppIntelligenceActivity extends Activity {
             shown++;
         }
         count.setText(shown + " app(s) • " + selected);
+    }
+
+    private void beginAppComparison() {
+        if (apps.size() < 2) {
+            Toast.makeText(this, "At least two visible apps are needed.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String[] labels = new String[apps.size()];
+        for (int i = 0; i < apps.size(); i++) labels[i] = apps.get(i).label;
+        new AlertDialog.Builder(this).setTitle("Choose first app")
+                .setItems(labels, (dialog, which) -> {
+                    AppEntry first = apps.get(which);
+                    chooseSecondComparisonApp(first, labels);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void chooseSecondComparisonApp(AppEntry first, String[] labels) {
+        String[] choices = new String[apps.size() - 1];
+        final List<AppEntry> candidates = new ArrayList<>();
+        for (AppEntry app : apps) {
+            if (!app.packageName.equals(first.packageName)) {
+                candidates.add(app);
+            }
+        }
+        for (int i = 0; i < candidates.size(); i++) choices[i] = candidates.get(i).label;
+        new AlertDialog.Builder(this).setTitle("Compare " + first.label + " with…")
+                .setItems(choices, (dialog, which) -> showAppComparison(first, candidates.get(which)))
+                .setNegativeButton("Cancel", null).show();
+    }
+
+    private void showAppComparison(AppEntry first, AppEntry second) {
+        String message = buildComparisonColumn(first) + "\n\n"
+                + "────────  VS  ────────\n\n" + buildComparisonColumn(second)
+                + "\n\nComparison uses on-device package metadata only. "
+                + "It does not score app quality, security, privacy practices or real-world performance.";
+        new AlertDialog.Builder(this).setTitle("JARVIS • App comparison")
+                .setMessage(message).setPositiveButton("OK", null).show();
+    }
+
+    private String buildComparisonColumn(AppEntry app) {
+        String version = "Unknown";
+        int permissionCount = -1;
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    app.packageName, PackageManager.GET_PERMISSIONS);
+            version = info.versionName == null ? "Not provided" : info.versionName;
+            permissionCount = info.requestedPermissions == null ? 0 : info.requestedPermissions.length;
+        } catch (PackageManager.NameNotFoundException ignored) { }
+        return app.label + "\nPackage: " + app.packageName
+                + "\nVersion: " + version
+                + "\nCategory: " + getCategory(app.packageName)
+                + "\nWatchlist: " + (isWatched(app.packageName) ? "Yes" : "No")
+                + "\nMinimum Android API: " + getMinSdk(app.packageName)
+                + "\nTarget Android API: " + getTargetSdk(app.packageName)
+                + "\nDeclared permissions: " + (permissionCount < 0 ? "Unavailable" : permissionCount);
+    }
+
+    private int getMinSdk(String packageName) {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(packageName, 0);
+            return info.applicationInfo == null ? -1 : info.applicationInfo.minSdkVersion;
+        } catch (Exception ignored) { return -1; }
+    }
+
+    private int getTargetSdk(String packageName) {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(packageName, 0);
+            return info.applicationInfo == null ? -1 : info.applicationInfo.targetSdkVersion;
+        } catch (Exception ignored) { return -1; }
+    }
+
+    private void showDeviceCompatibilityOverview() {
+        StringBuilder details = new StringBuilder();
+        details.append("Device: ").append(Build.MANUFACTURER).append(" ")
+                .append(Build.MODEL)
+                .append("\nAndroid version: ").append(Build.VERSION.RELEASE)
+                .append("\nDevice API level: ").append(Build.VERSION.SDK_INT)
+                .append("\n\nInstalled launcher apps: ").append(apps.size())
+                .append("\n\nCompatibility note: apps listed here are already installed and launch-visible. "
+                        + "JARVIS can display each app's declared minimum and target API levels, "
+                        + "but cannot infer full hardware, region, account or feature compatibility from package metadata alone.");
+        new AlertDialog.Builder(this).setTitle("JARVIS • Device compatibility")
+                .setMessage(details.toString()).setPositiveButton("OK", null).show();
     }
 
     private void trackVersion(String packageName, String versionName, long versionCode) {
