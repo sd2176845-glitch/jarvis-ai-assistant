@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.SharedPreferences;
+import android.widget.Button;
+import android.widget.Toast;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -36,6 +39,9 @@ public class AppIntelligenceActivity extends Activity {
     private LinearLayout results;
     private TextView count;
     private EditText search;
+    private SharedPreferences appPrefs;
+    private String activeFilter = "ALL";
+    private static final String[] CATEGORIES = {"Uncategorised", "Social", "Communication", "Productivity", "Media", "Games", "Tools", "Education"};
 
     private static class AppEntry {
         String label;
@@ -50,6 +56,7 @@ public class AppIntelligenceActivity extends Activity {
         super.onCreate(state);
         getWindow().setStatusBarColor(background);
         getWindow().setNavigationBarColor(background);
+        appPrefs = getSharedPreferences("m04_app_intelligence", MODE_PRIVATE);
         buildScreen();
         loadApps();
     }
@@ -85,6 +92,26 @@ public class AppIntelligenceActivity extends Activity {
         note.setGravity(Gravity.CENTER);
         note.setPadding(0, dp(8), 0, dp(18));
         root.addView(note);
+
+        LinearLayout filters = new LinearLayout(this);
+        filters.setOrientation(LinearLayout.HORIZONTAL);
+        filters.setGravity(Gravity.CENTER);
+        String[] filterLabels = {"ALL APPS", "WATCHLIST", "CATEGORIES"};
+        String[] filterValues = {"ALL", "WATCHLIST", "CATEGORIES"};
+        for (int i = 0; i < filterLabels.length; i++) {
+            final String value = filterValues[i];
+            Button filterButton = new Button(this);
+            filterButton.setText(filterLabels[i]);
+            filterButton.setTextSize(10);
+            filterButton.setAllCaps(false);
+            filterButton.setTextColor(Color.WHITE);
+            filterButton.setOnClickListener(v -> {
+                if ("CATEGORIES".equals(value)) showCategoryFilter();
+                else { activeFilter = value; renderApps(search == null ? "" : search.getText().toString()); }
+            });
+            filters.addView(filterButton, new LinearLayout.LayoutParams(0, dp(44), 1f));
+        }
+        root.addView(filters, new LinearLayout.LayoutParams(-1, -2));
 
         search = new EditText(this);
         search.setSingleLine(true);
@@ -169,7 +196,8 @@ public class AppIntelligenceActivity extends Activity {
             item.setOnClickListener(v -> showAppProfile(app));
             shown++;
         }
-        count.setText(shown + " visible app(s) • " + apps.size() + " catalogued");
+        count.setText(shown + " visible app(s) • " + apps.size()
+                + " catalogued • " + ("WATCHLIST".equals(activeFilter) ? "WATCHLIST" : activeFilter));
         if (shown == 0) {
             TextView empty = text("No matching launcher apps found.", 13, Color.LTGRAY, false);
             empty.setPadding(dp(8), dp(20), dp(8), dp(20));
@@ -179,12 +207,16 @@ public class AppIntelligenceActivity extends Activity {
 
     private void showAppProfile(AppEntry app) {
         String version = "Not available";
+        long versionCode = -1L;
         String[] requested = null;
         try {
             PackageInfo info = getPackageManager().getPackageInfo(
                     app.packageName, PackageManager.GET_PERMISSIONS);
             version = info.versionName == null ? "Not provided" : info.versionName;
+            if (Build.VERSION.SDK_INT >= 28) versionCode = info.getLongVersionCode();
+            else versionCode = info.versionCode;
             requested = info.requestedPermissions;
+            trackVersion(app.packageName, version, versionCode);
         } catch (PackageManager.NameNotFoundException ignored) { }
 
         StringBuilder message = new StringBuilder();
@@ -204,6 +236,15 @@ public class AppIntelligenceActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • App profile")
                 .setMessage(message.toString())
+                .setNeutralButton(isWatched(app.packageName) ? "Remove watch" : "Add to watchlist",
+                        (dialog, which) -> {
+                            appPrefs.edit().putBoolean(watchKey(app.packageName),
+                                    !isWatched(app.packageName)).apply();
+                            renderApps(search.getText().toString());
+                            Toast.makeText(this, isWatched(app.packageName)
+                                    ? "Added to watchlist" : "Removed from watchlist",
+                                    Toast.LENGTH_SHORT).show();
+                        })
                 .setPositiveButton("Open app", (dialog, which) -> {
                     Intent launch = getPackageManager().getLaunchIntentForPackage(app.packageName);
                     if (launch != null) {
@@ -217,7 +258,89 @@ public class AppIntelligenceActivity extends Activity {
                                 .setPositiveButton("OK", null).show();
                     }
                 })
-                .setNegativeButton("Close", null)
+                .setNegativeButton("More options", (dialog, which) -> showAppOptions(app))
                 .show();
+    }
+
+    private String watchKey(String packageName) { return "watch_" + packageName; }
+    private String categoryKey(String packageName) { return "category_" + packageName; }
+    private boolean isWatched(String packageName) {
+        return appPrefs.getBoolean(watchKey(packageName), false);
+    }
+    private String getCategory(String packageName) {
+        return appPrefs.getString(categoryKey(packageName), "Uncategorised");
+    }
+
+    private void showAppOptions(AppEntry app) {
+        new AlertDialog.Builder(this).setTitle("App organisation")
+                .setItems(new String[]{"Set category", "Toggle watchlist"}, (dialog, which) -> {
+                    if (which == 0) showCategoryPicker(app);
+                    else {
+                        boolean next = !isWatched(app.packageName);
+                        appPrefs.edit().putBoolean(watchKey(app.packageName), next).apply();
+                        renderApps(search.getText().toString());
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void showCategoryPicker(AppEntry app) {
+        new AlertDialog.Builder(this).setTitle("Category • " + app.label)
+                .setItems(CATEGORIES, (dialog, which) -> {
+                    appPrefs.edit().putString(categoryKey(app.packageName), CATEGORIES[which]).apply();
+                    renderApps(search.getText().toString());
+                    Toast.makeText(this, "Category saved", Toast.LENGTH_SHORT).show();
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void showCategoryFilter() {
+        String[] choices = {"All categories", "Social", "Communication", "Productivity",
+                "Media", "Games", "Tools", "Education", "Uncategorised"};
+        new AlertDialog.Builder(this).setTitle("Show category")
+                .setItems(choices, (dialog, which) -> {
+                    activeFilter = "CATEGORIES";
+                    String selected = choices[which];
+                    if (which == 0) activeFilter = "ALL";
+                    else appPrefs.edit().putString("last_category_filter", selected).apply();
+                    renderCategorySelection(selected);
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void renderCategorySelection(String selected) {
+        if ("All categories".equals(selected)) {
+            renderApps(search.getText().toString());
+            return;
+        }
+        results.removeAllViews();
+        int shown = 0;
+        String needle = search.getText().toString().toLowerCase(Locale.ROOT).trim();
+        for (AppEntry app : apps) {
+            if (!getCategory(app.packageName).equals(selected)) continue;
+            if (!app.label.toLowerCase(Locale.ROOT).contains(needle)
+                    && !app.packageName.toLowerCase(Locale.ROOT).contains(needle)) continue;
+            TextView item = text(app.label + "\\n" + app.packageName, 13, Color.WHITE, true);
+            item.setPadding(dp(14), dp(13), dp(14), dp(13));
+            item.setBackground(panel());
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            params.bottomMargin = dp(8);
+            results.addView(item, params);
+            item.setOnClickListener(v -> showAppProfile(app));
+            shown++;
+        }
+        count.setText(shown + " app(s) • " + selected);
+    }
+
+    private void trackVersion(String packageName, String versionName, long versionCode) {
+        String key = "version_" + packageName;
+        String current = versionName + "|" + versionCode;
+        String previous = appPrefs.getString(key, null);
+        if (previous != null && !previous.equals(current)) {
+            appPrefs.edit().putString("change_" + packageName,
+                    previous + " -> " + current).apply();
+        }
+        if (previous == null || !previous.equals(current)) {
+            appPrefs.edit().putString(key, current)
+                    .putLong("version_checked_" + packageName, System.currentTimeMillis())
+                    .apply();
+        }
     }
 }
