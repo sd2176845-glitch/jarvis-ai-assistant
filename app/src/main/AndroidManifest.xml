@@ -71,6 +71,7 @@
             android:foregroundServiceType="microphone" />
         <activity android:name=".OwnerAuthActivity" android:exported="false" />
         <activity android:name=".MediaVaultActivity" android:exported="false" />
+        <activity android:name=".AppIntelligenceActivity" android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
