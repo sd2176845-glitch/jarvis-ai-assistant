@@ -1411,3 +1411,12 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Email / WhatsApp:** the previous C01 email and personal-WhatsApp composer handoffs remain drafts only. Email needs a user-authorized provider integration; ordinary personal WhatsApp has no supported general Android API for silently/directly sending a message. No brittle accessibility/UI automation or bypass was added.
 - **Tests:** added pure-Java SMS number normalization and validation tests. CI/build and Poco M4 Pro 4G device verification are pending for this exact head.
 - **Run #1247:** the connected GitHub workflow lookup available here returns PR-triggered runs by commit SHA, not an Actions run by display number. Run #1247 has not yet been identified from the repository data returned; its exact failed job/log must be matched before claiming a repair. Keep this batch draft and unmerged; JARVIS only, Even untouched.
+
+
+## M06 — CI failure audit and correction record (2026-11-27)
+
+- **Run #1247** (run ID `45878873715`, commit `b5ce20bed85685da458d93f3a56868d312ff06f7`): failed Android compilation because `MainActivity` referenced `M06CommunicationRules` before that helper class was present in the branch. The helper was added in the following commit (`a98ebf10d1dc4da71c06a8c0458557098e8cbcef`); later C01 runs #1248 and #1249 passed.
+- **Run #1252** (run ID `45879607062`) and **run #1253** (run ID `45879610473`): failed Android compilation because `MainActivity` referenced `normalizeSmsNumber(String)` and `isValidSmsNumber(String)` before those helper methods were present in `M06CommunicationRules`. The helper was subsequently updated and recipient validation tests were added; runs #1254 and #1255 passed.
+- **Latest exact PR #66 head validation:** run #1256 (run ID `45879624265`, head `2be0817ea233a0867f8354707bca864ca6e7261f`) completed **SUCCESS**. Verified workflow steps: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded.
+- **Interpretation:** the recorded M06 failures were intermediate commit-order/helper API mismatches and are corrected on the current PR #66 head. No evidence from these runs indicates a remaining M06 compile failure. Do not claim physical-device sending, carrier delivery, email sending or personal WhatsApp direct-send is validated.
+- **Current PR state:** PR #66 remains open and draft, based on `feature/m06-communication-hub-3pack`; not merged. Poco M4 Pro 4G verification remains pending. JARVIS only; Even untouched.
