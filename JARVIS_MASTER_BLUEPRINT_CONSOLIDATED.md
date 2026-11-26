@@ -758,3 +758,11 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 - **M10 code-present:** one-shot camera capture is explicitly owner-started and analyzes only the camera app's returned preview thumbnail. Existing local image OCR and first-page PDF OCR remain available.
 - **Safety/limitations:** no silent gallery scan, continuous camera feed, background monitoring, image persistence or image upload. The spatial output is only a rough region inside the image, not a real-world position or distance. Sending OCR text to AI remains a separate explicit action.
 - **Validation:** focused JVM tests added for memory matching/preview and vision confidence/spatial-region rules. Combined branch CI and Poco M4 Pro 4G testing are pending; these additions are not yet build- or device-verified.
+
+
+### M11/M12 implementation increment — creator preflight and patch review (2026-11-27)
+- M11 extends the existing Creative Media Studio with an owner-invoked production preflight checklist for rights/licensing, consent, factual review, safe production, accessibility, privacy and final review; a pure-Java helper distributes total runtime across scene counts.
+- M12 extends the existing Software Development Studio with local, bounded review of owner-pasted code diffs. It counts added/removed lines and flags selected high-attention patterns involving secrets, permissions, process execution, destructive file operations, network endpoints and background execution.
+- These are additive upgrades to existing M11/M12 studios. Existing project organizer, saved plans, data profiling, and report workflows remain the canonical implementations.
+- Patch review is advisory only; it does not execute/apply code or prove a change is safe. Creator preflight does not render media or publish content. No new Android permissions, data stores, network access or background services were added.
+- Focused JVM tests added for creator checklist/scene timing and patch review bounds/flags. GitHub Actions run #1296 (ID `45882536899`) passed backend checks, Android unit tests, debug APK build and APK upload on exact head `d51fca6d1ede468e7066a901009e2940468ef152`. Poco M4 Pro 4G device verification remains pending.
