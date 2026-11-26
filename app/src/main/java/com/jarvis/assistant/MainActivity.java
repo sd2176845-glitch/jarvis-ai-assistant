@@ -403,18 +403,21 @@ public class MainActivity extends Activity {
     }
 
     private void openVisionTools() {
-        new AlertDialog.Builder(this)
-                .setTitle("JARVIS • Vision tools")
-                .setMessage("Open the camera to capture a photo, or open Google Lens in your browser to identify objects and read text from an image. Lens requires internet and may ask you to upload/select a photo.")
-                .setPositiveButton("Open Camera", (d, w) -> {
-                    try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
-                    catch (Exception e) { status.setText("CAMERA NOT AVAILABLE"); }
-                })
-                .setNeutralButton("Open Google Lens", (d, w) -> {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://lens.google.com/"))); }
-                    catch (Exception e) { status.setText("BROWSER NOT AVAILABLE"); }
-                })
-                .setNegativeButton("Close", null).show();
+        if (blockPrivateInGuestMode()) return;
+        String[] actions = {
+                "Analyze one selected image • on-device",
+                "One-shot camera analysis • on-device",
+                "Read text from one image • OCR",
+                "Read first page of one PDF • OCR"
+        };
+        new AlertDialog.Builder(this).setTitle("JARVIS • Vision & spatial tools")
+                .setMessage("Nothing is scanned automatically. Choose one image or start one camera capture. Scene/object results are estimates with confidence labels; OCR runs locally.")
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) VisionAnalysisStudio.chooseImage(this);
+                    else if (which == 1) VisionAnalysisStudio.captureOneShot(this);
+                    else if (which == 2) ImageOcrStudio.chooseImage(this);
+                    else DocumentOcrStudio.choosePdf(this);
+                }).setNegativeButton("Close", null).show();
     }
 
     private void showTaskAndReminderHub() {
@@ -1585,6 +1588,10 @@ public class MainActivity extends Activity {
         timeline.setText("OPEN PERSONAL TIMELINE");
         timeline.setOnClickListener(v -> showPersonalTimeline());
         panel.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
+        Button searchMemory = new Button(this);
+        searchMemory.setText("SEARCH MEMORY VAULT");
+        searchMemory.setOnClickListener(v -> showMemorySearch());
+        panel.addView(searchMemory, new LinearLayout.LayoutParams(-1, -2));
         Button memoryExpansion = new Button(this);
         memoryExpansion.setText("MEMORY EXPANSION STUDIO");
         memoryExpansion.setOnClickListener(v ->
@@ -1599,6 +1606,88 @@ public class MainActivity extends Activity {
                 .setNegativeButton("Clear recent context", (d, w) -> confirmClearRecentContext())
                 .setNeutralButton("Close", null)
                 .show();
+    }
+
+    /** Searches owner-curated local memory records; transient conversation is deliberately excluded. */
+    private void showMemorySearch() {
+        if (blockPrivateInGuestMode()) return;
+        EditText queryInput = new EditText(this);
+        queryInput.setSingleLine(true);
+        queryInput.setHint("Search notes, timeline, graph and idea versions");
+        new AlertDialog.Builder(this).setTitle("JARVIS • Search Memory Vault")
+                .setMessage("Search stays on this phone. Recent conversation context is not included in this saved-memory search.")
+                .setView(queryInput)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Search", (dialog, which) -> {
+                    String query = queryInput.getText().toString().trim();
+                    if (query.isEmpty() || query.length() > 100) {
+                        status.setText("ENTER A SEARCH TERM (1–100 CHARACTERS)");
+                        return;
+                    }
+                    StringBuilder results = new StringBuilder();
+                    int[] count = {0};
+                    String notes = getSavedNotes();
+                    if (MemorySearchRules.matches(query, notes)) {
+                        results.append("SAVED NOTES\n")
+                                .append(MemorySearchRules.preview(notes, 700)).append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray timeline = readPersonalTimeline();
+                    if (timeline == null) results.append("Timeline data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < timeline.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = timeline.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query,
+                                item.optString("title", ""), item.optString("detail", ""),
+                                item.optString("source", ""), item.optString("provenance", ""))) continue;
+                        results.append("TIMELINE • ").append(item.optString("title", "Untitled entry"))
+                                .append("\nSource: ").append(item.optString("source", "Legacy • source not recorded"))
+                                .append("\n").append(MemorySearchRules.preview(item.optString("detail", ""), 350))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray graph;
+                    try { graph = new org.json.JSONArray(preferences.getString("memory_graph_v1", "[]")); }
+                    catch (org.json.JSONException e) { graph = null; }
+                    if (graph == null) results.append("Knowledge graph data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < graph.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = graph.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query,
+                                item.optString("name", ""), item.optString("detail", ""),
+                                item.optString("from", ""), item.optString("relation", ""),
+                                item.optString("to", ""), item.optString("provenance", ""))) continue;
+                        results.append("KNOWLEDGE GRAPH • ")
+                                .append(item.optString("kind", "item")).append("\n")
+                                .append(item.optString("name", item.optString("from", "Relationship")))
+                                .append(item.has("relation") ? " — " + item.optString("relation") + " — " + item.optString("to", "") : "")
+                                .append("\nProvenance: ").append(item.optString("provenance", "Legacy • source not recorded"))
+                                .append("\n").append(MemorySearchRules.preview(item.optString("detail", ""), 250))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    org.json.JSONArray versions;
+                    try { versions = new org.json.JSONArray(preferences.getString("idea_versions_v1", "[]")); }
+                    catch (org.json.JSONException e) { versions = null; }
+                    if (versions == null) results.append("Idea version data is unreadable; it was not changed.\n\n");
+                    else for (int i = 0; i < versions.length() && count[0] < 30; i++) {
+                        org.json.JSONObject item = versions.optJSONObject(i);
+                        if (item == null || !MemorySearchRules.matches(query, item.optString("content", ""))) continue;
+                        results.append("IDEA VERSION ").append(i + 1).append("\n")
+                                .append(MemorySearchRules.preview(item.optString("content", ""), 400))
+                                .append("\n\n");
+                        count[0]++;
+                    }
+                    if (count[0] == 0) results.append("No matching saved memory was found.");
+                    else results.insert(0, "MATCHES: " + count[0] + " (maximum 30 shown)\n\n");
+                    TextView output = new TextView(this);
+                    output.setText(results.toString());
+                    output.setTextIsSelectable(true);
+                    output.setTextSize(14);
+                    output.setPadding(28, 20, 28, 20);
+                    ScrollView scroll = new ScrollView(this);
+                    scroll.addView(output);
+                    new AlertDialog.Builder(this).setTitle("Memory search results")
+                            .setView(scroll).setPositiveButton("Close", null).show();
+                }).show();
     }
 
     private org.json.JSONArray readPersonalTimeline() {
@@ -1655,7 +1744,9 @@ public class MainActivity extends Activity {
                             : "Date unavailable";
                     new AlertDialog.Builder(this)
                             .setTitle(item.optString("title", "Timeline entry"))
-                            .setMessage(date + "\n\n" + item.optString("detail", ""))
+                            .setMessage(date + "\n\n" + item.optString("detail", "")
+                                    + "\n\nSource: " + item.optString("source", "Legacy • source not recorded")
+                                    + "\nProvenance: " + item.optString("provenance", "Legacy • source not recorded"))
                             .setPositiveButton("Close", null).show();
                 })
                 .setPositiveButton("Add entry", (d, w) -> showAddPersonalTimelineEntry())
@@ -1679,6 +1770,10 @@ public class MainActivity extends Activity {
         detailInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         form.addView(detailInput, new LinearLayout.LayoutParams(-1, -2));
+        EditText sourceInput = new EditText(this);
+        sourceInput.setSingleLine(true);
+        sourceInput.setHint("Source / reference (optional)");
+        form.addView(sourceInput, new LinearLayout.LayoutParams(-1, -2));
         new AlertDialog.Builder(this)
                 .setTitle("JARVIS • Add timeline entry")
                 .setMessage("Only information you enter here is saved. JARVIS does not collect events in the background.")
@@ -1698,6 +1793,9 @@ public class MainActivity extends Activity {
                     try {
                         item.put("title", title);
                         item.put("detail", detailInput.getText().toString().trim());
+                        String source = sourceInput.getText().toString().trim();
+                        item.put("source", source.isEmpty() ? "Owner-entered" : source);
+                        item.put("provenance", "Owner-entered");
                         item.put("createdAt", System.currentTimeMillis());
                         entries.put(item);
                         savePersonalTimeline(entries);
@@ -3195,6 +3293,7 @@ public class MainActivity extends Activity {
         }
         if (PracticalIntelligenceStudio.handleAssetDocumentPickerResult(
                 this, requestCode, resultCode, data)) return;
+        if (VisionAnalysisStudio.handleResult(this, requestCode, resultCode, data)) return;
         if (!ImageOcrStudio.handleResult(this, requestCode, resultCode, data)) {
             DocumentOcrStudio.handleResult(this, requestCode, resultCode, data);
         }
@@ -3543,9 +3642,8 @@ public class MainActivity extends Activity {
             showConnectedSystems();
             return;
         } else if (intent.contains("open camera") || intent.contains("camera kholo") || intent.equals("camera")) {
-            speak("Camera khol raha hoon.");
-            try { startActivity(new Intent("android.media.action.IMAGE_CAPTURE")); }
-            catch (Exception e) { transcript.append("\nCamera abhi nahi khul paaya."); }
+            speak("Ek photo ke liye camera khol raha hoon. Analysis sirf tumhari confirmation ke baad ek baar hoga.");
+            VisionAnalysisStudio.captureOneShot(this);
             return;
         } else if (intent.contains("open maps") || intent.contains("maps kholo") || intent.contains("google maps") || intent.contains("map kholo")) {
             speak("Maps khol raha hoon.");

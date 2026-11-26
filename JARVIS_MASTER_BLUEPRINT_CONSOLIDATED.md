@@ -749,3 +749,12 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 - **Verification:** CI PASS — GitHub Actions PR run #1228 (ID 45632201087) on application-code head `dab491badbe150c59392a8ce178ba5b231d616e4`: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded. Push run #1227 (ID 45632182102) also passed on the same SHA.
 - **APK artifact:** `jarvis-debug-apk`, ID `15032095825`, SHA-256 `77d76d60ff9fdb15cc2f03e96d59ce669194d101b945a7dad21f222c31a2d4a5`.
 - **Status:** CI-verified source and tests on `feature/m03-academic-research-explorer`; Poco M4 Pro 4G physical-device testing remains pending. This is a partial M03 increment, not completion of the M03 module. JARVIS only; Even untouched.
+
+
+### M09/M10 implementation increment — searchable memory and owner-started vision (2026-11-27)
+- **M09 code-present:** Personal Memory Vault adds local search across saved notes, owner-created timeline, knowledge graph and versioned idea snapshots. Results are bounded and source-labelled; recent conversation context is excluded from this saved-memory search.
+- **M09 code-present:** new timeline entries accept an optional owner-entered source/reference and store explicit owner-entry provenance. Legacy records remain readable and are not rewritten.
+- **M10 code-present:** selected-image scene labeling and object detection run on-device using ML Kit. Results show confidence bands and coarse image-relative regions from object bounding boxes.
+- **M10 code-present:** one-shot camera capture is explicitly owner-started and analyzes only the camera app's returned preview thumbnail. Existing local image OCR and first-page PDF OCR remain available.
+- **Safety/limitations:** no silent gallery scan, continuous camera feed, background monitoring, image persistence or image upload. The spatial output is only a rough region inside the image, not a real-world position or distance. Sending OCR text to AI remains a separate explicit action.
+- **Validation:** focused JVM tests added for memory matching/preview and vision confidence/spatial-region rules. Combined branch CI and Poco M4 Pro 4G testing are pending; these additions are not yet build- or device-verified.
