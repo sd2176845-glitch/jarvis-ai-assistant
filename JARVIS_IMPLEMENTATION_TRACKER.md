@@ -1454,3 +1454,29 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Correction:** rebuilt the completion and timestamp arrays sequentially using append-only `put(value)`, preserving prior completion states and adding the newly confirmed step. No indexed writes remain in that path.
 - **Run #1265** (run ID `45880869833`, exact corrected application-code head `afb535b01dc2f90b8fb4d99a8b3c0bf495c5e227`) completed **SUCCESS**: backend syntax/tests, Android unit tests, debug APK build and artifact upload all passed.
 - Documentation-only tracker/blueprint commits followed. Final branch-head runs #1266/#1267 were still in progress at the time of this note; the exact final branch head must pass before merge.
+
+
+## M09 + M10 — Searchable Memory Vault & Owner-Started Vision Analysis (2026-11-27)
+
+**Branch:** `feature/m09-m10-memory-vision`, stacked on `feature/m06-confirmed-sms-send` so the current M06/M07/M08 work remains in the same implementation line. One combined M09/M10 batch.
+
+### M09 — Personal Memory, Knowledge Vault & Timeline
+- **Existing foundation reused:** saved notes, owner-created `memory_timeline_v1`, `memory_graph_v1`, `idea_versions_v1`, encrypted device-bound legacy archive and existing export/delete controls.
+- **New code-present feature — local memory search:** the Personal Memory Vault now searches saved notes, timeline entries, graph nodes/links and versioned idea snapshots. Results identify the source category, display bounded previews, and cap the result list at 30 items.
+- **Privacy boundary:** search is local-only and does not send memory to the AI backend. Recent conversational context is deliberately excluded from saved-memory search. Malformed JSON is reported as unreadable and not overwritten.
+- **New code-present provenance fields:** new timeline entries can include an optional owner-entered source/reference; records are tagged `Owner-entered`. Older timeline records remain readable and are labelled as legacy/source-not-recorded when appropriate.
+- **Tests:** `MemorySearchRulesTest` covers case-insensitive matching, empty/null queries and bounded whitespace-normalized previews.
+
+### M10 — Vision, OCR, Spatial & Media Intelligence
+- **Existing OCR reused:** owner-selected image OCR and first-page PDF OCR continue to run on-device; sending extracted text to the AI backend remains a separate, explicit user action.
+- **New code-present feature — image scene labels:** owner selects one image through Android's document picker; ML Kit image labeling runs locally and displays conservative confidence bands.
+- **New code-present feature — one-shot camera analysis:** owner explicitly starts the camera action; JARVIS analyzes only the preview thumbnail returned by the camera app. No continuous camera stream, background monitoring, gallery scanning, image persistence or image upload is introduced.
+- **New code-present feature — coarse spatial regions:** on-device object detection reports approximate image regions (upper/middle/lower and left/center/right) from bounding-box centers. It does not claim real-world coordinates, distance or certainty.
+- **Dependencies:** ML Kit image labeling `17.0.9` and object detection `17.0.2`; no camera or storage permission added.
+- **Tests:** `VisionConfidenceRulesTest` covers conservative confidence filtering/labels and coarse image-region mapping.
+
+### Validation and status
+- **Implementation files:** `MemorySearchRules.java`, `VisionConfidenceRules.java`, `VisionAnalysisStudio.java`; existing `MainActivity.java` and `app/build.gradle` extended; focused JVM tests added.
+- **CI/build:** pending for the final combined branch head. Do not mark build-verified until the Actions run completes successfully.
+- **Poco M4 Pro 4G:** physical-device verification pending. Camera intent return-thumbnail behavior, ML Kit model availability, image picker, OCR and private vault search need device testing.
+- **Scope:** JARVIS only; Even untouched. No automatic capture, cloud vision processing, autonomous surveillance or real-world spatial measurement.
