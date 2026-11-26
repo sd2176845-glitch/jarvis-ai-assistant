@@ -62,6 +62,8 @@
 - [ ] Let the owner organize apps into editable categories and maintain an owner-selected app knowledge shortlist without reading private in-app content.
 - [ ] Track owner-requested app/watchlist changes such as major releases, support end dates or documented service incidents; make checks opt-in, bounded and easy to pause.
 
+**Implementation progress (repository code added; build/device validation status is tracked separately):** launcher-visible app catalogue, local app profiles, declared-permission display, editable categories, watchlist, local version-change snapshots, two-app metadata comparison, and a device/API compatibility overview are present in the Android source. Public-source app research, official publisher verification, sourced privacy/update intelligence, and background watchlist checks remain planned—not implemented by this slice.
+
 ### M05 — Universal Application & Phone Control
 - [ ] Launch apps and open supported Android settings handoffs.
 - [ ] Operate supported features through documented APIs, intents or explicitly enabled Accessibility Service actions.
