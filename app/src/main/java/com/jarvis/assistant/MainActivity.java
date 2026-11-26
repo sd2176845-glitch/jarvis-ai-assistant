@@ -1949,6 +1949,7 @@ public class MainActivity extends Activity {
                 .setMessage("Manual checklist only. No automatic app/device actions or background triggers.")
                 .setView(panel)
                 .setNegativeButton("Cancel", null)
+                .setNeutralButton("Templates", (dialog, which) -> showWorkflowTemplates())
                 .setPositiveButton("Save", (dialog, which) -> {
                     String title = titleInput.getText().toString().trim();
                     String rawSteps = stepsInput.getText().toString();
@@ -1972,7 +1973,11 @@ public class MainActivity extends Activity {
                         item.put("title", title);
                         item.put("steps", steps);
                         item.put("done", new org.json.JSONArray());
+                        item.put("done_at", new org.json.JSONArray());
+                        item.put("approval_mode", "owner_confirm_each_step");
+                        item.put("execution_mode", "manual_only");
                         item.put("created_at", System.currentTimeMillis());
+                        item.put("updated_at", System.currentTimeMillis());
                         workflows.put(item);
                         saveManualWorkflows(workflows);
                         status.setText("MANUAL WORKFLOW SAVED");
@@ -2024,23 +2029,23 @@ public class MainActivity extends Activity {
                     }
                     showWorkflowStudio();
                 })
-                .setNeutralButton("Dry-run preview", (dialog, which) -> {
-                    String[] previewSteps = new String[steps.length()];
-                    for (int step = 0; step < steps.length(); step++) {
-                        previewSteps[step] = steps.optString(step, "Unavailable step");
-                    }
-                    String preview = B21WorkflowPreviewRules.buildPreview(
-                            item.optString("title", "Untitled workflow"), previewSteps);
-                    new AlertDialog.Builder(this).setTitle("Workflow preview")
-                            .setMessage(preview)
-                            .setPositiveButton("Back", null).show();
-                })
+                .setNeutralButton("Approve next step", (dialog, which) -> approveNextManualWorkflowStep(index))
                 .setNegativeButton("More", (dialog, which) ->
                         new AlertDialog.Builder(this).setTitle("Workflow options")
-                                .setItems(new String[]{"View step history", "Duplicate workflow", "Reset checklist", "Close"}, (d, option) -> {
-                                    if (option == 0) showManualWorkflowHistory(item, steps);
-                                    else if (option == 1) duplicateManualWorkflow(workflows, item, steps);
-                                    else if (option == 2) {
+                                .setItems(new String[]{"Dry-run preview", "View step history", "Duplicate workflow", "Reset checklist", "Close"}, (d, option) -> {
+                                    if (option == 0) {
+                                        String[] previewSteps = new String[steps.length()];
+                                        for (int step = 0; step < steps.length(); step++) {
+                                            previewSteps[step] = steps.optString(step, "Unavailable step");
+                                        }
+                                        String preview = B21WorkflowPreviewRules.buildPreview(
+                                                item.optString("title", "Untitled workflow"), previewSteps);
+                                        new AlertDialog.Builder(this).setTitle("Workflow preview")
+                                                .setMessage(preview)
+                                                .setPositiveButton("Back", null).show();
+                                    } else if (option == 1) showManualWorkflowHistory(item, steps);
+                                    else if (option == 2) duplicateManualWorkflow(workflows, item, steps);
+                                    else if (option == 3) {
                                         try {
                                             item.put("done", new org.json.JSONArray());
                                             item.put("done_at", new org.json.JSONArray());
@@ -2053,6 +2058,119 @@ public class MainActivity extends Activity {
                                         showWorkflowStudio();
                                     }
                                 }).show()).show();
+    }
+
+    private void showWorkflowTemplates() {
+        if (blockPrivateInGuestMode()) return;
+        String[] titles = B22WorkflowOrchestrationRules.templateTitles();
+        new AlertDialog.Builder(this).setTitle("M08 • Workflow templates")
+                .setMessage("Choose a starter checklist. Templates are saved locally and never run automatically.")
+                .setItems(titles, (dialog, which) -> {
+                    org.json.JSONArray workflows = readManualWorkflows();
+                    if (workflows == null) {
+                        status.setText("WORKFLOW DATA COULD NOT BE READ");
+                        return;
+                    }
+                    if (workflows.length() >= 50) {
+                        status.setText("WORKFLOW LIMIT REACHED • NOTHING CREATED");
+                        return;
+                    }
+                    try {
+                        org.json.JSONArray steps = new org.json.JSONArray();
+                        for (String step : B22WorkflowOrchestrationRules.templateSteps(which)) steps.put(step);
+                        org.json.JSONObject item = new org.json.JSONObject();
+                        long now = System.currentTimeMillis();
+                        item.put("title", titles[which]);
+                        item.put("template_name", titles[which]);
+                        item.put("steps", steps);
+                        item.put("done", new org.json.JSONArray());
+                        item.put("done_at", new org.json.JSONArray());
+                        item.put("approval_mode", "owner_confirm_each_step");
+                        item.put("execution_mode", "manual_only");
+                        item.put("created_at", now);
+                        item.put("updated_at", now);
+                        workflows.put(item);
+                        if (saveManualWorkflows(workflows)) {
+                            status.setText("WORKFLOW TEMPLATE ADDED • OWNER CONTROLLED");
+                            showWorkflowStudio();
+                        } else status.setText("WORKFLOW TEMPLATE COULD NOT BE SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("WORKFLOW TEMPLATE COULD NOT BE CREATED");
+                    }
+                }).setNegativeButton("Cancel", null).show();
+    }
+
+    private void approveNextManualWorkflowStep(int workflowIndex) {
+        if (blockPrivateInGuestMode()) return;
+        org.json.JSONArray workflows = readManualWorkflows();
+        if (workflows == null) {
+            status.setText("WORKFLOW DATA COULD NOT BE READ");
+            return;
+        }
+        org.json.JSONObject item = workflows.optJSONObject(workflowIndex);
+        org.json.JSONArray steps = item == null ? null : item.optJSONArray("steps");
+        if (item == null || steps == null || steps.length() == 0) {
+            status.setText("WORKFLOW STEP IS NOT AVAILABLE");
+            return;
+        }
+        org.json.JSONArray done = item.optJSONArray("done");
+        boolean[] completed = new boolean[steps.length()];
+        for (int i = 0; i < completed.length; i++) completed[i] = done != null && done.optBoolean(i, false);
+        int next = B22WorkflowOrchestrationRules.nextPendingStep(completed);
+        if (next < 0) {
+            new AlertDialog.Builder(this).setTitle("Workflow complete")
+                    .setMessage("All checklist steps are already marked complete.")
+                    .setPositiveButton("Close", null).show();
+            return;
+        }
+        final int stepIndex = next;
+        final String stepText = steps.optString(stepIndex, "Unavailable step");
+        new AlertDialog.Builder(this).setTitle("Owner approval required")
+                .setMessage("Next manual step:\\n\\n" + (stepIndex + 1) + ". " + stepText
+                        + "\\n\\nJARVIS will not perform this step. Confirm only after you personally complete it.")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("I completed this step", (dialog, which) -> {
+                    org.json.JSONArray latest = readManualWorkflows();
+                    org.json.JSONObject current = latest == null ? null : latest.optJSONObject(workflowIndex);
+                    org.json.JSONArray currentSteps = current == null ? null : current.optJSONArray("steps");
+                    if (current == null || currentSteps == null || stepIndex >= currentSteps.length()
+                            || !stepText.equals(currentSteps.optString(stepIndex, ""))) {
+                        status.setText("WORKFLOW CHANGED • REVIEW IT AGAIN");
+                        return;
+                    }
+                    org.json.JSONArray updated = current.optJSONArray("done");
+                    if (updated == null) updated = new org.json.JSONArray();
+                    org.json.JSONArray completionTimes = current.optJSONArray("done_at");
+                    if (completionTimes == null) completionTimes = new org.json.JSONArray();
+                    for (int i = 0; i < currentSteps.length(); i++) {
+                        updated.put(i, updated.optBoolean(i, false));
+                        completionTimes.put(i, completionTimes.optLong(i, 0L));
+                    }
+                    long now = System.currentTimeMillis();
+                    updated.put(stepIndex, true);
+                    completionTimes.put(stepIndex, now);
+                    org.json.JSONArray audit = current.optJSONArray("owner_confirmations");
+                    if (audit == null) audit = new org.json.JSONArray();
+                    if (audit.length() >= 100) audit.remove(0);
+                    org.json.JSONObject record = new org.json.JSONObject();
+                    try {
+                        record.put("step_index", stepIndex);
+                        record.put("step_label", stepText);
+                        record.put("confirmed_at", now);
+                        record.put("confirmation_type", "owner_marked_manually_completed");
+                        audit.put(record);
+                        current.put("done", updated);
+                        current.put("done_at", completionTimes);
+                        current.put("owner_confirmations", audit);
+                        current.put("updated_at", now);
+                        if (saveManualWorkflows(latest)) {
+                            status.setText("OWNER CONFIRMATION SAVED • NO AUTOMATIC ACTION PERFORMED");
+                            showManualWorkflow(workflowIndex);
+                        } else status.setText("CONFIRMATION COULD NOT BE SAVED");
+                    } catch (org.json.JSONException e) {
+                        status.setText("CONFIRMATION COULD NOT BE SAVED");
+                    }
+                }).show();
     }
 
     private void duplicateManualWorkflow(org.json.JSONArray workflows,
