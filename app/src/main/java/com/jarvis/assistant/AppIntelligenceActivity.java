@@ -175,6 +175,14 @@ public class AppIntelligenceActivity extends Activity {
                 return a.label.toLowerCase(Locale.ROOT).compareTo(b.label.toLowerCase(Locale.ROOT));
             }
         });
+        for (AppEntry app : apps) {
+            try {
+                PackageInfo info = getPackageManager().getPackageInfo(app.packageName, 0);
+                String versionName = info.versionName == null ? "Not provided" : info.versionName;
+                long code = Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode;
+                trackVersion(app.packageName, versionName, code);
+            } catch (PackageManager.NameNotFoundException ignored) { }
+        }
         renderApps("");
     }
 
