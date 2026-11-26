@@ -11,7 +11,7 @@ public final class DevChangeReviewRules {
         if (diff.length() > 5000) throw new IllegalArgumentException("Keep the diff under 5,000 characters.");
         String lower = diff.toLowerCase(Locale.ROOT);
         int additions = 0, deletions = 0;
-        String[] lines = diff.split("\\r?\n");
+        String[] lines = diff.split("\\r?\\n");
         for (String line : lines) {
             if (line.startsWith("+++") || line.startsWith("---")) continue;
             if (line.startsWith("+")) additions++;
