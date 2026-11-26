@@ -194,8 +194,13 @@ public class AppIntelligenceActivity extends Activity {
         for (AppEntry app : apps) {
             if (!app.label.toLowerCase(Locale.ROOT).contains(needle)
                     && !app.packageName.toLowerCase(Locale.ROOT).contains(needle)) continue;
-            TextView item = text(app.label + "\n" + app.packageName, 14,
-                    Color.WHITE, true);
+            if ("WATCHLIST".equals(activeFilter) && !isWatched(app.packageName)) continue;
+            if ("CATEGORIES".equals(activeFilter)
+                    && "Uncategorised".equals(getCategory(app.packageName))) continue;
+            String category = getCategory(app.packageName);
+            String suffix = isWatched(app.packageName) ? "  •  ★ WATCHLIST" : "";
+            TextView item = text(app.label + "\n" + app.packageName
+                    + "\n" + category + suffix, 13, Color.WHITE, true);
             item.setPadding(dp(14), dp(13), dp(14), dp(13));
             item.setBackground(panel());
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
@@ -205,9 +210,9 @@ public class AppIntelligenceActivity extends Activity {
             shown++;
         }
         count.setText(shown + " visible app(s) • " + apps.size()
-                + " catalogued • " + ("WATCHLIST".equals(activeFilter) ? "WATCHLIST" : activeFilter));
+                + " catalogued • " + activeFilter);
         if (shown == 0) {
-            TextView empty = text("No matching launcher apps found.", 13, Color.LTGRAY, false);
+            TextView empty = text("No matching apps in this view.", 13, Color.LTGRAY, false);
             empty.setPadding(dp(8), dp(20), dp(8), dp(20));
             results.addView(empty);
         }
@@ -239,6 +244,12 @@ public class AppIntelligenceActivity extends Activity {
             for (int i = 0; i < limit; i++) message.append("\n• ").append(requested[i]);
             if (requested.length > limit) message.append("\n…and ")
                     .append(requested.length - limit).append(" more.");
+        }
+        message.append("\nCategory: ").append(getCategory(app.packageName))
+                .append("\nWatchlist: ").append(isWatched(app.packageName) ? "Yes" : "No");
+        String versionChange = appPrefs.getString("change_" + app.packageName, null);
+        if (versionChange != null) {
+            message.append("\nLast detected version change: ").append(versionChange);
         }
         message.append("\n\nProfile source: Android package metadata on this device.");
         new AlertDialog.Builder(this)
@@ -325,7 +336,7 @@ public class AppIntelligenceActivity extends Activity {
             if (!getCategory(app.packageName).equals(selected)) continue;
             if (!app.label.toLowerCase(Locale.ROOT).contains(needle)
                     && !app.packageName.toLowerCase(Locale.ROOT).contains(needle)) continue;
-            TextView item = text(app.label + "\\n" + app.packageName, 13, Color.WHITE, true);
+            TextView item = text(app.label + "\n" + app.packageName, 13, Color.WHITE, true);
             item.setPadding(dp(14), dp(13), dp(14), dp(13));
             item.setBackground(panel());
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
