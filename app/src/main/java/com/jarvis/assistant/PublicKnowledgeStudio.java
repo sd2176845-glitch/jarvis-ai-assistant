@@ -62,12 +62,12 @@ public final class PublicKnowledgeStudio {
         JSONObject desktop = urls == null ? null : urls.optJSONObject("desktop");
         String page = desktop == null ? "" : desktop.optString("page", "");
         String timestamp = root.optString("timestamp", "Not supplied");
-        return "TOPIC\\n" + title
-                + (description.isEmpty() ? "" : "\\n" + description)
-                + "\\n\\nSUMMARY\\n" + extract
-                + "\\n\\nSOURCE\\n" + (page.isEmpty() ? "Wikipedia article URL not supplied" : page)
-                + "\\nProvider timestamp: " + timestamp
-                + "\\n\\nWikipedia is a general reference source. Verify important or current facts with official and primary sources.";
+        return "TOPIC\n" + title
+                + (description.isEmpty() ? "" : "\n" + description)
+                + "\n\nSUMMARY\n" + extract
+                + "\n\nSOURCE\n" + (page.isEmpty() ? "Wikipedia article URL not supplied" : page)
+                + "\nProvider timestamp: " + timestamp
+                + "\n\nWikipedia is a general reference source. Verify important or current facts with official and primary sources.";
     }
 
     private static void countryInput(Activity activity) {
