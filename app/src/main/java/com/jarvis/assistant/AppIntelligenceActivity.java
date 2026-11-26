@@ -41,6 +41,7 @@ public class AppIntelligenceActivity extends Activity {
     private EditText search;
     private SharedPreferences appPrefs;
     private String activeFilter = "ALL";
+    private String selectedCategory = null;
     private static final String[] CATEGORIES = {"Uncategorised", "Social", "Communication", "Productivity", "Media", "Games", "Tools", "Education"};
 
     private static class AppEntry {
@@ -107,7 +108,11 @@ public class AppIntelligenceActivity extends Activity {
             filterButton.setTextColor(Color.WHITE);
             filterButton.setOnClickListener(v -> {
                 if ("CATEGORIES".equals(value)) showCategoryFilter();
-                else { activeFilter = value; renderApps(search == null ? "" : search.getText().toString()); }
+                else {
+                    activeFilter = value;
+                    selectedCategory = null;
+                    renderApps(search == null ? "" : search.getText().toString());
+                }
             });
             filters.addView(filterButton, new LinearLayout.LayoutParams(0, dp(44), 1f));
         }
@@ -197,6 +202,8 @@ public class AppIntelligenceActivity extends Activity {
             if ("WATCHLIST".equals(activeFilter) && !isWatched(app.packageName)) continue;
             if ("CATEGORIES".equals(activeFilter)
                     && "Uncategorised".equals(getCategory(app.packageName))) continue;
+            if (selectedCategory != null
+                    && !selectedCategory.equals(getCategory(app.packageName))) continue;
             String category = getCategory(app.packageName);
             String suffix = isWatched(app.packageName) ? "  •  ★ WATCHLIST" : "";
             TextView item = text(app.label + "\n" + app.packageName
@@ -318,6 +325,7 @@ public class AppIntelligenceActivity extends Activity {
                 .setItems(choices, (dialog, which) -> {
                     activeFilter = "CATEGORIES";
                     String selected = choices[which];
+                    selectedCategory = which == 0 ? null : selected;
                     if (which == 0) activeFilter = "ALL";
                     else appPrefs.edit().putString("last_category_filter", selected).apply();
                     renderCategorySelection(selected);
