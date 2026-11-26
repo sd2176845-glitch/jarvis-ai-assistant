@@ -273,6 +273,25 @@ public class MainActivity extends Activity {
         voiceParams.setMargins(8, 4, 8, 12);
         root.addView(speak, voiceParams);
 
+        Button appIntelligence = new Button(this);
+        appIntelligence.setText("UNIVERSAL APP INTELLIGENCE");
+        appIntelligence.setTextColor(Color.WHITE);
+        appIntelligence.setTextSize(13);
+        appIntelligence.setAllCaps(false);
+        GradientDrawable appIntelShape = new GradientDrawable();
+        appIntelShape.setColor(Color.rgb(30, 10, 15));
+        appIntelShape.setCornerRadius(42);
+        appIntelShape.setStroke((int) (1.0f * getResources().getDisplayMetrics().density),
+                Color.rgb(155, 45, 58));
+        appIntelligence.setBackground(appIntelShape);
+        appIntelligence.setOnClickListener(v ->
+                startActivity(new Intent(this, AppIntelligenceActivity.class)));
+        LinearLayout.LayoutParams appIntelParams = new LinearLayout.LayoutParams(-1,
+                (int) (48 * getResources().getDisplayMetrics().density));
+        appIntelParams.setMargins(8, 0, 8, 12);
+        root.addView(appIntelligence, appIntelParams);
+
+
         Button stopVoice = new Button(this);
         stopVoice.setText("STOP FOREGROUND VOICE");
         stopVoice.setTextColor(Color.rgb(255, 190, 195));
