@@ -1373,3 +1373,29 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Validation:** CI PASS — GitHub Actions PR run #1228 (ID 45632201087) on application-code head `dab491badbe150c59392a8ce178ba5b231d616e4`: backend JavaScript syntax, backend tests, Android unit tests, debug APK build and APK artifact upload all succeeded. Push run #1227 (ID 45632182102) also passed on the same SHA.
 - **APK artifact:** `jarvis-debug-apk`, ID `15032095825`, SHA-256 `77d76d60ff9fdb15cc2f03e96d59ce669194d101b945a7dad21f222c31a2d4a5`. Poco M4 Pro 4G device verification remains pending.
 - **Merge:** keep as a separate draft PR; do not merge to `main` without owner approval. JARVIS only; Even untouched.
+
+## M06 Communication Intelligence — Batch C01 (initial three-feature increment; 2026-11-27)
+
+**Branch:** `feature/m06-communication-hub-3pack`, stacked on `feature/m03-academic-research-explorer` / PR #63. Draft review only; not merged.
+
+### Existing capability audit
+- **Already present and reused:** SMS draft editor and SMS composer handoff; contact lookup with recipient selection; call contact disambiguation and explicit call confirmation.
+- **Audit finding/fix:** the command normalizer removes punctuation before the old addressed-SMS parser looked for a colon. The addressed-draft path now parses the original owner-reviewed transcript so the recipient separator, message case and punctuation are preserved.
+- The prior B06 “M06 Live Information Studio” tracker entry is a historical/mis-mapped label from the earlier module arrangement. Under the consolidated canonical blueprint, M06 is **Communication Intelligence & Unified Communication Hub**. The weather/currency/holiday studio is not counted as M06 communication implementation.
+
+### New code-present increment
+1. **Addressed SMS parser reliability:** supports `message to contact-name: message` (and SMS/text aliases) using the original command text; preserves message case and punctuation; continues to reuse the existing editable draft and manual SMS composer.
+2. **Email draft handoff:** supports `email to contact-name-or-address: message`; validates a typed address or searches owner contacts for matching email addresses; asks the owner to choose among matches; provides editable subject/body preview; opens the email app using a mailto handoff. JARVIS does not send email.
+3. **WhatsApp draft handoff:** supports `whatsapp to contact-name: message`; reuses the existing contacts permission and phone-contact lookup, asks the owner to select the intended match, provides an editable preview, and opens a wa.me handoff. JARVIS does not send the message or infer a missing country code.
+
+### Privacy and safety
+- Reuses the existing READ_CONTACTS permission; no new Android permission, background contact scan, notification scraping, message interception, persistent contact copy or backend upload.
+- Contact matching is owner-triggered and bounded to ten displayed matches. The owner explicitly chooses a recipient and reviews the exact message before the external composer/handoff opens.
+- Sending remains a manual action inside the selected email/SMS/WhatsApp app. No automatic call, message or email execution was added.
+- JARVIS only; the separate Even project remains untouched.
+
+### Tests and verification status
+- Added `M06CommunicationRules` and five focused JVM tests for addressed-draft parsing/case preservation, email recipient validation, WhatsApp number normalization without country-code guessing, and malformed command handling.
+- **CI/build:** pending for this exact branch head; do not mark verified until the final-head workflow passes.
+- **Poco M4 Pro 4G device verification:** pending.
+- **Merge policy:** keep as a draft stacked change; do not merge into PR #63 or `main` without explicit owner approval.
