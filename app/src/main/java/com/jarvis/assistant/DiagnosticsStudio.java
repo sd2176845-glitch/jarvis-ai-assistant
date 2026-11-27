@@ -33,6 +33,11 @@ final class DiagnosticsStudio {
     private DiagnosticsStudio() { }
 
     static void show(Activity activity, SharedPreferences preferences, boolean ttsReady) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.LOCAL_DIAGNOSTICS)) {
+            Toast.makeText(activity, "Local diagnostics consent is required. Review the owner consent choices first.", Toast.LENGTH_LONG).show();
+            OwnerConsentStudio.show(activity, preferences);
+            return;
+        }
         String[] actions = {
                 "Run app health check",
                 "Check JARVIS backend health",
