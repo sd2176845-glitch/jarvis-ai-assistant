@@ -59,7 +59,7 @@ public final class ConversationContextRules {
                     .append(context).append('\n');
         }
         prompt.append("Current user message: ")
-                .append(currentMessage == null ? "" : currentMessage.trim());
+                .append(cleanEntry(currentMessage));
         return prompt.toString();
     }
 
@@ -67,6 +67,7 @@ public final class ConversationContextRules {
         if (value == null) return "";
         String cleaned = value.replace("\r\n", " ⏎ ")
                 .replace('\r', ' ').replace("\n", " ⏎ ").replace('\t', ' ').trim();
+        cleaned = removeControlCharacters(cleaned);
         if (cleaned.length() > MAX_ENTRY_CHARS) {
             cleaned = cleaned.substring(0, MAX_ENTRY_CHARS);
         }
@@ -75,11 +76,21 @@ public final class ConversationContextRules {
 
     private static String cleanLine(String value) {
         if (value == null) return "";
-        String cleaned = value.replace('\t', ' ').trim();
+        String cleaned = removeControlCharacters(value.replace('\t', ' ')).trim();
         if (cleaned.length() > MAX_ENTRY_CHARS) {
             cleaned = cleaned.substring(0, MAX_ENTRY_CHARS);
         }
         return cleaned;
+    }
+
+    /** Removes non-printing ISO control characters while preserving ordinary Unicode text. */
+    private static String removeControlCharacters(String value) {
+        StringBuilder safe = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char character = value.charAt(i);
+            if (!Character.isISOControl(character)) safe.append(character);
+        }
+        return safe.toString();
     }
 
     private static int joinedLength(List<String> lines) {

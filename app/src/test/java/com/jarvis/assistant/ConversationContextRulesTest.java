@@ -67,6 +67,26 @@ public class ConversationContextRulesTest {
         assertTrue(prompt.contains("ask one brief clarification"));
     }
 
+    @Test public void controlCharactersAreRemovedWithoutDamagingHindiOrBengaliText() {
+        String nul = Character.toString((char) 0);
+        String bell = Character.toString((char) 7);
+        String escape = Character.toString((char) 27);
+        String cleaned = ConversationContextRules.appendExchange(
+                null, "hello" + nul + bell + " दुनिया বাংলা", "reply" + escape + "[31m");
+        assertFalse(cleaned.contains(nul));
+        assertFalse(cleaned.contains(bell));
+        assertFalse(cleaned.contains(escape));
+        assertTrue(cleaned.contains("दुनिया"));
+        assertTrue(cleaned.contains("বাংলা"));
+    }
+
+    @Test public void currentMessageIsSanitizedBeforePromptConstruction() {
+        String nul = Character.toString((char) 0);
+        String prompt = ConversationContextRules.buildRequestMessage(
+                null, null, "hello" + nul + " world");
+        assertTrue(prompt.endsWith("Current user message: hello world"));
+        assertFalse(prompt.contains(nul));
+    }
     @Test public void emptyContextAndNullInputsAreSafe() {
         assertEquals("", ConversationContextRules.limitContext(null));
         assertEquals("", ConversationContextRules.limitContext("  "));
