@@ -3176,26 +3176,10 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // Mood-aware supportive replies: respond gently, without pretending to know more than was said.
-        if (intent.contains("udaas") || intent.contains("sad") || intent.contains("dil kharab")
-                || intent.contains("mann nahi lag") || intent.contains("man nahi lag")
-                || intent.contains("rona aa raha") || intent.contains("pareshan hoon")) {
-            replyAndShow(original, "Bhai, lag raha hai abhi waqt thoda mushkil hai. Main sun raha hoon. Aaram se batao kya hua—main judge nahi karunga. Agar tum chaho, hum ek-ek karke sochenge.");
-            return;
-        }
-        if (intent.contains("darr lag") || intent.contains("dar lag") || intent.contains("ghabra")
-                || intent.contains("anxiety") || intent.contains("tension ho rahi")) {
-            replyAndShow(original, "Theek hai, pehle dheere se saans lo aur apne aap ko safe jagah par rakho. Main sun raha hoon. Kis baat se darr ya tension ho rahi hai?");
-            return;
-        }
-        if (intent.contains("khush hoon") || intent.contains("bahut khush") || intent.contains("happy hoon")
-                || intent.contains("good news")) {
-            replyAndShow(original, "Arey wah, Boss! Ye toh achhi baat hai. Batao kya hua—saath mein celebrate karte hain!");
-            return;
-        }
-        if (intent.contains("akela feel") || intent.contains("lonely") || intent.contains("koi nahi hai")
-                || intent.contains("koi sunta nahi")) {
-            replyAndShow(original, "Bhai, tum jo keh rahe ho main dhyan se sununga. Tumhe sab kuch ek saath explain karne ki zaroorat nahi—jitna comfortable ho utna batao. Agar mumkin ho toh kisi bharosemand insaan se bhi baat karna.");
+        // M02 Human Intelligence: use cautious, explicit text cues; neutral or ambiguous wording falls through to AI.
+        String supportiveReply = HumanIntelligenceRules.buildLocalSupportiveReply(intent);
+        if (supportiveReply != null) {
+            replyAndShow(original, supportiveReply);
             return;
         }
 
