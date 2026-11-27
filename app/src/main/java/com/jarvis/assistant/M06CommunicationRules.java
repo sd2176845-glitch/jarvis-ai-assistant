@@ -49,6 +49,20 @@ public final class M06CommunicationRules {
         return value.matches("(?i)^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$");
     }
 
+    /** Normalizes an SMS destination without guessing a country code. */
+    public static String normalizeSmsNumber(String phone) {
+        if (phone == null) return null;
+        String value = phone.trim().replaceAll("[^0-9+]", "");
+        if (value.startsWith("+")) return "+" + value.substring(1).replace("+", "");
+        return value.replace("+", "");
+    }
+
+    public static boolean isValidSmsNumber(String number) {
+        if (number == null || !number.matches("\\+?[0-9]+")) return false;
+        String digits = number.replaceAll("[^0-9]", "");
+        return digits.length() >= 5 && digits.length() <= 15;
+    }
+
     /** Returns a wa.me-compatible number, or null when it is not usable. */
     public static String normalizeWhatsAppNumber(String phone) {
         if (phone == null) return null;
