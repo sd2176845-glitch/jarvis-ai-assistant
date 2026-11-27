@@ -46,6 +46,7 @@ import io.appwrite.coroutines.CoroutineCallback;
 
 public class MainActivity extends Activity {
     private TextView status, transcript;
+    private LinearLayout dashboardRoot;
     private TextToSpeech tts;
     private String lastSpokenText = "";
     private static final int OWNER_AUTH_REQUEST = 7316;
@@ -148,9 +149,11 @@ public class MainActivity extends Activity {
         scroll.setBackgroundColor(bg);
 
         LinearLayout root = new LinearLayout(this);
+        dashboardRoot = root;
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER_HORIZONTAL);
         root.setPadding(24, 28, 24, 28);
+        DashboardProfileStudio.apply(this, root);
         root.setBackgroundColor(bg);
         scroll.addView(root, new ScrollView.LayoutParams(-1, -1));
 
@@ -2208,7 +2211,9 @@ public class MainActivity extends Activity {
                 "Media Player Controls • Android media session",
                 "Math Calculator • Local arithmetic",
                 "Personal Media Vault • Backup / Restore / Export",
-                "R&D Innovation Lab • Future module catalogue"
+                "R&D Innovation Lab • Future module catalogue",
+                "Dashboard Profile • Compact / Standard / Spacious",
+                "M16 Integration Registry • Enable / Disable"
         };
         new AlertDialog.Builder(this).setTitle("J.A.R.V.I.S.  •  COMMAND CENTER")
                 .setItems(items, (dialog, which) -> {
@@ -2240,7 +2245,10 @@ public class MainActivity extends Activity {
                     else if (which == 12) showLiveInfoOptions();
                     else if (which == 13) openVisionTools();
                     else if (which == 14) openPrivateArea(() -> showTaskAndReminderHub());
-                    else if (which == 15) showConnectedSystems();
+                    else if (which == 15) {
+                        if (IntegrationRegistryStudio.isEnabled(MainActivity.this, IntegrationRegistryStudio.CONNECTED_SYSTEMS)) showConnectedSystems();
+                        else status.setText("CONNECTED SYSTEMS DISABLED IN INTEGRATION REGISTRY");
+                    }
                     else if (which == 16) showPrivacyOptions();
                     else if (which == 17) showScreenTimeOverview();
                     else if (which == 18) showCybersecurityCommandCenter();
@@ -2260,7 +2268,10 @@ public class MainActivity extends Activity {
                     else if (which == 32) DataIntelligenceStudio.show(MainActivity.this, status, transcript);
                     else if (which == 33) ProductivityStudio.show(MainActivity.this);
                     else if (which == 34) CreativeMediaStudio.show(MainActivity.this, status, transcript);
-                    else if (which == 35) SmartHomeStudio.show(MainActivity.this, status, transcript);
+                    else if (which == 35) {
+                        if (IntegrationRegistryStudio.isEnabled(MainActivity.this, IntegrationRegistryStudio.SMART_HOME)) SmartHomeStudio.show(MainActivity.this, status, transcript);
+                        else status.setText("SMART HOME STUDIO DISABLED IN INTEGRATION REGISTRY");
+                    }
                     else if (which == 36) ConnectivityIntelligenceStudio.show(MainActivity.this, status, transcript);
                     else if (which == 37) SimulationEngineeringStudio.show(MainActivity.this, status, transcript);
                     else if (which == 38) PracticalIntelligenceStudio.show(MainActivity.this, status, transcript);
@@ -2275,6 +2286,10 @@ public class MainActivity extends Activity {
                         catch (Exception e) { status.setText("MEDIA VAULT IS NOT AVAILABLE"); }
                     } else if (which == 46) {
                         InnovationLab.show(MainActivity.this, message -> status.setText(message));
+                    } else if (which == 47) {
+                        DashboardProfileStudio.show(MainActivity.this, dashboardRoot, status);
+                    } else if (which == 48) {
+                        IntegrationRegistryStudio.show(MainActivity.this, status);
                     }
                 }).setNegativeButton("Close", null).show();
     }
