@@ -45,6 +45,29 @@ public class ReminderRulesTest {
         assertFalse(ReminderRules.matchesReminderQuery("Call Home", "clinic"));
     }
 
+    @Test public void groupsRemindersByLocalCalendarDayAndWeek() {
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        now.clear();
+        now.set(2026, java.util.Calendar.NOVEMBER, 27, 10, 0, 0);
+        long nowMillis = now.getTimeInMillis();
+
+        java.util.Calendar target = (java.util.Calendar) now.clone();
+        target.set(java.util.Calendar.HOUR_OF_DAY, 18);
+        assertEquals("Today", ReminderRules.scheduleGroup(target.getTimeInMillis(), nowMillis));
+
+        target.add(java.util.Calendar.DAY_OF_YEAR, 1);
+        assertEquals("Tomorrow", ReminderRules.scheduleGroup(target.getTimeInMillis(), nowMillis));
+
+        target.add(java.util.Calendar.DAY_OF_YEAR, 2);
+        assertEquals("This week", ReminderRules.scheduleGroup(target.getTimeInMillis(), nowMillis));
+
+        target.add(java.util.Calendar.DAY_OF_YEAR, 5);
+        assertEquals("Later", ReminderRules.scheduleGroup(target.getTimeInMillis(), nowMillis));
+
+        target.add(java.util.Calendar.DAY_OF_YEAR, -9);
+        assertEquals("Past", ReminderRules.scheduleGroup(target.getTimeInMillis(), nowMillis));
+    }
+
     @Test public void restoresOnlyFutureReminders() {
         assertTrue(ReminderRules.shouldRestore(2000L, 1000L));
         assertFalse(ReminderRules.shouldRestore(1000L, 1000L));
