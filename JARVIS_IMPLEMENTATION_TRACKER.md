@@ -1470,3 +1470,13 @@ JARVIS only; the separate Even project remains untouched.
 
 - Live M16 device/collaboration sync, M17 private wireless or satellite-provider service, M18 physical robotics hardware control, and M19 real booking/payment transactions remain provider-, account-, hardware- or permission-dependent. The current code offers safe local/manual handoffs only; it does not claim those external integrations are complete.
 - JARVIS only. The separate Even project remains untouched.
+
+
+## M02 — Negation-aware text cue correction (2026-11-28)
+
+- **Branch:** `fix/m02-negation-aware-human-cues` (based on current `main`; not merged).
+- Corrected the existing text-only Human Intelligence cue matcher so a negative word immediately following a matched cue (for example, “bahut khush nahi hoon”) is not misread as a positive emotion signal.
+- Preserved independent positive cues later in the same sentence (for example, “bahut khush hoon, lekin tension nahi hai”).
+- Added JVM unit tests for post-cue negation, mixed positive/negative clauses, and preventing an incorrect supportive reply.
+- **Validation:** source and tests are committed on the feature branch; GitHub Actions result pending. No claim of passing tests or device verification until the exact branch-head workflow completes.
+- **Scope:** text/transcript only. No raw audio/camera inference, persistent emotion labels, new permissions, or changes to Even.
