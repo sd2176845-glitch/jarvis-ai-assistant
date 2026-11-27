@@ -30,7 +30,8 @@ public final class ConnectivityIntelligenceStudio {
                 "Network Health Snapshot • read-only",
                 "Live Connectivity Monitor • foreground only",
                 "Offline Capability Matrix • local readiness",
-                "Connectivity Strategy Planner • local / hybrid / satellite"
+                "Connectivity Strategy Planner • local / hybrid / satellite",
+                "Connectivity Readiness Advisor • recommendations"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Connectivity Intelligence")
                 .setItems(tools, (dialog, which) -> {
@@ -38,7 +39,8 @@ public final class ConnectivityIntelligenceStudio {
                     else if (which == 1) showNetworkSnapshot(activity);
                     else if (which == 2) showLiveConnectivityMonitor(activity);
                     else if (which == 3) showOfflineMatrix(activity);
-                    else showStrategyPlanner(activity, status, transcript);
+                    else if (which == 4) showStrategyPlanner(activity, status, transcript);
+                    else showReadinessAdvisor(activity);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -260,6 +262,34 @@ public final class ConnectivityIntelligenceStudio {
     private static void showOfflineMatrix(Activity activity) {
         String report = ConnectivityIntelligenceRules.offlineCapabilityMatrix();
         new AlertDialog.Builder(activity).setTitle("Offline Capability Matrix")
+                .setMessage(report).setPositiveButton("Close", null).show();
+    }
+
+
+    /** Owner-invoked, read-only advice based on Android's current default-network capabilities. */
+    private static void showReadinessAdvisor(Activity activity) {
+        String report;
+        try {
+            ConnectivityManager manager = (ConnectivityManager)
+                    activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (manager == null || Build.VERSION.SDK_INT < 23) {
+                report = ConnectivityIntelligenceRules.connectivityReadinessReport(
+                        "Hybrid", false, false, false, false, false);
+            } else {
+                Network active = manager.getActiveNetwork();
+                NetworkCapabilities caps = active == null ? null : manager.getNetworkCapabilities(active);
+                SharedPreferences prefs = activity.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+                String mode = ConnectivityIntelligenceRules.normalizeAiMode(
+                        prefs.getString("ai_connectivity_mode", "Hybrid"));
+                report = ConnectivityIntelligenceRules.connectivityReadinessReport(mode, active != null,
+                        caps != null, caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                        caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
+                        caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED));
+            }
+        } catch (Exception e) {
+            report = "Readiness report is temporarily unavailable. No network settings were changed.";
+        }
+        new AlertDialog.Builder(activity).setTitle("Connectivity Readiness Advisor")
                 .setMessage(report).setPositiveButton("Close", null).show();
     }
 
