@@ -1365,3 +1365,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - `MainActivity.java` already routes the Command Center productivity entry to `ProductivityStudio.show(...)` and the existing System safety check entry to `DiagnosticsStudio.show(...)`. This reuses the existing navigation and avoids duplicate menus or duplicate modules.
 - Older tracker/feature-branch notes that describe these modules as unmerged are historical and must not be used to justify cherry-picking their stale branches over the current default branch.
 - **Current status:** source presence and entry-point integration confirmed; a fresh CI build for the current default-branch head and Poco M4 Pro 4G verification are still pending. No claim of a newly built APK or device test is made.
+
+
+## B26 — Feature 6/50 — Reminder Time-Window Overview (2026-11-27)
+
+- Extended the existing Manage reminders view with a live local-calendar summary for Today, Tomorrow, This week and Later. Counts update together with the existing title search.
+- Calendar buckets use the device's local calendar and calendar-day arithmetic, not fixed 24-hour windows, so daylight-saving transitions and month/year boundaries do not shift the labels.
+- Reuses the existing ReminderStore and Manage reminders screen. The summary reads only the already-loaded upcoming JARVIS reminders; it does not create or mutate records, alarms, notifications or reminder settings.
+- Added pure-Java unit coverage for Today, Tomorrow, This week, Later and Past boundaries.
+- No new permission, scheduler, data store, network request, background process or access to other apps' notifications.
+- **Code commit:** `f43405853784edbb78556f3548209e3c67fc5e00`. GitHub Actions run #1305 is running; Android unit-test and APK-build result not yet confirmed. Poco M4 Pro 4G physical-device verification remains pending.
