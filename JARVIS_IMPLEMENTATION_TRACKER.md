@@ -6,15 +6,17 @@
 - Preserve Android permission boundaries, user-visible controls, and confirmation for sensitive external actions.
 - Blueprint inclusion, code presence, automated validation, and physical-device verification are separate statuses.
 
-## Current working branch
-- Current continuation branch: `feature/priority-5-adaptive-network-failover`, stacked on Priority 4; current implementation head before the tracker update is `3d1d2cebce48e70e9ee25be1357879885c35e734`.
-- Priority 1 draft PR #56 remains open, draft and unmerged. Final tracker head `1d642d9703f5c2b4d4775875bc71e73811dbc9cd` passed CI run #1107 (`45404473584`).
-- Priority 2 draft PR #57 remains open, draft and unmerged. Final tracker head `dcaa66e481e8135b12f4324cd9ed089142b07cb5` passed CI run #1117 (`45406022969`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload.
-- Priority 3 draft PR #58 remains open, draft and unmerged. Final tracker head `21004ecab3432d4a29a1f572a0a0e2b2483b8556` passed CI run #1124 (`45407321077`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload.
-- Priority 4 draft PR #59 remains open, draft and unmerged. Final tracker head `3afb07801b4fc245170e4392b4c952a1ff3fffce` passed CI run #1131 (`45408924743`), including backend syntax, 11 Node tests, Android unit tests, APK build and artifact upload. Implementation head `98461a97427d1400560bab38a7d69348980a81b7` passed run #1130 (`45408537407`).
-- Priority 5 Adaptive Network-Aware AI Failover: implementation head `3d1d2cebce48e70e9ee25be1357879885c35e734` passed CI run #1135 (`45409604272`), including backend syntax, 11 Node tests, Android unit tests, debug APK build and artifact upload. APK artifact ID `14926233271`.
-- B26 draft PR #54 and B33 draft PR #55 remain open, draft and unmerged.
-- `main` has not been changed or merged by this continuation; the separate Even project remains untouched. Do not merge any draft PR without explicit owner approval.
+## Current mainline state (2026-11-27)
+
+- Main HEAD: `f346fe2b7d66f9281d03515c0f58c5c1eed8d1df`.
+- PR #76 merged: M01, M02, M06, M13, M14 and M16–M19 actual-code reconciliation.
+- PR #75 / M03 Academic Research Explorer merged as `00ffdb42ea8c6765ce641e82b09afc151b76024a`.
+- PR #71 / M19 journey and collaborative planning foundation merged as `d7ad95a70c64d32aee41975f6c7b326cf596c62e`.
+- Superseded PRs #62, #63, #65 and #70 closed; their scoped changes are in current main.
+- PR #61 remains open for separate M01 identity/authentication scope. PR #66 remains open because it also contains unrelated Vision and Memory changes; its direct-SMS slice is already merged through #76.
+- PR head SHA `f3d91ad0723c90ae36c09264466e381f8ace920b` passed Actions run #1443 (ID `46049760374`): backend tests, Android unit tests, debug APK build and artifact upload. Artifact ID `15223702648`, SHA-256 `32e1d191adfd1bc4876d709e51beeaed9405bc3e8fba07b7309a4a6484441182`.
+- Post-merge main SHA `f346fe2b7d66f9281d03515c0f58c5c1eed8d1df` passed Actions run #1445 (ID `46049961444`): backend tests, Android unit tests, debug APK build and artifact upload. Artifact ID `15223881797`, SHA-256 `9e6fca49b8323da9ea68c020ad417dd6225f8f72150029620185b921349608ac`.
+- Poco M4 Pro 4G physical-device verification remains pending. CI success is not release certification. The separate Even project remains untouched.
 
 ## Latest implementation batches
 1. **M02 — Voice Session Feedback & Foreground Stop Control** — code-present: clear listening, hearing, processing, thinking, speaking, offline/local-command-ready, and standby states; owner-visible control stops foreground speech recognition and TTS output. It does not stop the separate background wake-word service.
@@ -38,14 +40,15 @@
 4. Implement three distinct, independently tracked sub-features per batch; keep their code paths and acceptance checks separate, then run a combined build/regression check. If a feature fails, record its result independently.
 5. Keep all changes on the feature branch until the user explicitly authorizes merging.
 
-## Next technical steps
-- CI build/artifact for commit `1881e6f` is verified successful (run `45038787391`, artifact `14760812400`). Install this exact artifact; do not use the older artifact as if it contained M02.
-- Install and test the current-head debug APK on the target Poco M4 Pro 4G.
-- Test Voice Studio: available voice listing, voice selection, saved voice after restart, speech-rate and pitch behavior in foreground and background.
-- Test Focus Session: 15/25/45-minute choices, task label, countdown, Stop, and process-lifecycle limitation.
-- Test Device Resource Intelligence: battery values against Android Settings, app-data-volume storage label, RAM values, refresh and error handling.
-- Record physical-device results here before marking any of these modules verified.
-- After the voice-session CI and device checks, choose the next unimplemented module from the consolidated blueprint; implement it as a separate batch.
+## Next technical steps (current mainline)
+
+- Install post-merge debug APK artifact `15223881797` on the target Poco M4 Pro 4G.
+- Verify M01 consent on/off for foreground/background voice, contact lookup, call/SMS announcements, outgoing SMS and diagnostics. Confirm consent blocks access before Android permission prompts.
+- Verify M06 recipient selection, email/WhatsApp draft handoffs, SMS final confirmation, cancellation and permission denial.
+- Verify M13 AES-GCM integrity check, corrupt-file handling, missing-key handling and delete confirmation.
+- Verify M14 checkpoint create/review/restore/rollback, including empty/corrupt checkpoints and exclusion of private/security data.
+- Verify M16 integration registry and share summary; M17 readiness report; M18 scenario comparison; M19 collaborative-plan sharing.
+- Record physical-device results before marking any module device-verified.
 
 ## Third feature implementation note
 - Device Resource Dashboard uses Android `BatteryManager`, `StatFs`, and `ActivityManager.MemoryInfo` APIs.
@@ -1421,7 +1424,7 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Warranty reminders reuse the existing M07 reminder scheduler. Encrypted inventory backup/restore uses the existing inventory record and authenticated encryption. Offline emergency guidance, environmental information and vehicle service due-date reporting are also present in the current source tree.
 - Historical PR #53 and PR #54 are closed without merge; do not treat those PR states as the source-of-truth for current source presence. Verify the current main source and tests before proposing any cherry-pick or duplicate.
 - **Blueprint gaps identified:** an owner-reviewed journey-planning workflow and a collaborative project/milestone planning workflow were not exposed by the existing M19 studio. Added both to the existing PracticalIntelligenceStudio on feature/m19-blueprint-completion / draft PR #71. Journey planning is a draft only, with guardian review for minors and no bookings, purchases or live-route claims. Project planning drafts role-based responsibilities and owner-editable milestones, but does not invite people, sync data or share private memory; approved tasks use the existing Tasks & Reminders / Project Workspace.
-- PR #71 head 6730c84636aa9ef3e065eb2795f931f4a45e242c passed GitHub Actions run #1332 (45968102515): backend syntax/tests, Android unit tests, debug APK build and artifact upload. The PR remains draft and unmerged.
+- PR #71 merged to main as `d7ad95a70c64d32aee41975f6c7b326cf596c62e`; its journey-planning and collaborative project-planning foundation is code-present. It still does not invite people, sync private data or perform bookings/purchases.
 - Main-branch baseline commit b25441fc518a0b708e5fc9a8af063dcff8f811b1 passed run #1316 (45966559793), including Android unit tests and debug APK artifact upload.
 - **Still not claimed complete:** the full M19 shared-collaboration network/sync, actual booking or purchasing actions, and any other unchecked M19 blueprint requirements. The target Poco M4 Pro 4G physical-device verification remains pending for the audited modules and the new M19 additions.
 
@@ -1434,14 +1437,13 @@ JARVIS only; the separate Even project remains untouched.
 - Reuses the existing Public Knowledge Studio and its existing owner-invoked public lookup flow; adds a curated safe-topic picker, bounded request (maximum five metadata/abstract records), source links, authors, publication/update dates, and local retrieval timestamp.
 - Parser rejects DOCTYPE/external entities, limits response size and abstract length, validates canonical arXiv links, caps results, and labels records as preprints rather than peer-reviewed conclusions.
 - Sends only the selected topic to arXiv; no contacts, conversation history, notes, precise location, PDF download or saved search history.
-- Added focused JVM parser/query validation tests. Exact-head CI and APK build are pending on this mainline branch; Poco M4 Pro 4G physical-device verification remains pending.
+- Added focused JVM parser/query validation tests. Exact-head PR CI run #1367 passed backend tests, Android unit tests, debug APK build and artifact upload; PR #75 merged as `00ffdb42ea8c6765ce641e82b09afc151b76024a`. Poco M4 Pro 4G physical-device verification remains pending.
 - This is a focused M03 research slice, not completion of all M03 knowledge/search/research/learning requirements. JARVIS only; Even untouched.
 
 
 ## M01 / M02 / M06 / M13 / M14 / M16–M19 current-mainline reconciliation (2026-11-27)
 
-**Working branch:** `feature/reconcile-m01-m02-m06-m13-m14-m16-m19`  
-**Review:** draft PR #76, based directly on the M03-updated main branch. This branch ports reviewed work from stale/diverged feature branches and adds the missing enforcement/recovery/handoff code without merging those stale branches.
+**Mainline status:** merged to `main` by PR #76 as `f346fe2b7d66f9281d03515c0f58c5c1eed8d1df`. The branch ported reviewed work from stale/diverged feature branches and added the missing enforcement/recovery/handoff code without merging those stale branches.
 
 ### Code added or corrected
 
@@ -1460,7 +1462,8 @@ JARVIS only; the separate Even project remains untouched.
 
 - Early integration runs failed while the M16 share handoff was being wired (missing `Intent` import and a status variable outside its scope); both source errors were corrected.
 - An intermediate M14 build failed while the allowlist API was being moved into the shared recovery rules class; the class and call sites were reconciled and subsequent runs passed.
-- The exact final branch head must pass backend tests, Android unit tests, debug APK build and artifact upload before merge. Earlier successful runs validate earlier SHAs only.
+- Exact PR-head CI passed in run #1443 (ID `46049760374`) on `f3d91ad0723c90ae36c09264466e381f8ace920b`.
+- Post-merge main CI passed in run #1445 (ID `46049961444`) on `f346fe2b7d66f9281d03515c0f58c5c1eed8d1df`.
 - Poco M4 Pro 4G physical-device testing remains pending. SMS sending, Android Keystore decrypt verification, Bluetooth settings handoff and UI recovery flows still require on-device verification.
 
 ### Explicitly not implemented
