@@ -29,6 +29,15 @@ public class M06CommunicationRulesTest {
         assertFalse(M06CommunicationRules.isValidEmailAddress(null));
     }
 
+    @Test public void normalizesSmsNumbersWithoutGuessingCountryCode() {
+        assertEquals("+919876543210", M06CommunicationRules.normalizeSmsNumber("+91 98765-43210"));
+        assertEquals("9876543210", M06CommunicationRules.normalizeSmsNumber("98765 43210"));
+        assertTrue(M06CommunicationRules.isValidSmsNumber("+919876543210"));
+        assertFalse(M06CommunicationRules.isValidSmsNumber("1234"));
+        assertFalse(M06CommunicationRules.isValidSmsNumber(null));
+        assertFalse(M06CommunicationRules.isValidSmsNumber("12345abc"));
+    }
+
     @Test public void normalizesWhatsAppNumbersWithoutGuessingCountryCode() {
         assertEquals("919876543210", M06CommunicationRules.normalizeWhatsAppNumber("+91 98765-43210"));
         assertNull(M06CommunicationRules.normalizeWhatsAppNumber("12345"));
