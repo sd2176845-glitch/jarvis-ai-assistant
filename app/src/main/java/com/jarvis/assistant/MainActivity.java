@@ -1123,10 +1123,10 @@ public class MainActivity extends Activity {
 
     private void sendApprovedSms(String recipientNumber, String approvedText) {
         String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
-        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND)
-                || checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED
-                || !M06CommunicationRules.isValidSmsNumber(number)
-                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+        if (!M06CommunicationRules.canSendSms(
+                OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND),
+                checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED,
+                number, B21MessageDraftRules.isValidDraft(approvedText))) {
             status.setText("SMS NOT SENT • CONSENT, PERMISSION OR DETAILS INVALID");
             return;
         }
