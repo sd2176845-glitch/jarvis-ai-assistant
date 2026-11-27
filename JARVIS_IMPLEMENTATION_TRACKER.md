@@ -1436,3 +1436,34 @@ JARVIS only; the separate Even project remains untouched.
 - Sends only the selected topic to arXiv; no contacts, conversation history, notes, precise location, PDF download or saved search history.
 - Added focused JVM parser/query validation tests. Exact-head CI and APK build are pending on this mainline branch; Poco M4 Pro 4G physical-device verification remains pending.
 - This is a focused M03 research slice, not completion of all M03 knowledge/search/research/learning requirements. JARVIS only; Even untouched.
+
+
+## M01 / M02 / M06 / M13 / M14 / M16–M19 current-mainline reconciliation (2026-11-27)
+
+**Working branch:** `feature/reconcile-m01-m02-m06-m13-m14-m16-m19`  
+**Review:** draft PR #76, based directly on the M03-updated main branch. This branch ports reviewed work from stale/diverged feature branches and adds the missing enforcement/recovery/handoff code without merging those stale branches.
+
+### Code added or corrected
+
+- **M01 — Consent enforcement:** added explicit owner-consent gates to foreground and background voice entry points, contact lookups (including call, SMS, email and WhatsApp recipient selection), incoming call/SMS announcements, local diagnostics and outgoing SMS sending. Android runtime permissions remain separate. Incoming SMS announcement speaks only that a new message arrived; it does not read message text or OTPs. Outgoing SMS has its own default-off consent, exact recipient/message confirmation and Android `SEND_SMS` runtime permission.
+- **M02 — Human Intelligence:** integrated the focused text-only cue classifier, tentative supportive responses and prompt guardrails for empathy/social-context uncertainty. No raw audio/camera emotion analysis or persistent emotion labels.
+- **M03 — Academic Research:** PR #75 merged to main as `00ffdb42ea8c6765ce641e82b09afc151b76024a`; curated arXiv metadata/abstract lookup is present. This is not full M03 completion.
+- **M06 — Communication:** added reliable original-transcript addressed SMS parsing; editable email and WhatsApp draft handoffs with recipient choice; and owner-confirmed direct SMS via Android SmsManager. SMS requires separate owner consent, final recipient/message confirmation and runtime permission. Carrier submission is not delivery confirmation. No email or WhatsApp auto-send.
+- **M13 — Secure Evidence Vault:** added an integrity-verification action that decrypts the selected AES-GCM file using the existing Android Keystore key and checks the plaintext SHA-256 and byte count against local metadata. Missing keys do not trigger creation of a replacement key during verification. Invalid entry IDs are blocked. This is not legal chain-of-custody certification.
+- **M14 — Diagnostics & recovery:** added a local checkpoint/restore/rollback workflow for a strict allowlist of JARVIS voice/display preferences only. It excludes Android system settings, permissions, guest/security state, credentials, contacts, notes, tasks and memory. Type validation is enforced before restoring.
+- **M16 — Integration Registry:** added an owner-triggered shareable setup summary containing only built-in integration states and declared scopes. It is a manual handoff, not device sync or remote access.
+- **M17 — Connectivity:** added a read-only readiness advisor based on Android network capability flags; it does not probe networks, run speed tests or alter settings.
+- **M18 — Simulation:** added a text-only conceptual scenario comparison with safety boundaries; no physical equipment control or robotics actuation.
+- **M19 — Practical Intelligence:** added an owner-selected share option for collaborative project-plan drafts. It does not invite users or sync private data.
+
+### CI corrections and validation boundaries
+
+- Early integration runs failed while the M16 share handoff was being wired (missing `Intent` import and a status variable outside its scope); both source errors were corrected.
+- An intermediate M14 build failed while the allowlist API was being moved into the shared recovery rules class; the class and call sites were reconciled and subsequent runs passed.
+- The exact final branch head must pass backend tests, Android unit tests, debug APK build and artifact upload before merge. Earlier successful runs validate earlier SHAs only.
+- Poco M4 Pro 4G physical-device testing remains pending. SMS sending, Android Keystore decrypt verification, Bluetooth settings handoff and UI recovery flows still require on-device verification.
+
+### Explicitly not implemented
+
+- Live M16 device/collaboration sync, M17 private wireless or satellite-provider service, M18 physical robotics hardware control, and M19 real booking/payment transactions remain provider-, account-, hardware- or permission-dependent. The current code offers safe local/manual handoffs only; it does not claim those external integrations are complete.
+- JARVIS only. The separate Even project remains untouched.
