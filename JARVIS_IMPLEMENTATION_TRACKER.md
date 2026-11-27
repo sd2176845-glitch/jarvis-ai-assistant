@@ -1426,3 +1426,13 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **Still not claimed complete:** the full M19 shared-collaboration network/sync, actual booking or purchasing actions, and any other unchecked M19 blueprint requirements. The target Poco M4 Pro 4G physical-device verification remains pending for the audited modules and the new M19 additions.
 
 JARVIS only; the separate Even project remains untouched.
+
+
+## M03 — Academic Paper Explorer mainline integration (2026-11-27)
+
+- Ported the previously CI-verified curated arXiv Academic Paper Explorer onto the latest main branch after the older feature branch was found to be 30 commits behind and diverged.
+- Reuses the existing Public Knowledge Studio and its existing owner-invoked public lookup flow; adds a curated safe-topic picker, bounded request (maximum five metadata/abstract records), source links, authors, publication/update dates, and local retrieval timestamp.
+- Parser rejects DOCTYPE/external entities, limits response size and abstract length, validates canonical arXiv links, caps results, and labels records as preprints rather than peer-reviewed conclusions.
+- Sends only the selected topic to arXiv; no contacts, conversation history, notes, precise location, PDF download or saved search history.
+- Added focused JVM parser/query validation tests. Exact-head CI and APK build are pending on this mainline branch; Poco M4 Pro 4G physical-device verification remains pending.
+- This is a focused M03 research slice, not completion of all M03 knowledge/search/research/learning requirements. JARVIS only; Even untouched.
