@@ -106,6 +106,11 @@ public final class PracticalIntelligenceStudio {
 
     private static void confirmAi(Activity activity, TextView status, TextView transcript,
                                  String title, String prompt, String disclosure) {
+        confirmAi(activity, status, transcript, title, prompt, disclosure, false);
+    }
+
+    private static void confirmAi(Activity activity, TextView status, TextView transcript,
+                                 String title, String prompt, String disclosure, boolean allowShare) {
         new AlertDialog.Builder(activity).setTitle("Confirm AI request")
                 .setMessage(disclosure + "\n\nJARVIS will not save the submitted text in its notes or recent conversation memory.")
                 .setNegativeButton("Cancel", null)
@@ -116,10 +121,29 @@ public final class PracticalIntelligenceStudio {
                         if (activity.isFinishing() || activity.isDestroyed()) return;
                         status.setText(title + " • READY");
                         transcript.setText(reply);
-                        new AlertDialog.Builder(activity).setTitle("JARVIS • " + title)
-                                .setMessage(reply).setPositiveButton("Done", null).show();
+                        AlertDialog.Builder result = new AlertDialog.Builder(activity)
+                                .setTitle("JARVIS • " + title)
+                                .setMessage(reply)
+                                .setPositiveButton("Done", null);
+                        if (allowShare) {
+                            result.setNeutralButton("Share reviewed draft", (resultDialog, resultWhich) ->
+                                    shareProjectDraft(activity, reply));
+                        }
+                        result.show();
                     });
                 }).show();
+    }
+
+    private static void shareProjectDraft(Activity activity, String draft) {
+        try {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, "JARVIS collaborative project plan draft");
+            send.putExtra(Intent.EXTRA_TEXT, draft);
+            activity.startActivity(Intent.createChooser(send, "Share project plan draft"));
+        } catch (Exception e) {
+            Toast.makeText(activity, "Project plan sharing is unavailable.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private static SharedPreferences preferences(Activity activity) {
@@ -1372,6 +1396,7 @@ public final class PracticalIntelligenceStudio {
                 "Describe the project goal, available time and team roles (use roles, not people's private details). Maximum 800 characters.",
                 800, brief -> confirmAi(activity, status, transcript, "COLLABORATIVE PROJECT & MILESTONE PLAN",
                         PracticalIntelligenceRules.collaborativeProjectPrompt(brief),
-                        "Only the project brief you entered will be sent to JARVIS AI. The result is a draft for the owner/team to review. It does not invite people, share private memory, send messages or sync data. Add approved tasks through the existing Tasks & Reminders hub."));
+                        "Only the project brief you entered will be sent to JARVIS AI. The result is a draft for the owner/team to review. After generation, you may choose to share that draft through Android's share sheet. No private memory, contacts or account data are included; no automatic invites or live sync occur. Add approved tasks through the existing Tasks & Reminders hub.",
+                        true));
     }
 }
