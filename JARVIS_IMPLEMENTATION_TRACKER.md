@@ -1390,3 +1390,39 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** GitHub Actions run # pending for this commit; final Android unit-test and APK-build result not yet confirmed.
 - **Physical device:** pending on Poco M4 Pro 4G; verify all three dashboard profiles and restart persistence, plus disabling/re-enabling each registered integration.
 - JARVIS only; Even untouched.
+
+## 2026-11-27 — M01–M19 batch-to-blueprint reconciliation
+
+**Audit basis:** current main source tree, Command Center dispatch in MainActivity.java, available focused JUnit test files, JARVIS_MASTER_BLUEPRINT_CONSOLIDATED.md, and the historical batch records below. “Code-present” is not the same as full blueprint completion or Poco device verification.
+
+### Small feature batches B05–B20
+
+- **B05 / M05 Public Knowledge:** PublicKnowledgeStudio.java is present and connected to the Command Center; country, India PIN-code and dictionary lookup batch remains a defined three-tool slice, not proof that every M05 research capability is complete.
+- **B06 / M06 Live Information:** LiveInfoStudio.java is present and connected; weather, currency and public-holiday lookups are implemented as the recorded batch scope.
+- **B07 / M10 Learning Academy:** LearningAcademyStudio.java, LearningAcademyRules.java and focused tests are present; coding tutor, science explorer and learning-roadmap batch is represented.
+- **B08 / M11 Software Development:** SoftwareDevelopmentStudio.java is present and connected; project architecture, bug explanation and code-review tools are the recorded batch scope.
+- **B09 / M12 Data Intelligence:** DataIntelligenceStudio.java is present and connected; local dataset profiling, data-quality inspection and aggregate insight report are represented.
+- **B10 / M13 Productivity:** ProductivityStudio.java is present and connected; project workspace, priority matrix and weekly review extend the existing task store rather than creating a second task database.
+- **B10–B11 / M13–M15 Creative Media:** CreativeMediaStudio.java is present and connected; image/video concept, script/storyboard and presentation-planning tools are present as planning workflows, not claims of finished media rendering.
+- **B11 / M16 Smart Home:** SmartHomeStudio.java is present behind the existing integration-registry enable check; setup guidance, local inventory and routine planning do not imply unattended device control.
+- **B12 / M17 Connectivity:** ConnectivityIntelligenceStudio.java and its tests are present and connected; snapshot, offline capability matrix and owner-confirmed strategy planning are represented.
+- **B13 / M18 Simulation:** SimulationEngineeringStudio.java and its tests are present and connected; text-only world simulation, safe conceptual experiment and 3D design brief are represented, not physical actuation or CAD output.
+- **B14 / M19 Practical Intelligence:** PR #40 is merged into main. MainActivity dispatches the existing Practical Intelligence Studio; emergency readiness, legal excerpt explanation and local vehicle maintenance log are present.
+- **B15 / M01 Privacy:** OwnerPrivacyStudio.java, OwnerPrivacyRules.java and tests are present; the permission review, local data inventory and sanitized export are the recorded batch slice.
+- **B16 / M02 Voice Transcript Review:** VoiceTranscriptReviewRules.java is present and used by the owner-review correction flow in MainActivity; this is not permission to silently replace transcripts.
+- **B17 / M15 Display & Accessibility:** DisplayAccessibilityStudio.java, rules and tests are present and connected; CI run #1306 passed. Poco physical-device verification remains pending.
+- **B18 / M16 Authorized Bluetooth Handoff:** SmartHomeAccessoryRules.java and the existing Smart Home inventory/settings handoff are present; CI run #1306 passed. No background scanning or automatic pairing is implied.
+- **B19 / M17 Hardware Compatibility:** HardwareCompatibilityRules.java is present and used by the read-only device report; this is not a guarantee of third-party accessory compatibility.
+- **B20 / M17 Battery Snapshot:** BatterySnapshotRules.java is present and used by the read-only resource report; it is an Android-reported snapshot, not a battery-health diagnosis.
+
+### M19 expansion reconciliation
+
+- The Smart Asset Inventory implementation is recorded as **20/20 inventory capabilities code-present**, including search/filter/sort, warranty summaries, purchase-date analysis, receipt/manual references, and data-quality checks. Vehicle odometer consistency is separately tracked under Vehicle Intelligence.
+- Warranty reminders reuse the existing M07 reminder scheduler. Encrypted inventory backup/restore uses the existing inventory record and authenticated encryption. Offline emergency guidance, environmental information and vehicle service due-date reporting are also present in the current source tree.
+- Historical PR #53 and PR #54 are closed without merge; do not treat those PR states as the source-of-truth for current source presence. Verify the current main source and tests before proposing any cherry-pick or duplicate.
+- **Blueprint gaps identified:** an owner-reviewed journey-planning workflow and a collaborative project/milestone planning workflow were not exposed by the existing M19 studio. Added both to the existing PracticalIntelligenceStudio on feature/m19-blueprint-completion / draft PR #71. Journey planning is a draft only, with guardian review for minors and no bookings, purchases or live-route claims. Project planning drafts role-based responsibilities and owner-editable milestones, but does not invite people, sync data or share private memory; approved tasks use the existing Tasks & Reminders / Project Workspace.
+- PR #71 head 6730c84636aa9ef3e065eb2795f931f4a45e242c passed GitHub Actions run #1332 (45968102515): backend syntax/tests, Android unit tests, debug APK build and artifact upload. The PR remains draft and unmerged.
+- Main-branch baseline commit b25441fc518a0b708e5fc9a8af063dcff8f811b1 passed run #1316 (45966559793), including Android unit tests and debug APK artifact upload.
+- **Still not claimed complete:** the full M19 shared-collaboration network/sync, actual booking or purchasing actions, and any other unchecked M19 blueprint requirements. The target Poco M4 Pro 4G physical-device verification remains pending for the audited modules and the new M19 additions.
+
+JARVIS only; the separate Even project remains untouched.
