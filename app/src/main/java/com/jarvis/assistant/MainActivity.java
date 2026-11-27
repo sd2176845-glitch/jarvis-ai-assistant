@@ -994,6 +994,11 @@ public class MainActivity extends Activity {
     }
 
     private void showMessageRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             new AlertDialog.Builder(this).setTitle("Contacts permission needed")
                     .setMessage("To select a recipient, allow Contacts permission in Android app settings, then retry. No message was opened.")
@@ -1072,6 +1077,179 @@ public class MainActivity extends Activity {
                         status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
                     } catch (Exception e) {
                         status.setText("MESSAGE APP NOT AVAILABLE");
+                    }
+                }).show();
+    }
+
+    private void showEmailRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            new AlertDialog.Builder(this).setTitle("Contacts permission needed")
+                    .setMessage("Allow Contacts permission in Android settings, then retry. No email was opened.")
+                    .setPositiveButton("Open app settings", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception e) { status.setText("OPEN JARVIS APP INFO IN ANDROID SETTINGS"); }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> addresses = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Email.DISPLAY_NAME + " LIKE ? OR "
+                    + ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE ?";
+            String match = "%" + requestedName + "%";
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Email.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Email.ADDRESS},
+                    selection, new String[]{match, match},
+                    ContactsContract.CommonDataKinds.Email.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String address = cursor.getString(1);
+                    if (!M06CommunicationRules.isValidEmailAddress(address)) continue;
+                    labels.add((name == null ? "Contact" : name) + " • " + address);
+                    addresses.add(address);
+                }
+            }
+        } catch (SecurityException e) {
+            status.setText("CONTACTS UNAVAILABLE • NO EMAIL OPENED");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (addresses.isEmpty()) {
+            status.setText("NO MATCHING EMAIL CONTACT • NO EMAIL OPENED");
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose email recipient")
+                    .setMessage("Select the intended address. You will review the email before opening your email app.")
+                    .setItems(labels.toArray(new String[0]), (d, which) ->
+                            showEmailDraftPreview(draft, addresses.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
+    private void showEmailDraftPreview(String draft, String recipient) {
+        EditText subject = new EditText(this);
+        subject.setHint("Subject (optional)");
+        EditText body = new EditText(this);
+        body.setText(draft);
+        body.setMinLines(4);
+        body.setMaxLines(10);
+        body.setGravity(Gravity.TOP | Gravity.START);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(24, 8, 24, 8);
+        layout.addView(subject);
+        layout.addView(body);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Email draft")
+                .setMessage("To: " + recipient + "\nReview or edit below. JARVIS will open your email app; it will not send.")
+                .setView(layout)
+                .setNegativeButton("Cancel", (d, w) -> status.setText("EMAIL DRAFT CANCELLED"))
+                .setPositiveButton("Review in email app", (d, w) -> {
+                    String text = body.getText().toString().trim();
+                    String title = subject.getText().toString().trim();
+                    if (!B21MessageDraftRules.isValidDraft(text)
+                            || !M06CommunicationRules.isValidEmailAddress(recipient)) {
+                        status.setText("EMAIL DRAFT INVALID • NOTHING OPENED");
+                        return;
+                    }
+                    try {
+                        android.net.Uri mailto = android.net.Uri.parse("mailto:"
+                                + android.net.Uri.encode(recipient, "@._+-"));
+                        Intent email = new Intent(Intent.ACTION_SENDTO, mailto);
+                        email.putExtra(Intent.EXTRA_SUBJECT, title);
+                        email.putExtra(Intent.EXTRA_TEXT, text);
+                        startActivity(email);
+                        status.setText("EMAIL COMPOSER OPENED • REVIEW AND SEND MANUALLY");
+                    } catch (Exception e) {
+                        status.setText("EMAIL APP NOT AVAILABLE");
+                    }
+                }).show();
+    }
+
+    private void showWhatsAppRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            new AlertDialog.Builder(this).setTitle("Contacts permission needed")
+                    .setMessage("Allow Contacts permission in Android settings, then retry. No WhatsApp chat was opened.")
+                    .setPositiveButton("Open app settings", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception e) { status.setText("OPEN JARVIS APP INFO IN ANDROID SETTINGS"); }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> numbers = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    selection, new String[]{"%" + requestedName + "%"},
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String number = cursor.getString(1);
+                    if (M06CommunicationRules.normalizeWhatsAppNumber(number) == null) continue;
+                    labels.add((name == null ? "Unknown contact" : name) + " • " + number);
+                    numbers.add(number);
+                }
+            }
+        } catch (SecurityException e) {
+            status.setText("CONTACTS UNAVAILABLE • NO WHATSAPP CHAT OPENED");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (numbers.isEmpty()) {
+            status.setText("NO MATCHING PHONE CONTACT • NO WHATSAPP CHAT OPENED");
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose WhatsApp recipient")
+                    .setMessage("Select the intended contact. JARVIS will show an editable draft before opening WhatsApp.")
+                    .setItems(labels.toArray(new String[0]), (d, which) ->
+                            showWhatsAppDraftPreview(draft, numbers.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
+    private void showWhatsAppDraftPreview(String draft, String phoneNumber) {
+        EditText message = new EditText(this);
+        message.setText(draft);
+        message.setMinLines(3);
+        message.setMaxLines(8);
+        message.setGravity(Gravity.TOP | Gravity.START);
+        new AlertDialog.Builder(this).setTitle("JARVIS • WhatsApp draft")
+                .setMessage("Review or edit the message. JARVIS will open WhatsApp; it will not send.")
+                .setView(message)
+                .setNegativeButton("Cancel", (d, w) -> status.setText("WHATSAPP DRAFT CANCELLED"))
+                .setPositiveButton("Review in WhatsApp", (d, w) -> {
+                    String approvedText = message.getText().toString().trim();
+                    String number = M06CommunicationRules.normalizeWhatsAppNumber(phoneNumber);
+                    if (!B21MessageDraftRules.isValidDraft(approvedText) || number == null) {
+                        status.setText("WHATSAPP DRAFT INVALID • NOTHING OPENED");
+                        return;
+                    }
+                    try {
+                        String url = "https://wa.me/" + number + "?text="
+                                + android.net.Uri.encode(approvedText);
+                        startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+                        status.setText("WHATSAPP HANDOFF OPENED • REVIEW AND SEND MANUALLY");
+                    } catch (Exception e) {
+                        status.setText("WHATSAPP HANDOFF UNAVAILABLE");
                     }
                 }).show();
     }
@@ -3265,6 +3443,26 @@ public class MainActivity extends Activity {
             try { startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)); }
             catch (Exception e) { transcript.append("\nLocation settings nahi khul paayi."); }
             return;
+        } else if (intent.startsWith("email ") || intent.startsWith("mail ")) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"email", "mail"});
+            if (draft == null || draft.recipient.isEmpty() || draft.body.isEmpty()) {
+                replyAndShow(original, "Use: email to contact-name-or-address: your message. Nothing was opened.");
+            } else if (M06CommunicationRules.isValidEmailAddress(draft.recipient)) {
+                showEmailDraftPreview(draft.body, draft.recipient);
+            } else {
+                showEmailRecipientChoices(draft.recipient, draft.body);
+            }
+            return;
+        } else if (intent.startsWith("whatsapp ") || intent.startsWith("wa ")) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"whatsapp", "wa"});
+            if (draft == null || draft.recipient.isEmpty() || draft.body.isEmpty()) {
+                replyAndShow(original, "Use: whatsapp to contact-name: your message. Nothing was opened.");
+            } else {
+                showWhatsAppRecipientChoices(draft.recipient, draft.body);
+            }
+            return;
         } else if (intent.contains("call") || intent.contains("phone karo") || intent.contains("phone lagao") || intent.contains("ko phone karo") || intent.contains("ko call karo")) {
             String target = intent.replace("mere ", "").replace("meri ", "")
                     .replace("ko call karo", "").replace("call karo", "").replace("call", "")
@@ -3279,17 +3477,17 @@ public class MainActivity extends Activity {
             }
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
-            String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
-            if (body.toLowerCase(Locale.ROOT).startsWith("to ") && body.contains(":")) {
-                int separator = body.indexOf(':');
-                String recipient = body.substring(3, separator).trim();
-                String messageBody = body.substring(separator + 1).trim();
-                if (recipient.isEmpty() || messageBody.isEmpty()) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"message", "sms", "text"});
+            if (draft != null) {
+                if (draft.recipient.isEmpty() || draft.body.isEmpty()) {
                     replyAndShow(original, "Use: message to contact-name: your message. Nothing was opened.");
                 } else {
-                    showMessageRecipientChoices(recipient, messageBody);
+                    showMessageRecipientChoices(draft.recipient, draft.body);
                 }
             } else {
+                String body = M06CommunicationRules.removeCommandPrefix(original,
+                        new String[]{"message", "sms", "text"});
                 showMessageDraftPreview(body);
             }
             return;
