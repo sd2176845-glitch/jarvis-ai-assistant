@@ -18,26 +18,30 @@ public final class OwnerConsentStudio {
     public static final int CALL_EVENT_ANNOUNCEMENTS = 2;
     public static final int SMS_EVENT_ANNOUNCEMENTS = 3;
     public static final int LOCAL_DIAGNOSTICS = 4;
+    public static final int OUTGOING_SMS_SEND = 5;
     private static final String[] KEYS = {
             "owner_consent_voice_processing_v1",
             "owner_consent_contacts_v1",
             "owner_consent_call_event_notices_v1",
             "owner_consent_sms_event_notices_v1",
-            "owner_consent_diagnostics_v1"
+            "owner_consent_diagnostics_v1",
+            "owner_consent_sms_send_v1"
     };
     private static final String[] LABELS = {
             "Voice processing",
             "Contact lookup",
             "Call event announcements",
             "SMS event announcements",
-            "Local diagnostics"
+            "Local diagnostics",
+            "Owner-confirmed SMS sending"
     };
     private static final String[] EXPLANATIONS = {
             "Allows JARVIS voice features to process speech when you explicitly start listening. Android microphone permission is still required.",
             "Allows supported contact lookup after you grant Android Contacts permission. It does not authorize uploading your contacts.",
             "Allows JARVIS to announce supported call-state events. Android phone permissions and system restrictions still apply.",
             "Allows supported SMS event announcements only where Android/provider rules permit. It does not authorize reading OTPs or silently accessing messages.",
-            "Allows local, owner-visible diagnostic summaries. It does not enable stealth monitoring or automatic uploads."
+            "Allows local, owner-visible diagnostic summaries. It does not enable stealth monitoring or automatic uploads.",
+            "Allows one outgoing SMS only after you review the exact recipient and message and confirm Send. Android SEND_SMS permission is still required. JARVIS does not read incoming messages or send in the background."
     };
 
     private OwnerConsentStudio() { }
