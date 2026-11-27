@@ -29,7 +29,8 @@ public final class OwnerPrivacyStudio {
                 "Permission & access review • read-only",
                 "Local data inventory • counts only",
                 "Export sanitized privacy summary",
-                "Open encrypted evidence vault"
+                "Open encrypted evidence vault",
+                "Owner consent & feature access"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Owner Privacy Studio")
@@ -38,7 +39,8 @@ public final class OwnerPrivacyStudio {
                     if (which == 0) showPermissionReview(activity);
                     else if (which == 1) showInventory(activity, prefs);
                     else if (which == 2) exportSummary(activity, prefs);
-                    else activity.startActivity(new Intent(activity, SecureEvidenceVaultActivity.class));
+                    else if (which == 3) activity.startActivity(new Intent(activity, SecureEvidenceVaultActivity.class));
+                    else OwnerConsentStudio.show(activity, prefs);
                 })
                 .setNegativeButton("Close", null)
                 .show();
