@@ -13,6 +13,11 @@ import java.util.List;
  * they do not grant Android permissions and do not replace runtime permission checks.
  */
 public final class OwnerConsentStudio {
+    public static final int VOICE_PROCESSING = 0;
+    public static final int CONTACT_LOOKUP = 1;
+    public static final int CALL_EVENT_ANNOUNCEMENTS = 2;
+    public static final int SMS_EVENT_ANNOUNCEMENTS = 3;
+    public static final int LOCAL_DIAGNOSTICS = 4;
     private static final String[] KEYS = {
             "owner_consent_voice_processing_v1",
             "owner_consent_contacts_v1",
