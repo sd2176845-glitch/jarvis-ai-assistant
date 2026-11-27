@@ -100,16 +100,20 @@ public final class HumanIntelligenceRules {
         for (String phrase : phrases) {
             int index = text.indexOf(phrase);
             while (index >= 0) {
-                if (!isNegated(text, index)) return true;
+                if (!isNegated(text, index, phrase.length())) return true;
                 index = text.indexOf(phrase, index + phrase.length());
             }
         }
         return false;
     }
 
-    private static boolean isNegated(String text, int phraseIndex) {
+    private static boolean isNegated(String text, int phraseIndex, int phraseLength) {
         String prefix = text.substring(Math.max(0, phraseIndex - 24), phraseIndex).trim();
-        return prefix.matches(".*(?:\\bnahi|\\bnot|\\bnever|\\bno)\\s*$");
+        int suffixEnd = Math.min(text.length(), phraseIndex + phraseLength + 24);
+        String suffix = text.substring(phraseIndex + phraseLength, suffixEnd).trim();
+        boolean negatedBefore = prefix.matches(".*(?:\\bnahi|\\bnahin|\\bnot|\\bnever|\\bno)\\s*$");
+        boolean negatedAfter = suffix.matches("^(?:nahi|nahin|not|never|no)\\b.*");
+        return negatedBefore || negatedAfter;
     }
 
     private static String normalize(String value) {
