@@ -38,14 +38,9 @@ public final class IntegrationRegistryStudio {
                 .setItems(rows, (dialog, which) -> {
                     boolean enabled = isEnabled(activity, keys[which]);
                     new AlertDialog.Builder(activity).setTitle(names[which])
-                            .setMessage("Declared scope:
-" + scopes[which]
-                                    + "
-
-Current state: " + (enabled ? "Enabled" : "Disabled")
-                                    + "
-
-Change availability?")
+                            .setMessage("Declared scope:\n" + scopes[which]
+                                    + "\n\nCurrent state: " + (enabled ? "Enabled" : "Disabled")
+                                    + "\n\nChange availability?")
                             .setNegativeButton("Cancel", null)
                             .setPositiveButton(enabled ? "Disable" : "Enable", (d, w) -> {
                                 activity.getSharedPreferences(PREFS, Activity.MODE_PRIVATE).edit()
