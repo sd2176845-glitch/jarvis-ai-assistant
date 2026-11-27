@@ -7,9 +7,6 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * M14 controlled recovery for a narrow allowlist of JARVIS-owned presentation/voice preferences.
@@ -19,11 +16,6 @@ public final class DiagnosticsRecoveryStudio {
     private static final String STORE = "jarvis_m14_recovery_v1";
     private static final String CHECKPOINT = "checkpoint";
     private static final String ROLLBACK = "rollback";
-    private static final Set<String> ALLOWED = new HashSet<>(Arrays.asList(
-            "assistant_mode", "voice_style", "voice_pitch", "voice_name",
-            "speech_input_language", "silent_background_ack",
-            "dashboard_spacing_profile_v1", "display_accessibility_profile_v1"
-    ));
 
     private DiagnosticsRecoveryStudio() { }
 
@@ -51,7 +43,7 @@ public final class DiagnosticsRecoveryStudio {
 
     private static JSONObject snapshot(SharedPreferences source) throws Exception {
         JSONObject values = new JSONObject();
-        for (String key : ALLOWED) {
+        for (String key : DiagnosticsRecoveryRules.allowedKeys()) {
             if (!source.contains(key)) continue;
             Object value = source.getAll().get(key);
             if (DiagnosticsRecoveryRules.isSupportedValue(value)) values.put(key, value);
@@ -81,7 +73,7 @@ public final class DiagnosticsRecoveryStudio {
             if (raw.isEmpty()) return null;
             JSONObject root = new JSONObject(raw);
             JSONObject values = root.optJSONObject("values");
-            if (root.optInt("version", -1) != 1 || values == null || values.length() == 0) return null;
+            if (root.optInt("version", -1) != 1 || values == null) return null;
             return root;
         } catch (Exception e) {
             return null;
@@ -158,12 +150,12 @@ public final class DiagnosticsRecoveryStudio {
     private static void apply(JSONObject checkpoint, SharedPreferences preferences) throws Exception {
         JSONObject values = checkpoint.getJSONObject("values");
         SharedPreferences.Editor editor = preferences.edit();
-        for (String key : ALLOWED) editor.remove(key);
+        for (String key : DiagnosticsRecoveryRules.allowedKeys()) editor.remove(key);
         org.json.JSONArray names = values.names();
         if (names != null) {
             for (int i = 0; i < names.length(); i++) {
                 String key = names.getString(i);
-                if (!ALLOWED.contains(key)) continue;
+                if (!DiagnosticsRecoveryRules.isAllowedKey(key)) continue;
                 Object value = values.get(key);
                 if (!DiagnosticsRecoveryRules.isSupportedValue(value)) continue;
                 if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);
