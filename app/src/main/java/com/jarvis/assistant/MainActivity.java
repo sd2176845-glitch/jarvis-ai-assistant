@@ -2990,10 +2990,16 @@ public class MainActivity extends Activity {
     }
 
     private void enablePhoneEventPermissions() {
+        boolean callConsent = OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CALL_EVENT_ANNOUNCEMENTS);
+        boolean smsConsent = OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.SMS_EVENT_ANNOUNCEMENTS);
+        if (!callConsent && !smsConsent) {
+            status.setText("CALL/SMS ANNOUNCEMENT CONSENT REQUIRED");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         java.util.ArrayList<String> needed = new java.util.ArrayList<>();
-        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
-        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_CONTACTS);
-        if (checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.RECEIVE_SMS);
+        if (callConsent && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
+        if (smsConsent && checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.RECEIVE_SMS);
         if (!needed.isEmpty()) requestPermissions(needed.toArray(new String[0]), PHONE_EVENTS_PERMISSION_REQUEST);
         else {
             status.setText("CALL & SMS ANNOUNCEMENTS ENABLED");
@@ -3578,6 +3584,11 @@ public class MainActivity extends Activity {
     }
 
     private void showContactChoices(String requestedName, String originalCommand) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         String queryName = requestedName == null ? "" : requestedName.trim();
         if (queryName.isEmpty()) {
             replyAndShow(originalCommand, "Contact ka naam batao. Call abhi nahi ki gayi.");
@@ -3624,6 +3635,11 @@ public class MainActivity extends Activity {
     }
 
     private String findContactNumber(String requestedName) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return null;
+        }
         String queryName = requestedName == null ? "" : requestedName.trim();
         if (queryName.isEmpty()) return null;
         Cursor cursor = null;
