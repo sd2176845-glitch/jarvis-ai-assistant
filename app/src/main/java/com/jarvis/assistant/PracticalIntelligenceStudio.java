@@ -49,7 +49,9 @@ public final class PracticalIntelligenceStudio {
                 "Vehicle Maintenance Log • local records",
                 "Smart Asset Inventory • local records",
                 "Offline Emergency Preparedness Pack • works without internet",
-                "Environmental Intelligence • official AQI source and manual log"
+                "Environmental Intelligence • official AQI source and manual log",
+                "Journey Planning Assistant • family/guardian reviewed",
+                "Collaborative Project & Milestone Planner • owner-curated"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Practical Intelligence")
                 .setItems(options, (dialog, which) -> {
@@ -58,7 +60,9 @@ public final class PracticalIntelligenceStudio {
                     else if (which == 2) vehicleLogMenu(activity);
                     else if (which == 3) assetInventoryMenu(activity);
                     else if (which == 4) EmergencyPreparednessPackStudio.show(activity);
-                    else EnvironmentIntelligenceStudio.show(activity);
+                    else if (which == 5) EnvironmentIntelligenceStudio.show(activity);
+                    else if (which == 6) journeyPlanner(activity, status, transcript);
+                    else collaborativeProjectPlanner(activity, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -1352,4 +1356,22 @@ public final class PracticalIntelligenceStudio {
     }
 
 
+
+    /** Family/guardian-reviewed trip outline; no booking, purchase or live-route claims. */
+    private static void journeyPlanner(Activity activity, TextView status, TextView transcript) {
+        askText(activity, "Family / guardian-reviewed journey brief",
+                "Enter only general city/region names, approximate dates and interests. Do not enter a home address, phone number, booking code or identity details.",
+                800, brief -> confirmAi(activity, status, transcript, "JOURNEY PLANNING OUTLINE",
+                        PracticalIntelligenceRules.journeyPlanPrompt(brief),
+                        "Only this short trip brief will be sent to JARVIS AI. This creates a planning outline only: no tickets, bookings, purchases or live route checks. A parent/guardian must review and approve the plan and accompany minors."));
+    }
+
+    /** Generates role-based milestones without creating a second task store or sharing private records. */
+    private static void collaborativeProjectPlanner(Activity activity, TextView status, TextView transcript) {
+        askText(activity, "Collaborative project brief",
+                "Describe the project goal, available time and team roles (use roles, not people's private details). Maximum 800 characters.",
+                800, brief -> confirmAi(activity, status, transcript, "COLLABORATIVE PROJECT & MILESTONE PLAN",
+                        PracticalIntelligenceRules.collaborativeProjectPrompt(brief),
+                        "Only the project brief you entered will be sent to JARVIS AI. The result is a draft for the owner/team to review. It does not invite people, share private memory, send messages or sync data. Add approved tasks through the existing Tasks & Reminders hub."));
+    }
 }
