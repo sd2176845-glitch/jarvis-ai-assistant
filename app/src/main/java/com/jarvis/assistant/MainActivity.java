@@ -28,6 +28,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -56,9 +57,12 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int SMS_SEND_PERMISSION_REQUEST = 1005;
     private boolean startWakeAfterPermission = false;
     private String pendingDirectCallNumber = null;
     private String pendingDirectCallName = null;
+    private String pendingSmsNumber = null;
+    private String pendingSmsText = null;
     private SharedPreferences preferences;
     private ImageView avatar;
     private android.os.CountDownTimer activeFocusTimer;
@@ -1058,27 +1062,92 @@ public class MainActivity extends Activity {
         message.setMinLines(3);
         message.setMaxLines(8);
         message.setGravity(Gravity.TOP | Gravity.START);
+        boolean hasRecipient = recipientNumber != null && !recipientNumber.trim().isEmpty();
         new AlertDialog.Builder(this).setTitle("JARVIS • Message draft")
-                .setMessage("Review or edit the message. JARVIS will only open your messaging app; it will not send the message.")
+                .setMessage(hasRecipient
+                        ? "Review or edit the exact message. JARVIS will ask for one final confirmation before sending."
+                        : "Review or edit the message. JARVIS will open your messaging app; you can choose a recipient and send manually.")
                 .setView(message)
                 .setNegativeButton("Cancel", (d, w) -> status.setText("MESSAGE DRAFT CANCELLED"))
-                .setPositiveButton("Review in messaging app", (d, w) -> {
+                .setPositiveButton(hasRecipient ? "Continue to confirmation" : "Open messaging app", (d, w) -> {
                     String approvedText = message.getText().toString().trim();
                     if (!B21MessageDraftRules.isValidDraft(approvedText)) {
-                        status.setText("MESSAGE DRAFT INVALID • NOTHING OPENED");
+                        status.setText("MESSAGE DRAFT INVALID • NOTHING SENT");
                         return;
                     }
-                    try {
-                        String target = recipientNumber == null || recipientNumber.trim().isEmpty()
-                                ? "smsto:" : "smsto:" + android.net.Uri.encode(recipientNumber);
-                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse(target));
-                        sms.putExtra("sms_body", approvedText);
-                        startActivity(sms);
-                        status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
-                    } catch (Exception e) {
-                        status.setText("MESSAGE APP NOT AVAILABLE");
+                    if (hasRecipient) {
+                        confirmSmsSend(recipientNumber, approvedText);
+                    } else {
+                        try {
+                            Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                            sms.putExtra("sms_body", approvedText);
+                            startActivity(sms);
+                            status.setText("MESSAGE COMPOSER OPENED • SEND MANUALLY");
+                        } catch (Exception e) {
+                            status.setText("MESSAGE APP NOT AVAILABLE");
+                        }
                     }
                 }).show();
+    }
+
+    private void confirmSmsSend(String recipientNumber, String approvedText) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND)) {
+            status.setText("OUTGOING SMS CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (!M06CommunicationRules.isValidSmsNumber(number)
+                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+            status.setText("SMS DETAILS INVALID • NOTHING SENT");
+            return;
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Confirm SMS send")
+                .setMessage("Recipient: " + number + "\n\nExact message:\n" + approvedText
+                        + "\n\nSend this one SMS now?")
+                .setNegativeButton("Cancel", (d, w) -> {
+                    pendingSmsNumber = null;
+                    pendingSmsText = null;
+                    status.setText("SMS CANCELLED • NOTHING SENT");
+                })
+                .setPositiveButton("Send SMS", (d, w) -> {
+                    if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                        sendApprovedSms(number, approvedText);
+                    } else {
+                        pendingSmsNumber = number;
+                        pendingSmsText = approvedText;
+                        requestPermissions(new String[]{Manifest.permission.SEND_SMS}, SMS_SEND_PERMISSION_REQUEST);
+                    }
+                }).show();
+    }
+
+    private void sendApprovedSms(String recipientNumber, String approvedText) {
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND)
+                || checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED
+                || !M06CommunicationRules.isValidSmsNumber(number)
+                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+            status.setText("SMS NOT SENT • CONSENT, PERMISSION OR DETAILS INVALID");
+            return;
+        }
+        try {
+            SmsManager manager = SmsManager.getDefault();
+            ArrayList<String> parts = manager.divideMessage(approvedText);
+            if (parts == null || parts.isEmpty() || parts.size() > 10) {
+                status.setText("SMS NOT SENT • MESSAGE MUST FIT WITHIN TEN PARTS");
+                return;
+            }
+            if (parts.size() == 1) manager.sendTextMessage(number, null, approvedText, null, null);
+            else manager.sendMultipartTextMessage(number, null, parts, null, null);
+            status.setText("SMS SUBMITTED TO CARRIER • DELIVERY NOT CONFIRMED");
+            speak("SMS bhejne ki request phone network ko de di gayi hai. Delivery abhi confirm nahi hai.");
+        } catch (SecurityException e) {
+            status.setText("SMS NOT SENT • ANDROID DENIED PERMISSION");
+        } catch (IllegalArgumentException e) {
+            status.setText("SMS NOT SENT • INVALID RECIPIENT OR MESSAGE");
+        } catch (Exception e) {
+            status.setText("SMS SEND FAILED • CHECK SIM AND NETWORK");
+        }
     }
 
     private void showEmailRecipientChoices(String requestedName, String draft) {
@@ -3114,6 +3183,17 @@ public class MainActivity extends Activity {
             for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;
             status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");
             if (allGranted) speak("Call aur SMS announcements enabled.");
+        } else if (requestCode == SMS_SEND_PERMISSION_REQUEST) {
+            String number = pendingSmsNumber;
+            String message = pendingSmsText;
+            pendingSmsNumber = null;
+            pendingSmsText = null;
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && number != null && message != null) {
+                sendApprovedSms(number, message);
+            } else {
+                status.setText("SMS PERMISSION DENIED • NOTHING SENT");
+            }
         } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 String number = pendingDirectCallNumber;
