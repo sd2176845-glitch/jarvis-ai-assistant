@@ -595,7 +595,7 @@
 
 ## Batch B17 — M15 Display & Accessibility Studio (2026-11-22)
 
-**Branch:** `feature/m15-accessibility-display-studio-3pack`, stacked on M02 Voice Transcript Review / PR #42. Draft PR targets `feature/m02-voice-transcript-review-3pack`; unmerged.
+**Integration status (verified 2026-11-27):** implemented on `main` and connected to the existing Command Center. The historical feature branch/stacked draft PR is not the merge source of truth; do not cherry-pick or duplicate these files.
 
 ### Feature — Owner-controlled readability profiles
 - **Code-present:** adds a single Display & Accessibility Studio entry to the existing Command Center. Owner can choose Standard, Large text, Extra-large text, High contrast, or Reset to standard.
@@ -604,13 +604,14 @@
 - **Anti-duplication:** extends the existing M15 Command Center and existing status/response views; no duplicate dashboard, settings page, or accessibility service.
 - **Automated tests:** three JUnit tests cover profile sizing, high-contrast selection, and invalid-profile fallback.
 - **Physical device:** pending on Poco M4 Pro 4G. Check all profiles, restart persistence, contrast in sunlight/darkness, text clipping and screen-reader announcements.
-- **CI/build:** pending; do not mark as passed until the workflow completes.
-- **Merge:** draft PR only; no merge into PR #42 or `main` without owner approval. JARVIS only; Even untouched.
+- **Main-branch verification:** `DisplayAccessibilityStudio.java` and `DisplayAccessibilityRules.java` are present; `MainActivity` applies the saved profile at startup and exposes the existing Command Center entry. `DisplayAccessibilityRulesTest.java` is present.
+- **CI/build:** GitHub Actions run #1306 passed backend checks, Android unit tests, debug APK build and artifact upload on main commit `be86853b98e85e8a9360fab27a655489155e0709`.
+- **Physical device:** pending on Poco M4 Pro 4G; verify all profiles, restart persistence, contrast, text clipping and screen-reader announcements. JARVIS only; Even untouched.
 
 
 ## Batch B18 — M16 Authorized Bluetooth Accessory Handoff (2026-11-22)
 
-**Branch:** `feature/m16-authorized-accessory-hub-3pack`, stacked on M15 / PR #43. Draft PR targets `feature/m15-accessibility-display-studio-3pack`; unmerged.
+**Integration status (verified 2026-11-27):** implemented on `main` and connected through the existing Smart Home Studio inventory flow. The historical feature branch/stacked draft PR is not the merge source of truth; do not cherry-pick or duplicate these files.
 
 ### Feature — Owner-controlled Bluetooth accessory setup
 - **Code-present:** upgrades the existing Smart Home Studio inventory menu with an owner-entered Bluetooth accessory label flow and a direct handoff to Android Bluetooth settings.
@@ -619,9 +620,9 @@
 - Removing a Bluetooth label deletes only the local JARVIS label; the UI explains that actual unpairing must be done through Android Bluetooth settings > Forget.
 - **Automated tests:** four pure-Java JUnit tests cover trimmed labels, empty/oversized input and Bluetooth label classification.
 - **Anti-duplication:** extends existing M16 Smart Home Studio and reuses its inventory store, settings handoff conventions and owner-controlled removal flow.
-- **CI/build:** pending; verify tests and debug APK before marking passed.
-- **Physical device:** pending on Poco M4 Pro 4G; verify Bluetooth settings handoff and that no scan/pair request occurs.
-- **Merge:** draft PR only; do not merge into PR #43 or `main` without owner approval. JARVIS only; Even untouched.
+- **Main-branch verification:** `SmartHomeAccessoryRules.java` and the Bluetooth inventory/settings handoff are present in `SmartHomeStudio.java`; the existing local inventory and 30-item limit are reused. `SmartHomeAccessoryRulesTest.java` is present.
+- **CI/build:** GitHub Actions run #1306 passed backend checks, Android unit tests, debug APK build and artifact upload on main commit `be86853b98e85e8a9360fab27a655489155e0709`.
+- **Physical device:** pending on Poco M4 Pro 4G; verify Bluetooth settings handoff and confirm no scanning or automatic pairing occurs. JARVIS only; Even untouched.
 
 
 ## Batch B19 — M17 Hardware Compatibility Snapshot (2026-11-22)
