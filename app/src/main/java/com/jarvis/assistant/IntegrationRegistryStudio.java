@@ -3,6 +3,7 @@ package com.jarvis.assistant;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
+import android.content.Intent;
 import android.widget.TextView;
 
 /** Local allow-listed integration registry. It controls availability of existing JARVIS entry points only. */
