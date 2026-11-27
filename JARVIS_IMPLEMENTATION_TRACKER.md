@@ -1390,3 +1390,24 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - **CI/build:** GitHub Actions run # pending for this commit; final Android unit-test and APK-build result not yet confirmed.
 - **Physical device:** pending on Poco M4 Pro 4G; verify all three dashboard profiles and restart persistence, plus disabling/re-enabling each registered integration.
 - JARVIS only; Even untouched.
+
+
+## M17 + M18 — Batch C01: readiness advice and scenario comparison (2026-11-27)
+
+**Branch:** `feature/m17-m18-enhancements-3pack`, created from the latest `main` head after auditing existing modules. This is an enhancement batch; it does not duplicate the existing M17/M18 studios or Command Center entries.
+
+### M17 — Connectivity Intelligence
+- Added an owner-invoked **Connectivity Readiness Advisor** using only Android's current default-network capability flags and the saved Local/Global/Hybrid AI mode.
+- Reports actionable states for no route, unknown capabilities, no internet capability, unvalidated internet, and validated internet; labels metered/unknown data status when available.
+- Explicitly does not run speed tests, contact external servers, guarantee provider reachability, scan networks, or change device settings.
+- Added pure-Java tests for Local-mode behavior, no-route guidance, validated-route guidance, and read-only limitations.
+
+### M18 — Simulation & Engineering
+- Added **Scenario Comparison Studio** to compare two owner-entered, harmless conceptual cases.
+- Produces an educational side-by-side comparison of changed variables, qualitative outcomes, trade-offs, assumptions and uncertainty; optional illustrative values must be labeled hypothetical.
+- Retains simulation-only boundaries: no real experiment procedures, dangerous construction, weapon/attack content, or physical equipment/infrastructure control.
+- Added a focused prompt-boundary unit test.
+
+### Validation
+- Source and unit tests updated on the dedicated feature branch. CI build/test result is pending; no claim of successful compilation or device verification until workflow checks complete.
+- Target Poco M4 Pro 4G testing remains pending. JARVIS only; Even untouched. Keep as draft; do not merge without owner approval.
