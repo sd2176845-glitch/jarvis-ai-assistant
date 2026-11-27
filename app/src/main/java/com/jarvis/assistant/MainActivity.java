@@ -525,6 +525,10 @@ public class MainActivity extends Activity {
                 "EEE, dd MMM yyyy • hh:mm a", java.util.Locale.getDefault());
         final ArrayList<org.json.JSONObject> visibleReminders = new ArrayList<>(reminders);
         final ArrayList<String> labels = new ArrayList<>();
+        final TextView scheduleSummary = new TextView(this);
+        scheduleSummary.setTextSize(13);
+        scheduleSummary.setPadding(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
+        scheduleSummary.setText(buildReminderScheduleSummary(visibleReminders));
         for (org.json.JSONObject item : visibleReminders) {
             labels.add(item.optString("title", "Reminder") + "\\n"
                     + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
@@ -533,6 +537,7 @@ public class MainActivity extends Activity {
         content.setOrientation(android.widget.LinearLayout.VERTICAL);
         int pad = (int) (16 * getResources().getDisplayMetrics().density);
         content.setPadding(pad, pad, pad, 0);
+        content.addView(scheduleSummary, new android.widget.LinearLayout.LayoutParams(-1, -2));
         final android.widget.EditText searchInput = new android.widget.EditText(this);
         searchInput.setSingleLine(true);
         searchInput.setHint("Search reminder titles");
@@ -565,6 +570,7 @@ public class MainActivity extends Activity {
                                 + formatter.format(new java.util.Date(item.optLong("triggerAt", 0L))));
                     }
                 }
+                scheduleSummary.setText(buildReminderScheduleSummary(visibleReminders));
                 adapter.notifyDataSetChanged();
             }
             @Override public void afterTextChanged(android.text.Editable s) { }
@@ -592,6 +598,21 @@ public class MainActivity extends Activity {
                     }).show();
         });
         reminderDialog.show();
+    }
+
+    /** Builds a local-only count summary for the already-loaded reminder list. */
+    private String buildReminderScheduleSummary(java.util.List<org.json.JSONObject> items) {
+        int today = 0, tomorrow = 0, thisWeek = 0, later = 0;
+        long now = System.currentTimeMillis();
+        for (org.json.JSONObject item : items) {
+            String group = ReminderRules.scheduleGroup(item.optLong("triggerAt", 0L), now);
+            if ("Today".equals(group)) today++;
+            else if ("Tomorrow".equals(group)) tomorrow++;
+            else if ("This week".equals(group)) thisWeek++;
+            else if ("Later".equals(group)) later++;
+        }
+        return "UPCOMING  •  Today " + today + "   Tomorrow " + tomorrow
+                + "   This week " + thisWeek + "   Later " + later;
     }
 
     private void showRescheduleReminder(int id, String title, long oldTriggerAt) {
