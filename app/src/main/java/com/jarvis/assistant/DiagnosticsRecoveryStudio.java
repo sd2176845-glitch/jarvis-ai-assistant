@@ -80,8 +80,8 @@ public final class DiagnosticsRecoveryStudio {
             String raw = store(activity).getString(key, "");
             if (raw.isEmpty()) return null;
             JSONObject root = new JSONObject(raw);
-            if (root.optInt("version", -1) != 1 || !root.optJSONObject("values").has("assistant_mode")
-                    && root.optJSONObject("values").length() == 0) return null;
+            JSONObject values = root.optJSONObject("values");
+            if (root.optInt("version", -1) != 1 || values == null || values.length() == 0) return null;
             return root;
         } catch (Exception e) {
             return null;
@@ -101,8 +101,11 @@ public final class DiagnosticsRecoveryStudio {
                 .append(new java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale.getDefault())
                         .format(new java.util.Date(saved.optLong("created_at", 0))))
                 .append("\n\nIncluded settings:");
-        for (int i = 0; i < values.names().length(); i++) {
-            report.append("\n• ").append(values.names().optString(i));
+        org.json.JSONArray names = values.names();
+        if (names != null) {
+            for (int i = 0; i < names.length(); i++) {
+                report.append("\n• ").append(names.optString(i));
+            }
         }
         report.append("\n\nNo private content or Android system settings are included.");
         new AlertDialog.Builder(activity).setTitle("Checkpoint review")
@@ -156,17 +159,20 @@ public final class DiagnosticsRecoveryStudio {
         JSONObject values = checkpoint.getJSONObject("values");
         SharedPreferences.Editor editor = preferences.edit();
         for (String key : ALLOWED) editor.remove(key);
-        for (int i = 0; i < values.names().length(); i++) {
-            String key = values.names().getString(i);
-            if (!ALLOWED.contains(key)) continue;
-            Object value = values.get(key);
-            if (!DiagnosticsRecoveryRules.isSupportedValue(value)) continue;
-            if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);
-            else if (value instanceof Integer) editor.putInt(key, (Integer) value);
-            else if (value instanceof Long) editor.putLong(key, (Long) value);
-            else if (value instanceof Float) editor.putFloat(key, (Float) value);
-            else if (value instanceof Double) editor.putFloat(key, ((Double) value).floatValue());
-            else if (value instanceof String) editor.putString(key, (String) value);
+        org.json.JSONArray names = values.names();
+        if (names != null) {
+            for (int i = 0; i < names.length(); i++) {
+                String key = names.getString(i);
+                if (!ALLOWED.contains(key)) continue;
+                Object value = values.get(key);
+                if (!DiagnosticsRecoveryRules.isSupportedValue(value)) continue;
+                if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);
+                else if (value instanceof Integer) editor.putInt(key, (Integer) value);
+                else if (value instanceof Long) editor.putLong(key, (Long) value);
+                else if (value instanceof Float) editor.putFloat(key, (Float) value);
+                else if (value instanceof Double) editor.putFloat(key, ((Double) value).floatValue());
+                else if (value instanceof String) editor.putString(key, (String) value);
+            }
         }
         if (!editor.commit()) throw new IllegalStateException("Preference restore could not be committed.");
     }
