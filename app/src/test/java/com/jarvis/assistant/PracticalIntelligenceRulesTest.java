@@ -230,4 +230,19 @@ public class PracticalIntelligenceRulesTest {
                 new String[]{"Car"}, new String[]{"2026-12-01"}, "bad-date").contains("overview unavailable"));
     }
 
+
+    @Test public void journeyPlanRequiresGuardianReviewAndAvoidsBookings() {
+        String prompt = PracticalIntelligenceRules.journeyPlanPrompt("Family visit to a nearby city");
+        assertTrue(prompt.contains("family/guardian-reviewed"));
+        assertTrue(prompt.contains("Do not book, reserve, purchase"));
+        assertTrue(prompt.contains("parent/guardian approval and accompaniment"));
+    }
+
+    @Test public void collaborativeProjectPromptUsesOwnerCuratedMilestonesWithoutDuplicateStores() {
+        String prompt = PracticalIntelligenceRules.collaborativeProjectPrompt("School science project with three roles");
+        assertTrue(prompt.contains("owner-editable milestones"));
+        assertTrue(prompt.contains("Do not claim that collaborators were invited"));
+        assertTrue(prompt.contains("existing Tasks & Reminders / Project Workspace"));
+    }
+
 }
