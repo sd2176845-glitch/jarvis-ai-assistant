@@ -1358,3 +1358,10 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added pure-Java tests for case-insensitive partial matching, whitespace normalization, empty queries and non-matches.
 - No second reminder manager, scheduler or store; no new permission, external notification access, cloud upload or background collection.
 - **Status:** code added; final-head CI pending; Poco M4 Pro 4G physical-device verification pending. JARVIS only; Even untouched.
+
+
+## M13 / M14 source reconciliation — 2026-11-27
+- The current default-branch source already contains `ProductivityStudio.java` (M13 Personal Productivity Studio) and `DiagnosticsStudio.java` (M14 Diagnostics Studio).
+- `MainActivity.java` already routes the Command Center productivity entry to `ProductivityStudio.show(...)` and the existing System safety check entry to `DiagnosticsStudio.show(...)`. This reuses the existing navigation and avoids duplicate menus or duplicate modules.
+- Older tracker/feature-branch notes that describe these modules as unmerged are historical and must not be used to justify cherry-picking their stale branches over the current default branch.
+- **Current status:** source presence and entry-point integration confirmed; a fresh CI build for the current default-branch head and Poco M4 Pro 4G verification are still pending. No claim of a newly built APK or device test is made.
