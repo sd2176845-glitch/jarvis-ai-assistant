@@ -49,6 +49,28 @@ public final class IntegrationRegistryStudio {
                                         + (enabled ? " DISABLED" : " ENABLED"));
                                 showList(activity, status, names, keys, scopes);
                             }).show();
-                }).setNegativeButton("Close", null).show();
+                }).setNeutralButton("Share setup summary", (dialog, which) ->
+                        shareSummary(activity, names, keys, scopes))
+                .setNegativeButton("Close", null).show();
+    }
+
+    private static void shareSummary(Activity activity, String[] names, String[] keys, String[] scopes) {
+        StringBuilder report = new StringBuilder("JARVIS • M16 INTEGRATION SETUP SUMMARY\\n");
+        report.append("Owner-reviewed local registry state; no device identifiers or credentials included.\\n");
+        for (int index = 0; index < names.length; index++) {
+            report.append("\\n").append(names[index]).append(": ")
+                    .append(isEnabled(activity, keys[index]) ? "Enabled" : "Disabled")
+                    .append("\\nScope: ").append(scopes[index]).append("\\n");
+        }
+        report.append("\\nThis is a manual setup handoff only. It does not sync devices, pair accessories, or grant remote access.");
+        try {
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, "JARVIS integration setup summary");
+            send.putExtra(Intent.EXTRA_TEXT, report.toString());
+            activity.startActivity(Intent.createChooser(send, "Share integration summary"));
+        } catch (Exception e) {
+            if (status != null) status.setText("INTEGRATION SUMMARY SHARE UNAVAILABLE");
+        }
     }
 }
