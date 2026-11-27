@@ -290,6 +290,10 @@ public final class SecureEvidenceVaultActivity extends Activity {
     }
 
     private void deleteItem(String id) {
+        if (!SecureEvidenceVaultRules.isSafeId(id)) {
+            status.setText("Delete blocked • invalid vault entry ID.");
+            return;
+        }
         JSONArray old = readItems();
         JSONArray updated = new JSONArray();
         String digest = "";
