@@ -18,6 +18,8 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.DataInputStream;
+import javax.crypto.CipherInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -202,13 +204,82 @@ public final class SecureEvidenceVaultActivity extends Activity {
                     + "\nSHA-256: " + item.optString("sha256", "unavailable"));
             row.setTextColor(0xFFFFFFFF);
             row.setPadding(0, 18, 0, 10);
-            row.setOnClickListener(v -> confirmDelete(id));
+            row.setOnClickListener(v -> showEntryOptions(id));
             list.addView(row);
         }
         TextView hint = new TextView(this);
         hint.setText("Tap an entry to remove it. The vault stores encrypted copies; it does not verify authenticity or establish legal chain of custody.");
         hint.setTextColor(0xFFE7C9CE);
         list.addView(hint);
+    }
+
+    private void showEntryOptions(String id) {
+        new AlertDialog.Builder(this).setTitle("Encrypted vault entry")
+                .setItems(new String[]{"Verify integrity", "Delete encrypted copy"}, (dialog, which) -> {
+                    if (which == 0) verifyItem(id);
+                    else confirmDelete(id);
+                })
+                .setNegativeButton("Cancel", null).show();
+    }
+
+    private void verifyItem(String id) {
+        if (!SecureEvidenceVaultRules.isSafeId(id)) {
+            status.setText("INTEGRITY CHECK FAILED • INVALID ENTRY ID");
+            return;
+        }
+        JSONObject metadata = null;
+        JSONArray items = readItems();
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.optJSONObject(i);
+            if (item != null && id.equals(item.optString("id"))) { metadata = item; break; }
+        }
+        if (metadata == null) {
+            status.setText("INTEGRITY CHECK FAILED • ENTRY NOT IN INDEX");
+            return;
+        }
+        File folder = new File(getFilesDir(), "secure_evidence_v1");
+        File encryptedFile = new File(folder, id + ".jve");
+        long actualBytes = 0;
+        try (DataInputStream input = new DataInputStream(
+                new BufferedInputStream(new java.io.FileInputStream(encryptedFile)))) {
+            int version = input.readInt();
+            int ivLength = input.readInt();
+            if (!SecureEvidenceVaultRules.isValidEnvelopeHeader(version, ivLength)) {
+                throw new IllegalStateException("Unsupported encrypted file header.");
+            }
+            byte[] iv = new byte[ivLength];
+            input.readFully(iv);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, getExistingKey(), new GCMParameterSpec(128, iv));
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (CipherInputStream decrypted = new CipherInputStream(input, cipher)) {
+                byte[] buffer = new byte[8192];
+                int count;
+                while ((count = decrypted.read(buffer)) != -1) {
+                    actualBytes += count;
+                    if (actualBytes > MAX_BYTES) throw new IllegalStateException("Decrypted content exceeds the vault size limit.");
+                    digest.update(buffer, 0, count);
+                }
+            }
+            String actualDigest = hex(digest.digest());
+            boolean valid = SecureEvidenceVaultRules.matchesMetadata(
+                    metadata.optString("sha256", ""), actualDigest,
+                    metadata.optLong("bytes", -1), actualBytes);
+            status.setText(valid
+                    ? "INTEGRITY VERIFIED • AES-GCM authentication and SHA-256 metadata match"
+                    : "INTEGRITY CHECK FAILED • CONTENT OR METADATA DOES NOT MATCH");
+        } catch (Exception e) {
+            status.setText("INTEGRITY CHECK FAILED • " + safeMessage(e));
+        }
+    }
+
+    private SecretKey getExistingKey() throws Exception {
+        KeyStore store = KeyStore.getInstance("AndroidKeyStore");
+        store.load(null);
+        if (!store.containsAlias(KEY_ALIAS)) {
+            throw new IllegalStateException("Original Android Keystore key is unavailable; no replacement key was created.");
+        }
+        return (SecretKey) store.getKey(KEY_ALIAS, null);
     }
 
     private void confirmDelete(String id) {
