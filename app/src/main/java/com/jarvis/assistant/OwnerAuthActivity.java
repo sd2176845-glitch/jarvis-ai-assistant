@@ -235,6 +235,8 @@ public class OwnerAuthActivity extends ComponentActivity {
         try {
             account.get(new CoroutineCallback<>((user, error) -> runOnUiThread(() -> {
                 if (error != null) {
+                    getSharedPreferences("jarvis_preferences", MODE_PRIVATE)
+                            .edit().putBoolean("guest_mode_enabled", true).apply();
                     profile.setText("Guest / signed out. No active Appwrite owner session.");
                     setStatus("GUEST MODE • NO ACTIVE OWNER SESSION");
                     return;
