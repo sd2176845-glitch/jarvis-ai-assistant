@@ -33,4 +33,13 @@ public class SimulationEngineeringRulesTest {
         assertTrue(prompt.contains("SIMULATION ONLY"));
         assertTrue(prompt.contains("Do not provide real-world experiment procedures"));
     }
+
+    @Test public void comparisonPromptComparesConceptualCasesWithoutRealWorldProcedures() {
+        String prompt = SimulationEngineeringRules.comparePrompt("baseline ecosystem", "increased rainfall");
+        assertTrue(prompt.contains("text-only educational comparison"));
+        assertTrue(prompt.contains("side-by-side table"));
+        assertTrue(prompt.contains("SIMULATION ONLY"));
+        assertTrue(prompt.contains("Do not provide real-world experiment procedures"));
+        assertTrue(prompt.contains("untrusted descriptive input"));
+    }
 }
