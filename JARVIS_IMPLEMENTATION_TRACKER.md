@@ -1376,3 +1376,17 @@ The B21 code-present improvement count is now **23**. Automated CI for the newes
 - Added pure-Java unit coverage for Today, Tomorrow, This week, Later and Past boundaries.
 - No new permission, scheduler, data store, network request, background process or access to other apps' notifications.
 - **Code commit:** `f43405853784edbb78556f3548209e3c67fc5e00`. GitHub Actions run #1305 is running; Android unit-test and APK-build result not yet confirmed. Poco M4 Pro 4G physical-device verification remains pending.
+
+
+## M15 / M16 — Dashboard Profiles & Integration Registry (2026-11-27)
+
+- **M15 — Dashboard Profiles:** added owner-selectable Compact, Standard and Spacious layouts to the existing dashboard. The selected spacing profile persists in the existing private `jarvis_preferences` store and is applied at app startup; the selector changes only the existing dashboard container padding. It does not change Android display density or system settings.
+- Added pure-Java tests for profile spacing order and invalid-profile fallback.
+- **M16 — Integration Registry:** added an owner-controlled registry for the existing Smart Home Studio and Connected Systems entry points. Each entry displays its declared scope and can be enabled/disabled locally; disabled entries are blocked when selected from the existing Command Center.
+- Registry state reuses `jarvis_preferences`; defaults preserve the current enabled behavior. It does not install or execute third-party plugins, request new Android permissions, scan devices, pair accessories or grant remote access.
+- Added pure-Java tests for stable, distinct registry keys.
+- **Integration:** appended two entries to the existing Command Center; existing menu entries and prior features remain in place.
+- **Code commit:** `277bb06ab3955eeee50ddb2b89eeccd855ccd6a8`.
+- **CI/build:** GitHub Actions run # pending for this commit; final Android unit-test and APK-build result not yet confirmed.
+- **Physical device:** pending on Poco M4 Pro 4G; verify all three dashboard profiles and restart persistence, plus disabling/re-enabling each registered integration.
+- JARVIS only; Even untouched.
