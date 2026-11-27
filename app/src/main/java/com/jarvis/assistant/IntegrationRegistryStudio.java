@@ -51,11 +51,11 @@ public final class IntegrationRegistryStudio {
                                 showList(activity, status, names, keys, scopes);
                             }).show();
                 }).setNeutralButton("Share setup summary", (dialog, which) ->
-                        shareSummary(activity, names, keys, scopes))
+                        shareSummary(activity, status, names, keys, scopes))
                 .setNegativeButton("Close", null).show();
     }
 
-    private static void shareSummary(Activity activity, String[] names, String[] keys, String[] scopes) {
+    private static void shareSummary(Activity activity, TextView status, String[] names, String[] keys, String[] scopes) {
         StringBuilder report = new StringBuilder("JARVIS • M16 INTEGRATION SETUP SUMMARY\\n");
         report.append("Owner-reviewed local registry state; no device identifiers or credentials included.\\n");
         for (int index = 0; index < names.length; index++) {
