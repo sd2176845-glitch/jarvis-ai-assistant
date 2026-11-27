@@ -35,6 +35,19 @@ public class HumanIntelligenceRulesTest {
                 HumanIntelligenceRules.classifyExplicitTextCue(null).signal);
     }
 
+    @Test public void recognizesNegationAfterCueWithoutSuppressingLaterPositiveCue() {
+        assertEquals(HumanIntelligenceRules.Signal.NONE,
+                HumanIntelligenceRules.classifyExplicitTextCue("Main bahut khush nahi hoon").signal);
+        assertEquals(HumanIntelligenceRules.Signal.JOY,
+                HumanIntelligenceRules.classifyExplicitTextCue(
+                        "Main bahut khush hoon, lekin tension nahi hai").signal);
+    }
+
+    @Test public void negatedCueDoesNotProduceSupportiveReply() {
+        assertNull(HumanIntelligenceRules.buildLocalSupportiveReply("Main bahut khush nahi hoon"));
+        assertNull(HumanIntelligenceRules.buildLocalSupportiveReply("Main udaas nahi hoon"));
+    }
+
     @Test public void supportiveReplyOnlyAppearsForExplicitCue() {
         assertNotNull(HumanIntelligenceRules.buildLocalSupportiveReply("Main pareshan hoon"));
         assertNull(HumanIntelligenceRules.buildLocalSupportiveReply("Mujhe kal ka weather batao"));
