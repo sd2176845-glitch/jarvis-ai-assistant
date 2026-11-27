@@ -118,28 +118,28 @@ public final class ConnectivityIntelligenceRules {
                                                      boolean capabilitiesKnown, boolean internetCapable,
                                                      boolean validated, boolean metered) {
         String selected = normalizeAiMode(mode);
-        StringBuilder out = new StringBuilder("CONNECTIVITY READINESS • READ-ONLY\\n");
-        out.append("AI MODE: ").append(selected).append("\\n");
+        StringBuilder out = new StringBuilder("CONNECTIVITY READINESS • READ-ONLY\n");
+        out.append("AI MODE: ").append(selected).append("\n");
         if ("Local".equals(selected)) {
-            out.append("AI ROUTING: Cloud requests are disabled by Local mode.\\n");
+            out.append("AI ROUTING: Cloud requests are disabled by Local mode.\n");
         } else if (!activeNetwork) {
-            out.append("NETWORK: No active default route reported.\\n");
-            out.append("NEXT STEP: Check Android Wi-Fi/mobile-data settings, then retry.\\n");
+            out.append("NETWORK: No active default route reported.\n");
+            out.append("NEXT STEP: Check Android Wi-Fi/mobile-data settings, then retry.\n");
         } else if (!capabilitiesKnown) {
-            out.append("NETWORK: Active route found; capability details unavailable.\\n");
-            out.append("NEXT STEP: Retry later; Android could not confirm internet readiness.\\n");
+            out.append("NETWORK: Active route found; capability details unavailable.\n");
+            out.append("NEXT STEP: Retry later; Android could not confirm internet readiness.\n");
         } else if (!internetCapable) {
-            out.append("NETWORK: Active route does not report internet capability.\\n");
-            out.append("NEXT STEP: Check the selected network or use supported local features.\\n");
+            out.append("NETWORK: Active route does not report internet capability.\n");
+            out.append("NEXT STEP: Check the selected network or use supported local features.\n");
         } else if (!validated) {
-            out.append("NETWORK: Internet capability reported, but general internet is not validated.\\n");
-            out.append("NEXT STEP: Recheck the connection before relying on cloud AI.\\n");
+            out.append("NETWORK: Internet capability reported, but general internet is not validated.\n");
+            out.append("NEXT STEP: Recheck the connection before relying on cloud AI.\n");
         } else {
-            out.append("NETWORK: Android reports validated internet.\\n");
-            out.append("NEXT STEP: Cloud AI may be attempted in Global/Hybrid mode; provider availability is still separate.\\n");
+            out.append("NETWORK: Android reports validated internet.\n");
+            out.append("NEXT STEP: Cloud AI may be attempted in Global/Hybrid mode; provider availability is still separate.\n");
         }
         if (activeNetwork && capabilitiesKnown) {
-            out.append("DATA COST: ").append(metered ? "Metered or unknown" : "Reported not metered").append("\\n");
+            out.append("DATA COST: ").append(metered ? "Metered or unknown" : "Reported not metered").append("\n");
         }
         out.append("LIMIT: This report reads Android capability flags only; it does not run a speed test, contact a server, guarantee service reachability, or change settings.");
         return out.toString();
