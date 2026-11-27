@@ -19,14 +19,16 @@ public final class SimulationEngineeringStudio {
                 "Digital World Simulator • conceptual scenarios",
                 "Virtual Experiment Lab • safe science concepts",
                 "3D Invention Studio • product design brief",
-                "Virtual Experiment Notebook • saved studies"
+                "Virtual Experiment Notebook • saved studies",
+                "Scenario Comparison Studio • compare two models"
         };
         new AlertDialog.Builder(activity).setTitle("JARVIS • Simulation & Engineering")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) chooseWorld(activity, status, transcript);
                     else if (which == 1) chooseExperiment(activity, status, transcript);
                     else if (which == 2) chooseInvention(activity, status, transcript);
-                    else showNotebook(activity);
+                    else if (which == 3) showNotebook(activity);
+                    else askScenarioComparison(activity, status, transcript);
                 }).setNegativeButton("Close", null).show();
     }
 
@@ -60,6 +62,36 @@ public final class SimulationEngineeringStudio {
                         600, brief -> generate(activity, status, transcript, "3D INVENTION DESIGN BRIEF",
                                 SimulationEngineeringRules.inventionPrompt(categories[which], brief))))
                 .setNegativeButton("Cancel", null).show();
+    }
+
+
+    /** Compares two harmless conceptual cases; no real-world procedure or device control. */
+    private static void askScenarioComparison(Activity activity, TextView status, TextView transcript) {
+        EditText baseline = new EditText(activity);
+        baseline.setHint("Baseline scenario (e.g. a small ecosystem)");
+        baseline.setMinLines(2);
+        EditText alternative = new EditText(activity);
+        alternative.setHint("Changed scenario (e.g. more rainfall)");
+        alternative.setMinLines(2);
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(24, 12, 24, 8);
+        layout.addView(baseline, new LinearLayout.LayoutParams(-1, -2));
+        layout.addView(alternative, new LinearLayout.LayoutParams(-1, -2));
+        new AlertDialog.Builder(activity).setTitle("Scenario Comparison Studio")
+                .setMessage("Enter two safe, conceptual cases to compare (maximum 300 characters each).")
+                .setView(layout)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Continue", (dialog, which) -> {
+                    String first = baseline.getText().toString().trim();
+                    String second = alternative.getText().toString().trim();
+                    if (first.isEmpty() || second.isEmpty() || first.length() > 300 || second.length() > 300) {
+                        Toast.makeText(activity, "Enter both scenarios, each under 300 characters.", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    generate(activity, status, transcript, "SCENARIO COMPARISON",
+                            SimulationEngineeringRules.comparePrompt(first, second));
+                }).show();
     }
 
     private static void ask(Activity activity, String title, String hint, int maxLength, TextAction action) {
