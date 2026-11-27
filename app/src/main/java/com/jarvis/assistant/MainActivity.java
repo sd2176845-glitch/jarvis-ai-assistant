@@ -3555,6 +3555,9 @@ public class MainActivity extends Activity {
                     .replace("ko phone karo", "").replace("phone karo", "").replace("phone lagao", "").trim();
             if (target.replaceAll("[^0-9+]", "").length() >= 5) {
                 requestOrPlaceCall(target.replaceAll("[^0-9+]", ""), target);
+            } else if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+                status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+                OwnerConsentStudio.show(this, preferences);
             } else if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
                 replyAndShow(original, "Contact permission allow karo, phir dobara bolo: " + target + " ko call karo.");
