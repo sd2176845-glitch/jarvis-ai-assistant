@@ -2824,6 +2824,11 @@ public class MainActivity extends Activity {
     }
 
     private void startWakeWordListening() {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.VOICE_PROCESSING)) {
+            status.setText("VOICE CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             startWakeAfterPermission = true;
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
@@ -2858,6 +2863,11 @@ public class MainActivity extends Activity {
 
     private void startListening() {
         aiOffline = false;
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.VOICE_PROCESSING)) {
+            status.setText("VOICE CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
             status.setText("MICROPHONE PERMISSION NEEDED");
