@@ -29,7 +29,8 @@ public final class PublicKnowledgeStudio {
                 "Country Information • name or ISO code",
                 "India PIN Code • post offices and district",
                 "English Dictionary • meaning and pronunciation",
-                "Wikipedia Topic Lookup • sourced summary"
+                "Wikipedia Topic Lookup • sourced summary",
+                "Academic Research • arXiv papers"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Public Knowledge Studio")
@@ -37,7 +38,8 @@ public final class PublicKnowledgeStudio {
                     if (which == 0) countryInput(activity);
                     else if (which == 1) pinInput(activity);
                     else if (which == 2) dictionaryInput(activity);
-                    else wikipediaInput(activity);
+                    else if (which == 3) wikipediaInput(activity);
+                    else arxivInput(activity);
                 })
                 .setNegativeButton("Close", null)
                 .show();
@@ -62,12 +64,123 @@ public final class PublicKnowledgeStudio {
         JSONObject desktop = urls == null ? null : urls.optJSONObject("desktop");
         String page = desktop == null ? "" : desktop.optString("page", "");
         String timestamp = root.optString("timestamp", "Not supplied");
-        return "TOPIC\n" + title
-                + (description.isEmpty() ? "" : "\n" + description)
-                + "\n\nSUMMARY\n" + extract
-                + "\n\nSOURCE\n" + (page.isEmpty() ? "Wikipedia article URL not supplied" : page)
-                + "\nProvider timestamp: " + timestamp
-                + "\n\nWikipedia is a general reference source. Verify important or current facts with official and primary sources.";
+        return "TOPIC\\n" + title
+                + (description.isEmpty() ? "" : "\\n" + description)
+                + "\\n\\nSUMMARY\\n" + extract
+                + "\\n\\nSOURCE\\n" + (page.isEmpty() ? "Wikipedia article URL not supplied" : page)
+                + "\\nProvider timestamp: " + timestamp
+                + "\\n\\nWikipedia is a general reference source. Verify important or current facts with official and primary sources.";
+    }
+
+    private static volatile long lastArxivRequestAt;
+
+    private static void arxivInput(Activity activity) {
+        String[] topics = {
+                "Education and learning science",
+                "Climate and environmental science",
+                "Biodiversity and ecology",
+                "Astronomy and cosmology",
+                "Mathematics and statistics",
+                "Language learning and accessibility",
+                "AI for education and accessibility"
+        };
+        new AlertDialog.Builder(activity)
+                .setTitle("Choose an academic research topic")
+                .setItems(topics, (dialog, which) -> {
+                    String query = topics[which];
+                    new AlertDialog.Builder(activity)
+                            .setTitle("Search academic papers?")
+                            .setMessage("JARVIS will send only the selected safe research topic to the public arXiv API. "
+                                    + "No custom queries, contacts, saved notes, conversation history or precise location are sent. "
+                                    + "Only paper metadata and abstracts are retrieved; PDFs are not downloaded and no search history is saved.")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("Search", (d, w) -> runArxivSearch(activity, query))
+                            .show();
+                })
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private static void runArxivSearch(Activity activity, String query) {
+        long now = System.currentTimeMillis();
+        synchronized (PublicKnowledgeStudio.class) {
+            if (now - lastArxivRequestAt < 3000L) {
+                Toast.makeText(activity, "Please wait a few seconds before another arXiv search.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            lastArxivRequestAt = now;
+        }
+
+        Toast.makeText(activity, "Searching arXiv research records…", Toast.LENGTH_SHORT).show();
+        Thread worker = new Thread(() -> {
+            HttpURLConnection connection = null;
+            String output;
+            try {
+                String address = "https://export.arxiv.org/api/query?search_query="
+                        + pathEncode("all:\"" + query + "\"")
+                        + "&start=0&max_results=5&sortBy=relevance&sortOrder=descending";
+                connection = (HttpURLConnection) new URL(address).openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(12000);
+                connection.setReadTimeout(20000);
+                connection.setInstanceFollowRedirects(false);
+                connection.setRequestProperty("Accept", "application/atom+xml, application/xml");
+                connection.setRequestProperty("User-Agent", "JARVIS-Android/1.0 (owner-invoked academic research)");
+                int status = connection.getResponseCode();
+                if (status < 200 || status >= 300) {
+                    output = "The arXiv service returned HTTP " + status
+                            + ". Try again later or open arXiv directly in a browser.";
+                } else {
+                    StringBuilder body = new StringBuilder();
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                        char[] buffer = new char[4096];
+                        int count;
+                        while ((count = reader.read(buffer)) != -1) {
+                            if (body.length() + count > 500000) {
+                                throw new java.io.IOException("The arXiv response exceeded the 500 KB limit.");
+                            }
+                            body.append(buffer, 0, count);
+                        }
+                    }
+                    String retrievedAt = new java.text.SimpleDateFormat(
+                            "yyyy-MM-dd HH:mm:ss z", java.util.Locale.US)
+                            .format(new java.util.Date());
+                    output = ArxivResearchRules.parseFeed(body.toString(), query, retrievedAt);
+                }
+            } catch (Exception e) {
+                output = "Academic research search is unavailable or returned an unexpected response. "
+                        + "Check the internet connection and try again. No search history was saved.";
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+            final String result = output;
+            activity.runOnUiThread(() -> {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                showArxivResult(activity, result);
+            });
+        }, "jarvis-arxiv-research");
+        worker.start();
+    }
+
+    private static void showArxivResult(Activity activity, String result) {
+        android.widget.TextView content = new android.widget.TextView(activity);
+        content.setText(result);
+        content.setTextSize(15);
+        content.setPadding(28, 20, 28, 20);
+        content.setTextIsSelectable(true);
+        content.setAutoLinkMask(android.text.util.Linkify.WEB_URLS);
+        android.text.util.Linkify.addLinks(content, android.text.util.Linkify.WEB_URLS);
+        content.setLinkTextColor(0xff1976d2);
+        content.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+
+        android.widget.ScrollView scroll = new android.widget.ScrollView(activity);
+        scroll.addView(content, new android.widget.ScrollView.LayoutParams(-1, -2));
+        new AlertDialog.Builder(activity)
+                .setTitle("JARVIS • Academic Paper Results")
+                .setView(scroll)
+                .setPositiveButton("Done", null)
+                .show();
     }
 
     private static void countryInput(Activity activity) {
