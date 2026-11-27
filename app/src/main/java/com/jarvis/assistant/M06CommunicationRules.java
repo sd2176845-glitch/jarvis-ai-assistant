@@ -63,6 +63,11 @@ public final class M06CommunicationRules {
         return digits.length() >= 5 && digits.length() <= 15;
     }
 
+    public static boolean canSendSms(boolean ownerConsent, boolean androidPermission,
+                                     String number, boolean validDraft) {
+        return ownerConsent && androidPermission && isValidSmsNumber(number) && validDraft;
+    }
+
     /** Returns a wa.me-compatible number, or null when it is not usable. */
     public static String normalizeWhatsAppNumber(String phone) {
         if (phone == null) return null;
