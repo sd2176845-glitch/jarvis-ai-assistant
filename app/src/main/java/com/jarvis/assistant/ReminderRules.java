@@ -35,6 +35,39 @@ public final class ReminderRules {
         return normalizedQuery.isEmpty() || normalizedTitle.contains(normalizedQuery);
     }
 
+    /** Returns a local-calendar bucket for a future reminder without assuming fixed 24-hour days. */
+    public static String scheduleGroup(long triggerAtMillis, long nowMillis) {
+        java.util.Calendar today = java.util.Calendar.getInstance();
+        today.setTimeInMillis(nowMillis);
+        today.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        today.set(java.util.Calendar.MINUTE, 0);
+        today.set(java.util.Calendar.SECOND, 0);
+        today.set(java.util.Calendar.MILLISECOND, 0);
+
+        java.util.Calendar target = (java.util.Calendar) today.clone();
+        target.setTimeInMillis(triggerAtMillis);
+        target.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        target.set(java.util.Calendar.MINUTE, 0);
+        target.set(java.util.Calendar.SECOND, 0);
+        target.set(java.util.Calendar.MILLISECOND, 0);
+
+        if (target.before(today)) return "Past";
+        if (sameCalendarDay(today, target)) return "Today";
+        java.util.Calendar tomorrow = (java.util.Calendar) today.clone();
+        tomorrow.add(java.util.Calendar.DAY_OF_YEAR, 1);
+        if (sameCalendarDay(tomorrow, target)) return "Tomorrow";
+        java.util.Calendar weekLimit = (java.util.Calendar) today.clone();
+        weekLimit.add(java.util.Calendar.DAY_OF_YEAR, 7);
+        if (target.before(weekLimit)) return "This week";
+        return "Later";
+    }
+
+    private static boolean sameCalendarDay(java.util.Calendar left, java.util.Calendar right) {
+        return left.get(java.util.Calendar.ERA) == right.get(java.util.Calendar.ERA)
+                && left.get(java.util.Calendar.YEAR) == right.get(java.util.Calendar.YEAR)
+                && left.get(java.util.Calendar.DAY_OF_YEAR) == right.get(java.util.Calendar.DAY_OF_YEAR);
+    }
+
     public static boolean shouldRestore(long triggerAtMillis, long nowMillis) {
         return isFuture(triggerAtMillis, nowMillis);
     }
