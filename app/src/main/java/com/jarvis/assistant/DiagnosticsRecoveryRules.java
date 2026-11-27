@@ -23,4 +23,24 @@ public final class DiagnosticsRecoveryRules {
                 || value instanceof Integer || value instanceof Long
                 || value instanceof Float || value instanceof Double;
     }
+
+    public static boolean isAllowedValue(String key, Object value) {
+        if (!isAllowedKey(key) || !isSupportedValue(value)) return false;
+        switch (key) {
+            case "assistant_mode":
+            case "voice_style":
+            case "voice_name":
+            case "speech_input_language":
+                return value instanceof String;
+            case "voice_pitch":
+                return value instanceof Float || value instanceof Double;
+            case "silent_background_ack":
+                return value instanceof Boolean;
+            case "dashboard_spacing_profile_v1":
+            case "display_accessibility_profile_v1":
+                return value instanceof Integer;
+            default:
+                return false;
+        }
+    }
 }
