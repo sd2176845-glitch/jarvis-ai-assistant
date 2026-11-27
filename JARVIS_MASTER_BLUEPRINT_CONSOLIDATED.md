@@ -153,6 +153,9 @@
 - [ ] Visual-defect checks and dynamic information display.
 - [ ] Accessibility options and universal accessibility mode.
 - [ ] Preserve essential controls, readable contrast and owner override.
+- [ ] App-local readability profiles: Standard, Large, Extra-large and High-contrast.
+- [ ] Owner-controlled profile selection and reset; persist the selected profile in the existing private preferences store.
+- [ ] Apply readability settings consistently to JARVIS status and response text without changing Android system settings, display density, permissions or background accessibility services.
 
 ### M16 — Connected Ecosystem, Smart Environment & Collaboration
 - [ ] Compatible smart-home devices and authorized Bluetooth accessories.
@@ -162,6 +165,11 @@
 - [ ] Reviewed plugin/extension registry with declared permissions and disable/uninstall controls.
 - [ ] Local device communication and authorized connected-system integrations.
 - [ ] A network connection alone never grants access to another device.
+- [ ] Smart-home Device Setup Guide for owner-submitted device details and compatible setup guidance.
+- [ ] Local Room Device Inventory with owner-entered device labels, stored in the existing private preferences store.
+- [ ] Smart Routine Planner for owner-reviewed household routine plans; planning does not imply unattended execution.
+- [ ] Authorized Bluetooth Accessory Handoff: show owner-entered accessory labels from the existing inventory and open Android Bluetooth settings only after an explicit owner tap.
+- [ ] Bluetooth handoff must not perform background scanning, automatic pairing, remote control, credential collection or device-command execution; the owner manages pairing and unpairing in Android settings.
 
 ### M17 — Platform, Resource & Connectivity Intelligence
 - [ ] Battery, storage, device-resource and authorized network-health information.
