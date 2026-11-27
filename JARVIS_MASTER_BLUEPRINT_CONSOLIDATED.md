@@ -740,3 +740,10 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 The current reconciliation branch adds consent enforcement, text-only Human Intelligence, reviewed communication handoffs, owner-confirmed SMS, AES-GCM evidence integrity verification, allowlisted diagnostics recovery, integration-summary sharing, read-only connectivity readiness, safe conceptual scenario comparison and owner-reviewed collaborative-plan sharing. See `JARVIS_IMPLEMENTATION_TRACKER.md` for file-level scope, test status and limitations.
 
 These are partial capability increments, not blanket completion of their modules. External live sync, satellite/private-network provider integration, physical robotics control, and real booking/payment remain unimplemented until supported providers, hardware, accounts and permission boundaries are established. Do not mark physical-device verification complete based on CI.
+
+
+## 2026-11-27 — M01–M19 reconciliation merged to main
+
+- PR #76 merged M01 consent enforcement, M02 text-only Human Intelligence, M06 reviewed communication handoffs and owner-confirmed SMS, M13 encrypted-evidence integrity verification, M14 allowlisted checkpoint/restore/rollback, M16 integration-summary sharing, M17 read-only connectivity readiness, M18 safe scenario comparison and M19 collaborative-plan sharing.
+- Post-merge main commit `f346fe2b7d66f9281d03515c0f58c5c1eed8d1df` passed Actions run #1445: backend tests, Android unit tests, debug APK build and artifact upload.
+- These are partial increments, not blanket module completion. Physical-device verification remains pending. Live sync, satellite/private-network provider connections, physical robotics control and real booking/payment remain unimplemented.
