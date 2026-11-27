@@ -46,7 +46,7 @@ public final class DiagnosticsRecoveryStudio {
         for (String key : DiagnosticsRecoveryRules.allowedKeys()) {
             if (!source.contains(key)) continue;
             Object value = source.getAll().get(key);
-            if (DiagnosticsRecoveryRules.isSupportedValue(value)) values.put(key, value);
+            if (DiagnosticsRecoveryRules.isAllowedValue(key, value)) values.put(key, value);
         }
         JSONObject result = new JSONObject();
         result.put("version", 1);
@@ -157,7 +157,7 @@ public final class DiagnosticsRecoveryStudio {
                 String key = names.getString(i);
                 if (!DiagnosticsRecoveryRules.isAllowedKey(key)) continue;
                 Object value = values.get(key);
-                if (!DiagnosticsRecoveryRules.isSupportedValue(value)) continue;
+                if (!DiagnosticsRecoveryRules.isAllowedValue(key, value)) continue;
                 if (value instanceof Boolean) editor.putBoolean(key, (Boolean) value);
                 else if (value instanceof Integer) editor.putInt(key, (Integer) value);
                 else if (value instanceof Long) editor.putLong(key, (Long) value);
