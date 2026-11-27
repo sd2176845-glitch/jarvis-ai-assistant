@@ -3,18 +3,22 @@ package com.jarvis.assistant;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
-import android.telephony.SmsMessage;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.os.Bundle;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** Announces incoming calls and SMS only after the user grants the matching Android permissions. */
+/** Announces call/SMS events only with explicit owner consent; contacts need separate consent. */
 public class PhoneEventReceiver extends BroadcastReceiver {
+    private static boolean consent(Context context, int index) {
+        SharedPreferences prefs = context.getSharedPreferences("jarvis_preferences", Context.MODE_PRIVATE);
+        return OwnerConsentStudio.isAllowed(prefs, index);
+    }
+
     private static void announce(Context context, String message, PendingResult pending) {
         AtomicBoolean finished = new AtomicBoolean(false);
         Runnable finish = () -> {
@@ -33,14 +37,8 @@ public class PhoneEventReceiver extends BroadcastReceiver {
                 tts.setSpeechRate(0.92f);
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                     @Override public void onStart(String id) {}
-                    @Override public void onDone(String id) {
-                        tts.shutdown();
-                        finish.run();
-                    }
-                    @Override public void onError(String id) {
-                        tts.shutdown();
-                        finish.run();
-                    }
+                    @Override public void onDone(String id) { tts.shutdown(); finish.run(); }
+                    @Override public void onError(String id) { tts.shutdown(); finish.run(); }
                 });
                 if (tts.speak(message, TextToSpeech.QUEUE_FLUSH, null, "jarvis_phone_event") == TextToSpeech.ERROR) {
                     tts.shutdown();
@@ -56,11 +54,14 @@ public class PhoneEventReceiver extends BroadcastReceiver {
         if (intent == null) return;
         String action = intent.getAction();
         if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
+            if (!consent(context, OwnerConsentStudio.CALL_EVENT_ANNOUNCEMENTS)) return;
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             if (!TelephonyManager.EXTRA_STATE_RINGING.equals(state)) return;
             String number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
             String name = null;
-            if (number != null && context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            if (number != null && consent(context, OwnerConsentStudio.CONTACT_LOOKUP)
+                    && context.checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+                    == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 Cursor c = null;
                 try {
                     c = context.getContentResolver().query(
@@ -77,25 +78,9 @@ public class PhoneEventReceiver extends BroadcastReceiver {
                     : "Boss, " + name + " ka call aa raha hai.";
             announce(context, announcement, goAsync());
         } else if ("android.provider.Telephony.SMS_RECEIVED".equals(action)) {
-            Bundle bundle = intent.getExtras();
-            if (bundle == null) return;
-            Object[] pdus = (Object[]) bundle.get("pdus");
-            if (pdus == null || pdus.length == 0) return;
-            StringBuilder message = new StringBuilder("Boss, naya SMS aaya hai. ");
-            String format = bundle.getString("format");
-            for (Object pdu : pdus) {
-                if (!(pdu instanceof byte[])) continue;
-                SmsMessage sms;
-                if (android.os.Build.VERSION.SDK_INT >= 23) sms = SmsMessage.createFromPdu((byte[]) pdu, format);
-                else sms = SmsMessage.createFromPdu((byte[]) pdu);
-                if (sms != null) {
-                    String sender = sms.getDisplayOriginatingAddress();
-                    String body = sms.getMessageBody();
-                    if (sender != null && message.indexOf("Sender ") < 0) message.append("Sender ").append(sender).append(". ");
-                    if (body != null) message.append(body).append(" ");
-                }
-            }
-            announce(context, message.toString(), goAsync());
+            if (!consent(context, OwnerConsentStudio.SMS_EVENT_ANNOUNCEMENTS)) return;
+            // Announce only that a message arrived. Never read or speak the sender, OTP, or message body.
+            announce(context, "Boss, naya SMS aaya hai.", goAsync());
         }
     }
 }
