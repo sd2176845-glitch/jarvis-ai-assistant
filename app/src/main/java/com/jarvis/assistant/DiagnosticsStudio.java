@@ -33,12 +33,18 @@ final class DiagnosticsStudio {
     private DiagnosticsStudio() { }
 
     static void show(Activity activity, SharedPreferences preferences, boolean ttsReady) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.LOCAL_DIAGNOSTICS)) {
+            Toast.makeText(activity, "Local diagnostics consent is required. Review the owner consent choices first.", Toast.LENGTH_LONG).show();
+            OwnerConsentStudio.show(activity, preferences);
+            return;
+        }
         String[] actions = {
                 "Run app health check",
                 "Check JARVIS backend health",
                 "Export sanitized report",
                 "View saved diagnostic history",
-                "Clear diagnostic history"
+                "Clear diagnostic history",
+                "Configuration recovery & rollback"
         };
         new AlertDialog.Builder(activity)
                 .setTitle("JARVIS • Diagnostics Studio")
@@ -48,7 +54,8 @@ final class DiagnosticsStudio {
                     else if (which == 1) checkBackendHealth(activity);
                     else if (which == 2) showReport(activity, preferences, ttsReady, true);
                     else if (which == 3) showHistory(activity, preferences, ttsReady);
-                    else clearHistory(activity, preferences);
+                    else if (which == 4) clearHistory(activity, preferences);
+                    else DiagnosticsRecoveryStudio.show(activity, preferences);
                 })
                 .setNegativeButton("Close", null)
                 .show();

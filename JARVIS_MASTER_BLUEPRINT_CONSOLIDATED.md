@@ -733,3 +733,10 @@ Reliability and source authority are mandatory. Modelled data and heuristics mus
 - Added pure-Java tests for partial matches, case-insensitivity, whitespace normalization, empty search and non-matches.
 - No duplicate reminder hub/store/scheduler, new permission, other-app notification access, cloud upload or background collection.
 - **Status:** code added on B26 branch; final-head CI and Poco M4 Pro 4G physical-device verification pending.
+
+
+## 2026-11-27 — M01 / M02 / M06 / M13 / M14 / M16–M19 mainline reconciliation
+
+The current reconciliation branch adds consent enforcement, text-only Human Intelligence, reviewed communication handoffs, owner-confirmed SMS, AES-GCM evidence integrity verification, allowlisted diagnostics recovery, integration-summary sharing, read-only connectivity readiness, safe conceptual scenario comparison and owner-reviewed collaborative-plan sharing. See `JARVIS_IMPLEMENTATION_TRACKER.md` for file-level scope, test status and limitations.
+
+These are partial capability increments, not blanket completion of their modules. External live sync, satellite/private-network provider integration, physical robotics control, and real booking/payment remain unimplemented until supported providers, hardware, accounts and permission boundaries are established. Do not mark physical-device verification complete based on CI.

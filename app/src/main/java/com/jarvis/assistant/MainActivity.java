@@ -28,6 +28,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.database.Cursor;
 import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.app.AppOpsManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
@@ -56,9 +57,12 @@ public class MainActivity extends Activity {
     private static final int CONTACT_PERMISSION_REQUEST = 1002;
     private static final int CALL_PERMISSION_REQUEST = 1003;
     private static final int PHONE_EVENTS_PERMISSION_REQUEST = 1004;
+    private static final int SMS_SEND_PERMISSION_REQUEST = 1005;
     private boolean startWakeAfterPermission = false;
     private String pendingDirectCallNumber = null;
     private String pendingDirectCallName = null;
+    private String pendingSmsNumber = null;
+    private String pendingSmsText = null;
     private SharedPreferences preferences;
     private ImageView avatar;
     private android.os.CountDownTimer activeFocusTimer;
@@ -994,6 +998,11 @@ public class MainActivity extends Activity {
     }
 
     private void showMessageRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             new AlertDialog.Builder(this).setTitle("Contacts permission needed")
                     .setMessage("To select a recipient, allow Contacts permission in Android app settings, then retry. No message was opened.")
@@ -1053,25 +1062,263 @@ public class MainActivity extends Activity {
         message.setMinLines(3);
         message.setMaxLines(8);
         message.setGravity(Gravity.TOP | Gravity.START);
+        boolean hasRecipient = recipientNumber != null && !recipientNumber.trim().isEmpty();
         new AlertDialog.Builder(this).setTitle("JARVIS • Message draft")
-                .setMessage("Review or edit the message. JARVIS will only open your messaging app; it will not send the message.")
+                .setMessage(hasRecipient
+                        ? "Review or edit the exact message. JARVIS will ask for one final confirmation before sending."
+                        : "Review or edit the message. JARVIS will open your messaging app; you can choose a recipient and send manually.")
                 .setView(message)
                 .setNegativeButton("Cancel", (d, w) -> status.setText("MESSAGE DRAFT CANCELLED"))
-                .setPositiveButton("Review in messaging app", (d, w) -> {
+                .setPositiveButton(hasRecipient ? "Continue to confirmation" : "Open messaging app", (d, w) -> {
                     String approvedText = message.getText().toString().trim();
                     if (!B21MessageDraftRules.isValidDraft(approvedText)) {
-                        status.setText("MESSAGE DRAFT INVALID • NOTHING OPENED");
+                        status.setText("MESSAGE DRAFT INVALID • NOTHING SENT");
+                        return;
+                    }
+                    if (hasRecipient) {
+                        confirmSmsSend(recipientNumber, approvedText);
+                    } else {
+                        try {
+                            Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse("smsto:"));
+                            sms.putExtra("sms_body", approvedText);
+                            startActivity(sms);
+                            status.setText("MESSAGE COMPOSER OPENED • SEND MANUALLY");
+                        } catch (Exception e) {
+                            status.setText("MESSAGE APP NOT AVAILABLE");
+                        }
+                    }
+                }).show();
+    }
+
+    private void confirmSmsSend(String recipientNumber, String approvedText) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND)) {
+            status.setText("OUTGOING SMS CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (!M06CommunicationRules.isValidSmsNumber(number)
+                || !B21MessageDraftRules.isValidDraft(approvedText)) {
+            status.setText("SMS DETAILS INVALID • NOTHING SENT");
+            return;
+        }
+        new AlertDialog.Builder(this).setTitle("JARVIS • Confirm SMS send")
+                .setMessage("Recipient: " + number + "\n\nExact message:\n" + approvedText
+                        + "\n\nSend this one SMS now?")
+                .setNegativeButton("Cancel", (d, w) -> {
+                    pendingSmsNumber = null;
+                    pendingSmsText = null;
+                    status.setText("SMS CANCELLED • NOTHING SENT");
+                })
+                .setPositiveButton("Send SMS", (d, w) -> {
+                    if (checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
+                        sendApprovedSms(number, approvedText);
+                    } else {
+                        pendingSmsNumber = number;
+                        pendingSmsText = approvedText;
+                        requestPermissions(new String[]{Manifest.permission.SEND_SMS}, SMS_SEND_PERMISSION_REQUEST);
+                    }
+                }).show();
+    }
+
+    private void sendApprovedSms(String recipientNumber, String approvedText) {
+        String number = M06CommunicationRules.normalizeSmsNumber(recipientNumber);
+        if (!M06CommunicationRules.canSendSms(
+                OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.OUTGOING_SMS_SEND),
+                checkSelfPermission(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED,
+                number, B21MessageDraftRules.isValidDraft(approvedText))) {
+            status.setText("SMS NOT SENT • CONSENT, PERMISSION OR DETAILS INVALID");
+            return;
+        }
+        try {
+            SmsManager manager = SmsManager.getDefault();
+            ArrayList<String> parts = manager.divideMessage(approvedText);
+            if (parts == null || parts.isEmpty() || parts.size() > 10) {
+                status.setText("SMS NOT SENT • MESSAGE MUST FIT WITHIN TEN PARTS");
+                return;
+            }
+            if (parts.size() == 1) manager.sendTextMessage(number, null, approvedText, null, null);
+            else manager.sendMultipartTextMessage(number, null, parts, null, null);
+            status.setText("SMS SUBMITTED TO CARRIER • DELIVERY NOT CONFIRMED");
+            speak("SMS bhejne ki request phone network ko de di gayi hai. Delivery abhi confirm nahi hai.");
+        } catch (SecurityException e) {
+            status.setText("SMS NOT SENT • ANDROID DENIED PERMISSION");
+        } catch (IllegalArgumentException e) {
+            status.setText("SMS NOT SENT • INVALID RECIPIENT OR MESSAGE");
+        } catch (Exception e) {
+            status.setText("SMS SEND FAILED • CHECK SIM AND NETWORK");
+        }
+    }
+
+    private void showEmailRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            new AlertDialog.Builder(this).setTitle("Contacts permission needed")
+                    .setMessage("Allow Contacts permission in Android settings, then retry. No email was opened.")
+                    .setPositiveButton("Open app settings", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception e) { status.setText("OPEN JARVIS APP INFO IN ANDROID SETTINGS"); }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> addresses = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Email.DISPLAY_NAME + " LIKE ? OR "
+                    + ContactsContract.CommonDataKinds.Email.ADDRESS + " LIKE ?";
+            String match = "%" + requestedName + "%";
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Email.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Email.ADDRESS},
+                    selection, new String[]{match, match},
+                    ContactsContract.CommonDataKinds.Email.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String address = cursor.getString(1);
+                    if (!M06CommunicationRules.isValidEmailAddress(address)) continue;
+                    labels.add((name == null ? "Contact" : name) + " • " + address);
+                    addresses.add(address);
+                }
+            }
+        } catch (SecurityException e) {
+            status.setText("CONTACTS UNAVAILABLE • NO EMAIL OPENED");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (addresses.isEmpty()) {
+            status.setText("NO MATCHING EMAIL CONTACT • NO EMAIL OPENED");
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose email recipient")
+                    .setMessage("Select the intended address. You will review the email before opening your email app.")
+                    .setItems(labels.toArray(new String[0]), (d, which) ->
+                            showEmailDraftPreview(draft, addresses.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
+    private void showEmailDraftPreview(String draft, String recipient) {
+        EditText subject = new EditText(this);
+        subject.setHint("Subject (optional)");
+        EditText body = new EditText(this);
+        body.setText(draft);
+        body.setMinLines(4);
+        body.setMaxLines(10);
+        body.setGravity(Gravity.TOP | Gravity.START);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(24, 8, 24, 8);
+        layout.addView(subject);
+        layout.addView(body);
+        new AlertDialog.Builder(this).setTitle("JARVIS • Email draft")
+                .setMessage("To: " + recipient + "\nReview or edit below. JARVIS will open your email app; it will not send.")
+                .setView(layout)
+                .setNegativeButton("Cancel", (d, w) -> status.setText("EMAIL DRAFT CANCELLED"))
+                .setPositiveButton("Review in email app", (d, w) -> {
+                    String text = body.getText().toString().trim();
+                    String title = subject.getText().toString().trim();
+                    if (!B21MessageDraftRules.isValidDraft(text)
+                            || !M06CommunicationRules.isValidEmailAddress(recipient)) {
+                        status.setText("EMAIL DRAFT INVALID • NOTHING OPENED");
                         return;
                     }
                     try {
-                        String target = recipientNumber == null || recipientNumber.trim().isEmpty()
-                                ? "smsto:" : "smsto:" + android.net.Uri.encode(recipientNumber);
-                        Intent sms = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse(target));
-                        sms.putExtra("sms_body", approvedText);
-                        startActivity(sms);
-                        status.setText("MESSAGE COMPOSER OPENED • REVIEW AND SEND MANUALLY");
+                        android.net.Uri mailto = android.net.Uri.parse("mailto:"
+                                + android.net.Uri.encode(recipient, "@._+-"));
+                        Intent email = new Intent(Intent.ACTION_SENDTO, mailto);
+                        email.putExtra(Intent.EXTRA_SUBJECT, title);
+                        email.putExtra(Intent.EXTRA_TEXT, text);
+                        startActivity(email);
+                        status.setText("EMAIL COMPOSER OPENED • REVIEW AND SEND MANUALLY");
                     } catch (Exception e) {
-                        status.setText("MESSAGE APP NOT AVAILABLE");
+                        status.setText("EMAIL APP NOT AVAILABLE");
+                    }
+                }).show();
+    }
+
+    private void showWhatsAppRecipientChoices(String requestedName, String draft) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            new AlertDialog.Builder(this).setTitle("Contacts permission needed")
+                    .setMessage("Allow Contacts permission in Android settings, then retry. No WhatsApp chat was opened.")
+                    .setPositiveButton("Open app settings", (d, w) -> {
+                        try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.parse("package:" + getPackageName()))); }
+                        catch (Exception e) { status.setText("OPEN JARVIS APP INFO IN ANDROID SETTINGS"); }
+                    }).setNegativeButton("Cancel", null).show();
+            return;
+        }
+        Cursor cursor = null;
+        ArrayList<String> labels = new ArrayList<>();
+        ArrayList<String> numbers = new ArrayList<>();
+        try {
+            String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?";
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER},
+                    selection, new String[]{"%" + requestedName + "%"},
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
+            if (cursor != null) {
+                while (cursor.moveToNext() && labels.size() < 10) {
+                    String name = cursor.getString(0);
+                    String number = cursor.getString(1);
+                    if (M06CommunicationRules.normalizeWhatsAppNumber(number) == null) continue;
+                    labels.add((name == null ? "Unknown contact" : name) + " • " + number);
+                    numbers.add(number);
+                }
+            }
+        } catch (SecurityException e) {
+            status.setText("CONTACTS UNAVAILABLE • NO WHATSAPP CHAT OPENED");
+            return;
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        if (numbers.isEmpty()) {
+            status.setText("NO MATCHING PHONE CONTACT • NO WHATSAPP CHAT OPENED");
+        } else {
+            new AlertDialog.Builder(this).setTitle("Choose WhatsApp recipient")
+                    .setMessage("Select the intended contact. JARVIS will show an editable draft before opening WhatsApp.")
+                    .setItems(labels.toArray(new String[0]), (d, which) ->
+                            showWhatsAppDraftPreview(draft, numbers.get(which)))
+                    .setNegativeButton("Cancel", null).show();
+        }
+    }
+
+    private void showWhatsAppDraftPreview(String draft, String phoneNumber) {
+        EditText message = new EditText(this);
+        message.setText(draft);
+        message.setMinLines(3);
+        message.setMaxLines(8);
+        message.setGravity(Gravity.TOP | Gravity.START);
+        new AlertDialog.Builder(this).setTitle("JARVIS • WhatsApp draft")
+                .setMessage("Review or edit the message. JARVIS will open WhatsApp; it will not send.")
+                .setView(message)
+                .setNegativeButton("Cancel", (d, w) -> status.setText("WHATSAPP DRAFT CANCELLED"))
+                .setPositiveButton("Review in WhatsApp", (d, w) -> {
+                    String approvedText = message.getText().toString().trim();
+                    String number = M06CommunicationRules.normalizeWhatsAppNumber(phoneNumber);
+                    if (!B21MessageDraftRules.isValidDraft(approvedText) || number == null) {
+                        status.setText("WHATSAPP DRAFT INVALID • NOTHING OPENED");
+                        return;
+                    }
+                    try {
+                        String url = "https://wa.me/" + number + "?text="
+                                + android.net.Uri.encode(approvedText);
+                        startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+                        status.setText("WHATSAPP HANDOFF OPENED • REVIEW AND SEND MANUALLY");
+                    } catch (Exception e) {
+                        status.setText("WHATSAPP HANDOFF UNAVAILABLE");
                     }
                 }).show();
     }
@@ -2812,10 +3059,16 @@ public class MainActivity extends Activity {
     }
 
     private void enablePhoneEventPermissions() {
+        boolean callConsent = OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CALL_EVENT_ANNOUNCEMENTS);
+        boolean smsConsent = OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.SMS_EVENT_ANNOUNCEMENTS);
+        if (!callConsent && !smsConsent) {
+            status.setText("CALL/SMS ANNOUNCEMENT CONSENT REQUIRED");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         java.util.ArrayList<String> needed = new java.util.ArrayList<>();
-        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
-        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_CONTACTS);
-        if (checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.RECEIVE_SMS);
+        if (callConsent && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.READ_PHONE_STATE);
+        if (smsConsent && checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) needed.add(Manifest.permission.RECEIVE_SMS);
         if (!needed.isEmpty()) requestPermissions(needed.toArray(new String[0]), PHONE_EVENTS_PERMISSION_REQUEST);
         else {
             status.setText("CALL & SMS ANNOUNCEMENTS ENABLED");
@@ -2824,6 +3077,11 @@ public class MainActivity extends Activity {
     }
 
     private void startWakeWordListening() {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.VOICE_PROCESSING)) {
+            status.setText("VOICE CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             startWakeAfterPermission = true;
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
@@ -2858,6 +3116,11 @@ public class MainActivity extends Activity {
 
     private void startListening() {
         aiOffline = false;
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.VOICE_PROCESSING)) {
+            status.setText("VOICE CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         if (android.os.Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
             status.setText("MICROPHONE PERMISSION NEEDED");
@@ -2920,6 +3183,17 @@ public class MainActivity extends Activity {
             for (int result : grantResults) if (result != PackageManager.PERMISSION_GRANTED) allGranted = false;
             status.setText(allGranted ? "CALL & SMS ANNOUNCEMENTS ENABLED" : "CALL/SMS PERMISSION DENIED • ANNOUNCEMENTS LIMITED");
             if (allGranted) speak("Call aur SMS announcements enabled.");
+        } else if (requestCode == SMS_SEND_PERMISSION_REQUEST) {
+            String number = pendingSmsNumber;
+            String message = pendingSmsText;
+            pendingSmsNumber = null;
+            pendingSmsText = null;
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    && number != null && message != null) {
+                sendApprovedSms(number, message);
+            } else {
+                status.setText("SMS PERMISSION DENIED • NOTHING SENT");
+            }
         } else if (requestCode == CALL_PERMISSION_REQUEST) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 String number = pendingDirectCallNumber;
@@ -3176,26 +3450,10 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // Mood-aware supportive replies: respond gently, without pretending to know more than was said.
-        if (intent.contains("udaas") || intent.contains("sad") || intent.contains("dil kharab")
-                || intent.contains("mann nahi lag") || intent.contains("man nahi lag")
-                || intent.contains("rona aa raha") || intent.contains("pareshan hoon")) {
-            replyAndShow(original, "Bhai, lag raha hai abhi waqt thoda mushkil hai. Main sun raha hoon. Aaram se batao kya hua—main judge nahi karunga. Agar tum chaho, hum ek-ek karke sochenge.");
-            return;
-        }
-        if (intent.contains("darr lag") || intent.contains("dar lag") || intent.contains("ghabra")
-                || intent.contains("anxiety") || intent.contains("tension ho rahi")) {
-            replyAndShow(original, "Theek hai, pehle dheere se saans lo aur apne aap ko safe jagah par rakho. Main sun raha hoon. Kis baat se darr ya tension ho rahi hai?");
-            return;
-        }
-        if (intent.contains("khush hoon") || intent.contains("bahut khush") || intent.contains("happy hoon")
-                || intent.contains("good news")) {
-            replyAndShow(original, "Arey wah, Boss! Ye toh achhi baat hai. Batao kya hua—saath mein celebrate karte hain!");
-            return;
-        }
-        if (intent.contains("akela feel") || intent.contains("lonely") || intent.contains("koi nahi hai")
-                || intent.contains("koi sunta nahi")) {
-            replyAndShow(original, "Bhai, tum jo keh rahe ho main dhyan se sununga. Tumhe sab kuch ek saath explain karne ki zaroorat nahi—jitna comfortable ho utna batao. Agar mumkin ho toh kisi bharosemand insaan se bhi baat karna.");
+        // M02 Human Intelligence: use cautious, explicit text cues; neutral or ambiguous wording falls through to AI.
+        String supportiveReply = HumanIntelligenceRules.buildLocalSupportiveReply(intent);
+        if (supportiveReply != null) {
+            replyAndShow(original, supportiveReply);
             return;
         }
 
@@ -3271,12 +3529,35 @@ public class MainActivity extends Activity {
             try { startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)); }
             catch (Exception e) { transcript.append("\nLocation settings nahi khul paayi."); }
             return;
+        } else if (intent.startsWith("email ") || intent.startsWith("mail ")) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"email", "mail"});
+            if (draft == null || draft.recipient.isEmpty() || draft.body.isEmpty()) {
+                replyAndShow(original, "Use: email to contact-name-or-address: your message. Nothing was opened.");
+            } else if (M06CommunicationRules.isValidEmailAddress(draft.recipient)) {
+                showEmailDraftPreview(draft.body, draft.recipient);
+            } else {
+                showEmailRecipientChoices(draft.recipient, draft.body);
+            }
+            return;
+        } else if (intent.startsWith("whatsapp ") || intent.startsWith("wa ")) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"whatsapp", "wa"});
+            if (draft == null || draft.recipient.isEmpty() || draft.body.isEmpty()) {
+                replyAndShow(original, "Use: whatsapp to contact-name: your message. Nothing was opened.");
+            } else {
+                showWhatsAppRecipientChoices(draft.recipient, draft.body);
+            }
+            return;
         } else if (intent.contains("call") || intent.contains("phone karo") || intent.contains("phone lagao") || intent.contains("ko phone karo") || intent.contains("ko call karo")) {
             String target = intent.replace("mere ", "").replace("meri ", "")
                     .replace("ko call karo", "").replace("call karo", "").replace("call", "")
                     .replace("ko phone karo", "").replace("phone karo", "").replace("phone lagao", "").trim();
             if (target.replaceAll("[^0-9+]", "").length() >= 5) {
                 requestOrPlaceCall(target.replaceAll("[^0-9+]", ""), target);
+            } else if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+                status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+                OwnerConsentStudio.show(this, preferences);
             } else if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, CONTACT_PERMISSION_REQUEST);
                 replyAndShow(original, "Contact permission allow karo, phir dobara bolo: " + target + " ko call karo.");
@@ -3285,17 +3566,17 @@ public class MainActivity extends Activity {
             }
             return;
         } else if (intent.startsWith("message ") || intent.startsWith("sms ") || intent.startsWith("text ")) {
-            String body = intent.replaceFirst("^(message|sms|text)\\s+", "").trim();
-            if (body.toLowerCase(Locale.ROOT).startsWith("to ") && body.contains(":")) {
-                int separator = body.indexOf(':');
-                String recipient = body.substring(3, separator).trim();
-                String messageBody = body.substring(separator + 1).trim();
-                if (recipient.isEmpty() || messageBody.isEmpty()) {
+            M06CommunicationRules.AddressedDraft draft =
+                    M06CommunicationRules.parseAddressedDraft(original, new String[]{"message", "sms", "text"});
+            if (draft != null) {
+                if (draft.recipient.isEmpty() || draft.body.isEmpty()) {
                     replyAndShow(original, "Use: message to contact-name: your message. Nothing was opened.");
                 } else {
-                    showMessageRecipientChoices(recipient, messageBody);
+                    showMessageRecipientChoices(draft.recipient, draft.body);
                 }
             } else {
+                String body = M06CommunicationRules.removeCommandPrefix(original,
+                        new String[]{"message", "sms", "text"});
                 showMessageDraftPreview(body);
             }
             return;
@@ -3386,6 +3667,11 @@ public class MainActivity extends Activity {
     }
 
     private void showContactChoices(String requestedName, String originalCommand) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return;
+        }
         String queryName = requestedName == null ? "" : requestedName.trim();
         if (queryName.isEmpty()) {
             replyAndShow(originalCommand, "Contact ka naam batao. Call abhi nahi ki gayi.");
@@ -3432,6 +3718,11 @@ public class MainActivity extends Activity {
     }
 
     private String findContactNumber(String requestedName) {
+        if (!OwnerConsentStudio.isAllowed(preferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            status.setText("CONTACT LOOKUP CONSENT REQUIRED • OPEN OWNER PRIVACY STUDIO");
+            OwnerConsentStudio.show(this, preferences);
+            return null;
+        }
         String queryName = requestedName == null ? "" : requestedName.trim();
         if (queryName.isEmpty()) return null;
         Cursor cursor = null;

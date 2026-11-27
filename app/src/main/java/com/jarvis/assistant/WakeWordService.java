@@ -87,6 +87,11 @@ public class WakeWordService extends Service {
             stopListening();
             return START_NOT_STICKY;
         }
+        SharedPreferences ownerPreferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        if (!OwnerConsentStudio.isAllowed(ownerPreferences, OwnerConsentStudio.VOICE_PROCESSING)) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         if (Build.VERSION.SDK_INT >= 23 &&
                 checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             stopSelf();
@@ -420,6 +425,11 @@ public class WakeWordService extends Service {
     }
 
     private void openContactDialer(String requestedName) {
+        SharedPreferences ownerPreferences = getSharedPreferences("jarvis_preferences", MODE_PRIVATE);
+        if (!OwnerConsentStudio.isAllowed(ownerPreferences, OwnerConsentStudio.CONTACT_LOOKUP)) {
+            say("Contact lookup ke liye pehle JARVIS Owner Privacy Studio mein consent enable karo.");
+            return;
+        }
         if (checkSelfPermission(android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             say("Contact permission nahi mili. JARVIS app kholo aur contact permission allow karo.");
             return;
